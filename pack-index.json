@@ -5,37 +5,37 @@
       "id": "wizard",
       "displayName": "Wizard",
       "description": "Stichspiel mit Zauberern und Narren",
-      "version": 1,
-      "downloadUrl": "",
-      "sizeBytes": 0,
-      "checksum": ""
+      "version": 9,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v9/wizard.zip",
+      "sizeBytes": 81345,
+      "checksum": "sha256:1ab863a0ce39bc827fa0f5c51e3c2c1d09032b123b3ca688134ec3685df32e84"
     },
     {
       "id": "faraway",
       "displayName": "Faraway",
       "description": "Regionen und Heiligtümer erkunden",
-      "version": 1,
-      "downloadUrl": "",
-      "sizeBytes": 0,
-      "checksum": ""
+      "version": 9,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v9/faraway.zip",
+      "sizeBytes": 149242,
+      "checksum": "sha256:bdc9293a872ddfa9d2081796387dda9d2ea403afab29c0ec178c77c4cd42e7eb"
     },
     {
       "id": "mischwald",
       "displayName": "Mischwald",
       "description": "Waldbewohner sammeln und kombinieren",
-      "version": 1,
-      "downloadUrl": "",
-      "sizeBytes": 0,
-      "checksum": ""
+      "version": 9,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v9/mischwald.zip",
+      "sizeBytes": 203207,
+      "checksum": "sha256:634e64f10b29c8d5e07346d25ec69714a5e31d60268536a1e56a85c6a30b00d3"
     },
     {
       "id": "doppelkopf",
       "displayName": "Doppelkopf",
       "description": "Klassisches deutsches Kartenspiel",
-      "version": 1,
-      "downloadUrl": "",
-      "sizeBytes": 0,
-      "checksum": ""
+      "version": 9,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v9/doppelkopf.zip",
+      "sizeBytes": 18776,
+      "checksum": "sha256:52650b35f28477088a6a2bbacb689ba66081b19e9c669be0eac7717e3d1d3ad3"
     }
   ]
 }
