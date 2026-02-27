@@ -12,7 +12,7 @@
  * Card data is loaded from cards.json bundled with this pack.
  */
 
-import type { PlayerInput, PlayerScoreResult, CardScoreDetail } from '../../scorer-api/types';
+import type { PlayerInput, PlayerScoreResult, CardScoreDetail } from '../scorer-api/types';
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of mischwald_cards.json)

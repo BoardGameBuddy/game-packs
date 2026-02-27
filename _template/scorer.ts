@@ -13,7 +13,7 @@ import type {
   PlayerInput,
   PlayerScoreResult,
   CardScoreDetail,
-} from '../../scorer-api/types';
+} from '../scorer-api/types';
 
 /**
  * Optional: load card definitions from cards.json to drive scoring rules.

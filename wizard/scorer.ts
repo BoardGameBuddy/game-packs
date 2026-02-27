@@ -13,7 +13,7 @@
  *            suits, "01"–"04" for wizard/jester cards
  */
 
-import type { PlayerInput, PlayerScoreResult, CardScoreDetail } from '../../scorer-api/types';
+import type { PlayerInput, PlayerScoreResult, CardScoreDetail } from '../scorer-api/types';
 
 // ---------------------------------------------------------------------------
 // Localisation — t(key, fallback) resolves display strings from texts.json.
