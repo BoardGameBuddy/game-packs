@@ -49,7 +49,7 @@ jobs:
             const fs = require('fs');
             const crypto = require('crypto');
             const index = JSON.parse(fs.readFileSync('pack-index.json', 'utf8'));
-            const tag = process.env.GITHUB_SHA?.slice(0, 8) || 'latest';
+            const tag = 'v' + process.env.GITHUB_RUN_NUMBER;
             const repo = process.env.GITHUB_REPOSITORY;
             const baseUrl = \`https://github.com/\${repo}/releases/download/\${tag}\`;
 
@@ -60,21 +60,21 @@ jobs:
               pack.checksum = 'sha256:' + crypto.createHash('sha256').update(bytes).digest('hex');
               pack.sizeBytes = bytes.length;
               pack.downloadUrl = \`\${baseUrl}/\${pack.id}.zip\`;
-              pack.version = (pack.version || 0) + 1;
+              pack.version = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
             }
 
             fs.writeFileSync('pack-index.json', JSON.stringify(index, null, 2) + '\n');
-            console.log('Updated pack-index.json');
+            console.log('Updated pack-index.json with tag ' + tag);
           "
         env:
-          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.sha }}
-          name: "Pack release ${{ github.sha }}"
+          tag_name: v${{ github.run_number }}
+          name: "v${{ github.run_number }}"
           files: dist/*.zip
           body: "Automated release from commit ${{ github.sha }}"
 
@@ -83,5 +83,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pack-index.json
-          git diff --staged --quiet || git commit -m "chore: update pack-index.json checksums and download URLs [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: update pack-index.json [skip ci]"
           git push
