@@ -41,7 +41,6 @@ See [`../scorer-api/README.md`](../scorer-api/README.md) for full type documenta
 {
   "id": "mygame",                          // unique, lowercase, no spaces
   "displayName": "My Game",                // shown in the game selection screen
-  "embeddingsPath": "embeddings.json",     // relative to this directory
   "uniqueCards": false                     // true = each card appears only once
 }
 ```
