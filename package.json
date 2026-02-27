@@ -1,0 +1,21 @@
+{
+  "name": "boardgamebuddy-game-packs",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Community game packs for BoardGameBuddy",
+  "scripts": {
+    "test": "jest",
+    "serve": "node ./serve.js",
+    "watch": "npx tsc --watch --project tsconfig.json"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "typescript": "^5.9.3",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "jest": {
+    "testMatch": [
+      "**/__tests__/**/*.test.js"
+    ]
+  }
+}

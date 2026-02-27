@@ -1,0 +1,29 @@
+{
+  "labels": [
+    "clubs:ace",
+    "clubs:10",
+    "clubs:king",
+    "clubs:queen",
+    "clubs:jack",
+    "clubs:9",
+    "spades:ace",
+    "spades:10",
+    "spades:king",
+    "spades:queen",
+    "spades:jack",
+    "spades:9",
+    "heart:ace",
+    "heart:10",
+    "heart:king",
+    "heart:queen",
+    "heart:jack",
+    "heart:9",
+    "diamond:ace",
+    "diamond:10",
+    "diamond:king",
+    "diamond:queen",
+    "diamond:jack",
+    "diamond:9"
+  ],
+  "embeddings": []
+}

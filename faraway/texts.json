@@ -1,0 +1,70 @@
+{
+  "de": {
+    "cards": {
+      "region_prefix": "Region",
+      "sanctuary_prefix": "Heiligtum"
+    },
+    "ui": {
+      "landscape_city": "Stadt",
+      "landscape_river": "Fluss",
+      "landscape_forest": "Wald",
+      "landscape_desert": "Wüste",
+      "day": "Tag",
+      "night": "Nacht",
+      "card_attributes": "Hinweise %d • Stein %d • Chimäre %d • Distel %d",
+      "task_per_hint": "Aufgabe: pro Hinweis",
+      "task_per_stone": "Aufgabe: pro Stein",
+      "task_per_chimera": "Aufgabe: pro Chimäre",
+      "task_per_thistle": "Aufgabe: pro Distel",
+      "task_per_city_or_river": "Aufgabe: pro Stadt/Fluss",
+      "task_per_forest": "Aufgabe: pro Wald",
+      "task_per_landscape_set": "Aufgabe: pro Landschafts-Set",
+      "task_per_night": "Aufgabe: pro Nacht",
+      "task_per_yellow": "Aufgabe: pro Wüste",
+      "task_per_blue": "Aufgabe: pro Fluss",
+      "task_per_green": "Aufgabe: pro Wald",
+      "task_per_red": "Aufgabe: pro Stadt",
+      "task_per_yellow_or_blue": "Aufgabe: pro Wüste/Fluss",
+      "task_per_yellow_or_green": "Aufgabe: pro Wüste/Wald",
+      "task_per_yellow_or_red": "Aufgabe: pro Wüste/Stadt",
+      "task_per_green_or_red": "Aufgabe: pro Wald/Stadt",
+      "task_per_green_or_blue": "Aufgabe: pro Wald/Fluss",
+      "task_per_blue_or_red": "Aufgabe: pro Fluss/Stadt",
+      "task_fixed": "Aufgabe: feste Punkte"
+    }
+  },
+  "en": {
+    "cards": {
+      "region_prefix": "Region",
+      "sanctuary_prefix": "Sanctuary"
+    },
+    "ui": {
+      "landscape_city": "City",
+      "landscape_river": "River",
+      "landscape_forest": "Forest",
+      "landscape_desert": "Desert",
+      "day": "Day",
+      "night": "Night",
+      "card_attributes": "Hints %d • Stone %d • Chimera %d • Thistle %d",
+      "task_per_hint": "Task: per hint",
+      "task_per_stone": "Task: per stone",
+      "task_per_chimera": "Task: per chimera",
+      "task_per_thistle": "Task: per thistle",
+      "task_per_city_or_river": "Task: per city/river",
+      "task_per_forest": "Task: per forest",
+      "task_per_landscape_set": "Task: per landscape set",
+      "task_per_night": "Task: per night",
+      "task_per_yellow": "Task: per desert",
+      "task_per_blue": "Task: per river",
+      "task_per_green": "Task: per forest",
+      "task_per_red": "Task: per city",
+      "task_per_yellow_or_blue": "Task: per desert/river",
+      "task_per_yellow_or_green": "Task: per desert/forest",
+      "task_per_yellow_or_red": "Task: per desert/city",
+      "task_per_green_or_red": "Task: per forest/city",
+      "task_per_green_or_blue": "Task: per forest/river",
+      "task_per_blue_or_red": "Task: per river/city",
+      "task_fixed": "Task: fixed points"
+    }
+  }
+}

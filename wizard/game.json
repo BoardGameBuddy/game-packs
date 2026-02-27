@@ -1,0 +1,24 @@
+{
+  "id": "wizard",
+  "displayName": "Wizard",
+  "uniqueCards": false,
+  "supportsLiveTracking": true,
+  "supportsTrickTracking": true,
+  "liveTracking": {
+    "trumpDetection": true,
+    "bidPhase": true,
+    "totalCards": 60,
+    "gamePrefix": "wizard",
+    "suitSeparator": ":",
+    "suitIndex": 0,
+    "valueIndex": 1,
+    "specialCards": {
+      "alwaysWins": [
+        "wizard"
+      ],
+      "alwaysLoses": [
+        "jester"
+      ]
+    }
+  }
+}

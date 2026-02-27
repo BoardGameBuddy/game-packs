@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "wizard",
+      "displayName": "Wizard",
+      "description": "Stichspiel mit Zauberern und Narren",
+      "version": 1,
+      "downloadUrl": "",
+      "sizeBytes": 0,
+      "checksum": ""
+    },
+    {
+      "id": "faraway",
+      "displayName": "Faraway",
+      "description": "Regionen und Heiligtümer erkunden",
+      "version": 1,
+      "downloadUrl": "",
+      "sizeBytes": 0,
+      "checksum": ""
+    },
+    {
+      "id": "mischwald",
+      "displayName": "Mischwald",
+      "description": "Waldbewohner sammeln und kombinieren",
+      "version": 1,
+      "downloadUrl": "",
+      "sizeBytes": 0,
+      "checksum": ""
+    },
+    {
+      "id": "doppelkopf",
+      "displayName": "Doppelkopf",
+      "description": "Klassisches deutsches Kartenspiel",
+      "version": 1,
+      "downloadUrl": "",
+      "sizeBytes": 0,
+      "checksum": ""
+    }
+  ]
+}

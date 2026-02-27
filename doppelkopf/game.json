@@ -1,0 +1,20 @@
+{
+  "id": "doppelkopf",
+  "displayName": "Doppelkopf",
+  "uniqueCards": false,
+  "supportsLiveTracking": true,
+  "supportsTrickTracking": true,
+  "liveTracking": {
+    "trumpDetection": false,
+    "bidPhase": false,
+    "gamePrefix": "doppelkopf",
+    "suitSeparator": ":",
+    "suitIndex": 0,
+    "valueIndex": 1,
+    "tricksPerRound": 12,
+    "announcements": [
+      { "id": "re",     "triggerWords": ["re", "ree"],       "maxTrick": 2 },
+      { "id": "kontra", "triggerWords": ["kontra", "contra"], "maxTrick": 2 }
+    ]
+  }
+}

@@ -1,0 +1,853 @@
+{
+  "cards": [
+    {
+      "id": "brown_bear",
+      "tags": [
+        "Pawed animal"
+      ]
+    },
+    {
+      "id": "wild_boar",
+      "tags": [
+        "Cloven-hoofed animal"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 10,
+        "min": 1,
+        "condition": {
+          "name": [
+            "squeaker"
+          ]
+        }
+      }
+    },
+    {
+      "id": "brown_long_eared_bat",
+      "tags": [
+        "Bat"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 5,
+        "min": 3,
+        "condition": {
+          "tags": [
+            "Bat"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "european_fat_dormouse",
+      "tags": [
+        "Pawed animal"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 15,
+        "min": 1,
+        "condition": {
+          "tags": [
+            "Bat"
+          ],
+          "sameTree": true
+        }
+      }
+    },
+    {
+      "id": "gnat",
+      "tags": [
+        "Insect"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 1,
+        "condition": {
+          "tags": [
+            "Bat"
+          ]
+        }
+      }
+    },
+    {
+      "id": "barbastelle_bat",
+      "tags": [
+        "Bat"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 5,
+        "min": 3,
+        "condition": {
+          "tags": [
+            "Bat"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "roe_deer",
+      "tags": [
+        "Deer",
+        "Cloven-hoofed animal"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 3,
+        "condition": {
+          "sameTreeSymbol": true
+        }
+      }
+    },
+    {
+      "id": "bechsteins_bat",
+      "tags": [
+        "Bat"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 5,
+        "min": 3,
+        "condition": {
+          "tags": [
+            "Bat"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "wolf",
+      "tags": [
+        "Pawed animal"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 5,
+        "condition": {
+          "tags": [
+            "Deer"
+          ]
+        }
+      }
+    },
+    {
+      "id": "greater_horseshoe_bat",
+      "tags": [
+        "Bat"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 5,
+        "min": 3,
+        "condition": {
+          "tags": [
+            "Bat"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "raccoon",
+      "tags": [
+        "Pawed animal"
+      ]
+    },
+    {
+      "id": "squeaker",
+      "tags": [
+        "Cloven-hoofed animal"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 1
+      }
+    },
+    {
+      "id": "beech_marten",
+      "tags": [
+        "Pawed animal"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 5,
+        "condition": {
+          "fullTree": true
+        }
+      }
+    },
+    {
+      "id": "lynx",
+      "tags": [
+        "Pawed animal"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 10,
+        "min": 1,
+        "condition": {
+          "name": [
+            "roe_deer"
+          ]
+        }
+      }
+    },
+    {
+      "id": "red_fox",
+      "tags": [
+        "Pawed animal"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 2,
+        "condition": {
+          "name": [
+            "european_hare"
+          ]
+        }
+      }
+    },
+    {
+      "id": "red_deer",
+      "tags": [
+        "Deer",
+        "Cloven-hoofed animal"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 1,
+        "condition": {
+          "tags": [
+            "Tree",
+            "Plant"
+          ]
+        }
+      }
+    },
+    {
+      "id": "violet_carpenter_bee",
+      "tags": [
+        "Insect"
+      ],
+      "joker": {
+        "type": "tree"
+      }
+    },
+    {
+      "id": "european_hare",
+      "tags": [
+        "Pawed animal"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 1,
+        "condition": {
+          "name": [
+            "european_hare"
+          ]
+        }
+      }
+    },
+    {
+      "id": "european_badger",
+      "tags": [
+        "Pawed animal"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 2
+      }
+    },
+    {
+      "id": "fallow_deer",
+      "tags": [
+        "Deer",
+        "Cloven-hoofed animal"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 3,
+        "condition": {
+          "tags": [
+            "Cloven-hoofed animal"
+          ]
+        }
+      }
+    },
+    {
+      "id": "parasol_mushroom",
+      "tags": [
+        "Mushroom"
+      ]
+    },
+    {
+      "id": "penny_bun",
+      "tags": [
+        "Mushroom"
+      ]
+    },
+    {
+      "id": "fly_agaric",
+      "tags": [
+        "Mushroom"
+      ]
+    },
+    {
+      "id": "mole",
+      "tags": [
+        "Pawed animal"
+      ]
+    },
+    {
+      "id": "red_squirrel",
+      "tags": [
+        "Pawed animal"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 5,
+        "condition": {
+          "name": [
+            "oak"
+          ],
+          "sameTree": true
+        }
+      }
+    },
+    {
+      "id": "chanterelle",
+      "tags": [
+        "Mushroom"
+      ]
+    },
+    {
+      "id": "peacock_butterfly",
+      "tags": [
+        "Butterfly"
+      ],
+      "score": {
+        "type": "table",
+        "amount": [
+          0,
+          3,
+          6,
+          12,
+          20,
+          35,
+          55,
+          80
+        ],
+        "condition": {
+          "tags": [
+            "Butterfly"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "hedgehog",
+      "tags": [
+        "Pawed animal"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 2,
+        "condition": {
+          "tags": [
+            "Butterfly"
+          ]
+        }
+      }
+    },
+    {
+      "id": "fireflies",
+      "tags": [
+        "Insect"
+      ],
+      "score": {
+        "type": "table",
+        "amount": [
+          0,
+          10,
+          15,
+          20
+        ],
+        "condition": {
+          "name": [
+            "fireflies"
+          ]
+        }
+      }
+    },
+    {
+      "id": "blackberries",
+      "tags": [
+        "Plant"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 2,
+        "condition": {
+          "tags": [
+            "Plant"
+          ]
+        }
+      }
+    },
+    {
+      "id": "wild_strawberries",
+      "tags": [
+        "Plant"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 10,
+        "min": 8,
+        "condition": {
+          "tags": [
+            "Tree"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "eurasian_jay",
+      "tags": [
+        "Bird"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 3
+      }
+    },
+    {
+      "id": "bullfinch",
+      "tags": [
+        "Bird"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 2,
+        "condition": {
+          "tags": [
+            "Insect"
+          ]
+        }
+      }
+    },
+    {
+      "id": "large_tortoiseshell",
+      "tags": [
+        "Butterfly"
+      ],
+      "score": {
+        "type": "table",
+        "amount": [
+          0,
+          3,
+          6,
+          12,
+          20,
+          35,
+          55,
+          80
+        ],
+        "condition": {
+          "tags": [
+            "Butterfly"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "camberwell_beauty",
+      "tags": [
+        "Butterfly"
+      ],
+      "score": {
+        "type": "table",
+        "amount": [
+          0,
+          3,
+          6,
+          12,
+          20,
+          35,
+          55,
+          80
+        ],
+        "condition": {
+          "tags": [
+            "Butterfly"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "tree_ferns",
+      "tags": [
+        "Plant"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 6,
+        "condition": {
+          "tags": [
+            "Amphibian"
+          ]
+        }
+      }
+    },
+    {
+      "id": "common_toad",
+      "tags": [
+        "Amphibian"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 5,
+        "condition": {
+          "name": [
+            "common_toad"
+          ],
+          "sameSpot": true
+        }
+      }
+    },
+    {
+      "id": "tree_frog",
+      "tags": [
+        "Amphibian"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 5,
+        "condition": {
+          "name": [
+            "gnat"
+          ]
+        }
+      }
+    },
+    {
+      "id": "purple_emperor",
+      "tags": [
+        "Butterfly"
+      ],
+      "score": {
+        "type": "table",
+        "amount": [
+          0,
+          3,
+          6,
+          12,
+          20,
+          35,
+          55,
+          80
+        ],
+        "condition": {
+          "tags": [
+            "Butterfly"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "silver_washed_fritillary",
+      "tags": [
+        "Butterfly"
+      ],
+      "score": {
+        "type": "table",
+        "amount": [
+          0,
+          3,
+          6,
+          12,
+          20,
+          35,
+          55,
+          80
+        ],
+        "condition": {
+          "tags": [
+            "Butterfly"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "tawny_owl",
+      "tags": [
+        "Bird"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 5
+      }
+    },
+    {
+      "id": "chaffinch",
+      "tags": [
+        "Bird"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 5,
+        "condition": {
+          "name": [
+            "beech"
+          ],
+          "sameTree": true
+        }
+      }
+    },
+    {
+      "id": "great_spotted_woodpecker",
+      "tags": [
+        "Bird"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 10,
+        "condition": {
+          "type": "tree",
+          "most": true
+        }
+      }
+    },
+    {
+      "id": "goshawk",
+      "tags": [
+        "Bird"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 3,
+        "condition": {
+          "tags": [
+            "Bird"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pond_turtle",
+      "tags": [
+        "Amphibian"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 5
+      }
+    },
+    {
+      "id": "fire_salamander",
+      "tags": [
+        "Amphibian"
+      ],
+      "score": {
+        "type": "table",
+        "amount": [
+          5,
+          15,
+          25
+        ],
+        "condition": {
+          "name": [
+            "fire_salamander"
+          ]
+        }
+      }
+    },
+    {
+      "id": "stag_beetle",
+      "tags": [
+        "Insect"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 1,
+        "condition": {
+          "tags": [
+            "Pawed animal"
+          ]
+        }
+      }
+    },
+    {
+      "id": "wood_ant",
+      "tags": [
+        "Insect"
+      ],
+      "score": {
+        "type": "multiplication",
+        "amount": 2,
+        "condition": {
+          "position": [
+            "below"
+          ]
+        }
+      }
+    },
+    {
+      "id": "moss",
+      "tags": [
+        "Plant"
+      ],
+      "score": {
+        "type": "fixed",
+        "amount": 10,
+        "min": 10,
+        "condition": {
+          "type": "tree"
+        }
+      }
+    },
+    {
+      "id": "linden",
+      "tags": [
+        "Tree"
+      ],
+      "type": "tree",
+      "score": {
+        "type": "table",
+        "amount": [
+          1,
+          3
+        ],
+        "condition": {
+          "name": [
+            "linden"
+          ],
+          "most": true,
+          "type": "tree"
+        }
+      }
+    },
+    {
+      "id": "oak",
+      "tags": [
+        "Tree"
+      ],
+      "type": "tree",
+      "score": {
+        "type": "fixed",
+        "amount": 10,
+        "min": 8,
+        "condition": {
+          "tags": [
+            "Tree"
+          ],
+          "unique": true
+        }
+      }
+    },
+    {
+      "id": "silver_fir",
+      "tags": [
+        "Tree"
+      ],
+      "type": "tree",
+      "score": {
+        "type": "multiplication",
+        "amount": 2,
+        "condition": {
+          "sameTree": true
+        }
+      }
+    },
+    {
+      "id": "birch",
+      "tags": [
+        "Tree"
+      ],
+      "type": "tree",
+      "score": {
+        "type": "fixed",
+        "amount": 1
+      }
+    },
+    {
+      "id": "beech",
+      "tags": [
+        "Tree"
+      ],
+      "type": "tree",
+      "score": {
+        "type": "fixed",
+        "amount": 2,
+        "min": 4,
+        "condition": {
+          "name": [
+            "beech"
+          ],
+          "type": "tree"
+        }
+      }
+    },
+    {
+      "id": "sycamore",
+      "tags": [
+        "Tree"
+      ],
+      "type": "tree",
+      "score": {
+        "type": "multiplication",
+        "amount": 1,
+        "condition": {
+          "tags": [
+            "Tree"
+          ]
+        }
+      }
+    },
+    {
+      "id": "douglas_fir",
+      "tags": [
+        "Tree"
+      ],
+      "type": "tree",
+      "score": {
+        "type": "fixed",
+        "amount": 5
+      }
+    },
+    {
+      "id": "horse_chestnut",
+      "tags": [
+        "Tree"
+      ],
+      "type": "tree",
+      "score": {
+        "type": "table",
+        "amount": [
+          1,
+          4,
+          9,
+          16,
+          25,
+          36,
+          49
+        ],
+        "condition": {
+          "name": [
+            "horse_chestnut"
+          ],
+          "type": "tree"
+        }
+      }
+    }
+  ]
+}

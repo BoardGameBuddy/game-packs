@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Validate & Test Game Packs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: game-packs/package-lock.json
+
+      - name: Install dependencies
+        working-directory: game-packs
+        run: npm ci
+
+      - name: Compile TypeScript scorers
+        working-directory: game-packs
+        run: npx tsc --project tsconfig.json --noEmit
+
+      - name: Validate game.json schemas
+        working-directory: game-packs
+        run: |
+          for dir in */; do
+            dir="${dir%/}"
+            json="$dir/game.json"
+            if [ ! -f "$json" ]; then
+              continue
+            fi
+            echo "Validating $json..."
+            node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('$json', 'utf8'));
+              const required = ['id', 'displayName'];
+              for (const field of required) {
+                if (!data[field]) {
+                  console.error('Missing required field: ' + field);
+                  process.exit(1);
+                }
+              }
+              console.log('OK:', data.id);
+            "
+          done
+
+      - name: Run Jest tests
+        working-directory: game-packs
+        run: npm test

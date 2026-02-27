@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Package & Release Game Packs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: game-packs/package-lock.json
+
+      - name: Install dependencies
+        working-directory: game-packs
+        run: npm ci
+
+      - name: Compile TypeScript scorers
+        working-directory: game-packs
+        run: npx tsc --project tsconfig.json
+
+      - name: Run tests
+        working-directory: game-packs
+        run: npm test
+
+      - name: Package packs into ZIPs
+        working-directory: game-packs
+        run: |
+          mkdir -p dist
+          for dir in */; do
+            dir="${dir%/}"
+            if [ -f "$dir/game.json" ]; then
+              echo "Packaging $dir..."
+              (cd "$dir" && zip -r "../dist/${dir}.zip" .)
+              echo "Created dist/${dir}.zip"
+            fi
+          done
+
+      - name: Compute checksums and sizes
+        working-directory: game-packs
+        run: |
+          node -e "
+            const fs = require('fs');
+            const crypto = require('crypto');
+            const index = JSON.parse(fs.readFileSync('pack-index.json', 'utf8'));
+            const tag = process.env.GITHUB_SHA?.slice(0, 8) || 'latest';
+            const repo = process.env.GITHUB_REPOSITORY;
+            const baseUrl = \`https://github.com/\${repo}/releases/download/\${tag}\`;
+
+            for (const pack of index.packs) {
+              const zipPath = \`dist/\${pack.id}.zip\`;
+              if (!fs.existsSync(zipPath)) continue;
+              const bytes = fs.readFileSync(zipPath);
+              pack.checksum = 'sha256:' + crypto.createHash('sha256').update(bytes).digest('hex');
+              pack.sizeBytes = bytes.length;
+              pack.downloadUrl = \`\${baseUrl}/\${pack.id}.zip\`;
+              pack.version = (pack.version || 0) + 1;
+            }
+
+            fs.writeFileSync('pack-index.json', JSON.stringify(index, null, 2) + '\n');
+            console.log('Updated pack-index.json');
+          "
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.sha }}
+          name: "Pack release ${{ github.sha }}"
+          files: game-packs/dist/*.zip
+          body: "Automated release from commit ${{ github.sha }}"
+
+      - name: Commit updated pack-index.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add game-packs/pack-index.json
+          git diff --staged --quiet || git commit -m "chore: update pack-index.json checksums and download URLs [skip ci]"
+          git push
