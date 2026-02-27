@@ -26,14 +26,7 @@ jobs:
         run: npm ci
 
       - name: Compile TypeScript scorers
-        run: |
-          for dir in */; do
-            dir="${dir%/}"
-            if [ -f "$dir/scorer.ts" ]; then
-              echo "Compiling $dir/scorer.ts..."
-              npx tsc "$dir/scorer.ts" --target ES2017 --module commonjs --outDir "$dir" --skipLibCheck
-            fi
-          done
+        run: npx tsc */scorer.ts --target ES2017 --module commonjs --outDir . --skipLibCheck
 
       - name: Run tests
         run: npm test
