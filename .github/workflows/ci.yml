@@ -22,8 +22,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Compile TypeScript scorers
-        run: npx tsc --project tsconfig.json --noEmit
+      - name: Type-check TypeScript scorers
+        run: npx tsc --project tsconfig.json
 
       - name: Validate game.json schemas
         run: |

@@ -6,6 +6,7 @@
   "scripts": {
     "test": "jest",
     "serve": "node ./serve.js",
+    "build": "for dir in */; do [ -f \"${dir}scorer.ts\" ] && npx tsc \"${dir}scorer.ts\" --target ES2017 --module commonjs --outDir \"$dir\" --skipLibCheck; done",
     "watch": "npx tsc --watch --project tsconfig.json"
   },
   "devDependencies": {
