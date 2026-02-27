@@ -381,7 +381,7 @@ function scorePlayer(
       cardId: `region:${region.id}`,
       points,
       reason,
-      title: `Karte ${displayId}`,
+      title: `Region ${displayId}`,
       group: regionsGroup,
     });
     revealed.push(region);
