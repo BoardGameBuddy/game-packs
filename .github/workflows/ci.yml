@@ -25,6 +25,15 @@ jobs:
       - name: Type-check TypeScript scorers
         run: npx tsc --project tsconfig.json
 
+      - name: Compile scorers for testing
+        run: |
+          for dir in */; do
+            dir="${dir%/}"
+            if [ -f "$dir/scorer.ts" ]; then
+              npx tsc "$dir/scorer.ts" --target ES2017 --module commonjs --outDir "$dir" --skipLibCheck
+            fi
+          done
+
       - name: Validate game.json schemas
         run: |
           for dir in */; do
