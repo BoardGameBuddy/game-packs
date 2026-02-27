@@ -20,22 +20,18 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: game-packs/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: game-packs
         run: npm ci
 
       - name: Compile TypeScript scorers
-        working-directory: game-packs
         run: npx tsc --project tsconfig.json
 
       - name: Run tests
-        working-directory: game-packs
         run: npm test
 
       - name: Package packs into ZIPs
-        working-directory: game-packs
         run: |
           mkdir -p dist
           for dir in */; do
@@ -48,7 +44,6 @@ jobs:
           done
 
       - name: Compute checksums and sizes
-        working-directory: game-packs
         run: |
           node -e "
             const fs = require('fs');
@@ -80,13 +75,13 @@ jobs:
         with:
           tag_name: ${{ github.sha }}
           name: "Pack release ${{ github.sha }}"
-          files: game-packs/dist/*.zip
+          files: dist/*.zip
           body: "Automated release from commit ${{ github.sha }}"
 
       - name: Commit updated pack-index.json
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add game-packs/pack-index.json
+          git add pack-index.json
           git diff --staged --quiet || git commit -m "chore: update pack-index.json checksums and download URLs [skip ci]"
           git push

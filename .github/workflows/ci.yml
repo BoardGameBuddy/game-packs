@@ -17,18 +17,15 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: game-packs/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: game-packs
         run: npm ci
 
       - name: Compile TypeScript scorers
-        working-directory: game-packs
         run: npx tsc --project tsconfig.json --noEmit
 
       - name: Validate game.json schemas
-        working-directory: game-packs
         run: |
           for dir in */; do
             dir="${dir%/}"
@@ -52,5 +49,4 @@ jobs:
           done
 
       - name: Run Jest tests
-        working-directory: game-packs
         run: npm test
