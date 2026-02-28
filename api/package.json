@@ -1,6 +1,6 @@
 {
   "name": "@boardgamebuddy/game-pack-api",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript types and helpers for BoardGameBuddy game pack scorers",
   "main": "index.js",
   "types": "index.d.ts",
