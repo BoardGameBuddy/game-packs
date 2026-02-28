@@ -3,8 +3,8 @@
  *
  * Replace this template implementation with your game's actual scoring logic.
  *
- * TypeScript source.  Compile with:
- *   npx tsc scorer.ts --outDir . --target ES2017 --module commonjs --strict
+ * TypeScript source.  The bgb CLI compiles and bundles this automatically.
+ * Manual compile: npx esbuild scorer.ts --bundle --platform=node --target=es2017 --outfile=scorer.js
  *
  * The compiled `scorer.js` is loaded by the app at runtime.
  */
@@ -13,7 +13,7 @@ import type {
   PlayerInput,
   PlayerScoreResult,
   CardScoreDetail,
-} from '../scorer-api/types';
+} from '@boardgamebuddy/scorer-api';
 
 /**
  * Optional: load card definitions from cards.json to drive scoring rules.

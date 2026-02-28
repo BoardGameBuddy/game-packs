@@ -1,0 +1,18 @@
+{
+  "name": "@boardgamebuddy/scorer-api",
+  "version": "0.1.0",
+  "description": "TypeScript types and helpers for BoardGameBuddy game pack scorers",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "repository": {
+    "url": "git+https://github.com/BoardGameBuddy/game-packs.git",
+    "directory": "scorer-api"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

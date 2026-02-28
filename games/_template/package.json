@@ -1,5 +1,15 @@
 {
+  "name": "mygame",
+  "private": true,
   "scripts": {
-    "serve": "node ../serve.js"
+    "build": "esbuild scorer.ts --bundle --platform=node --target=es2017 --outfile=scorer.js",
+    "serve": "bgb serve ."
+  },
+  "dependencies": {
+    "@boardgamebuddy/scorer-api": "^0.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.0.0"
   }
 }
