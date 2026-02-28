@@ -23,6 +23,7 @@ npx tsc scorer.ts --outDir . --target ES2017 --module commonjs --skipLibCheck
 
 # Test with app: serve a pack and scan QR code
 cd games/wizard && node ../../serve.js
+# Or with the bgb CLI (from game-pack-cli repo): bgb serve games/wizard
 ```
 
 **Important**: Jest only runs compiled `.js` files. After modifying `scorer.ts` or `__tests__/scorer.test.ts`, compile before testing. The `npm test` command does NOT auto-compile.
@@ -49,7 +50,7 @@ Each pack directory contains:
 - `texts.json` (optional) — localization strings (nested JSON, flattened to `"section.key"` at runtime)
 - `__tests__/scorer.test.js` — compiled Jest tests
 
-Use `games/_template/` as the starting point for new packs.
+Use `games/_template/` as the starting point for new packs. The `bgb new` CLI (from the `game-pack-cli` repo) scaffolds new packs by fetching this template from GitHub.
 
 ### Localization Pattern
 
