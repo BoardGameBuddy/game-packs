@@ -6,7 +6,7 @@
     "serve": "bgb serve ."
   },
   "dependencies": {
-    "@boardgamebuddy/scorer-api": "^0.1.0"
+    "@boardgamebuddy/game-pack-api": "^0.2.1"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",
