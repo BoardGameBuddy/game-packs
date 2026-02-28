@@ -15,7 +15,7 @@
  * Card data is loaded from cards.json bundled with this pack.
  */
 
-import type { PlayerInput, PlayerScoreResult, CardScoreDetail, DetectedCard } from '../scorer-api/types';
+import type { PlayerInput, PlayerScoreResult, CardScoreDetail, DetectedCard } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of faraway_cards.json)

@@ -1,0 +1,25 @@
+{
+  "name": "@boardgamebuddy/game-pack-cli",
+  "version": "0.1.0",
+  "description": "Developer CLI for BoardGameBuddy game packs",
+  "bin": {
+    "bgb": "cli.js"
+  },
+  "repository": {
+    "url": "git+https://github.com/BoardGameBuddy/game-packs.git",
+    "directory": "cli"
+  },
+  "files": [
+    "cli.js"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "qrcode-terminal": "^0.12.0"
+  }
+}

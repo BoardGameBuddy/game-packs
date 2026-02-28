@@ -28,7 +28,7 @@
  * Note: Dame and Bube are always trump regardless of suit; Herz 10 is trump.
  */
 
-import type { PlayerInput, PlayerScoreResult, CardScoreDetail } from '../scorer-api/types';
+import type { PlayerInput, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // Localisation — t(key, fallback) resolves display strings from texts.json.

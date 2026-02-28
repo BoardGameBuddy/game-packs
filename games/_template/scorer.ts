@@ -13,7 +13,7 @@ import type {
   PlayerInput,
   PlayerScoreResult,
   CardScoreDetail,
-} from '@boardgamebuddy/scorer-api';
+} from '@boardgamebuddy/game-pack-api';
 
 /**
  * Optional: load card definitions from cards.json to drive scoring rules.
