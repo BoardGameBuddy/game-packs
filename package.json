@@ -3,13 +3,15 @@
   "version": "0.0.1",
   "private": true,
   "description": "Community game packs for BoardGameBuddy",
+  "bin": { "bgb": "./cli.js" },
   "scripts": {
     "test": "jest",
     "serve": "node ./serve.js",
-    "build": "for dir in */; do [ -f \"${dir}scorer.ts\" ] && npx tsc \"${dir}scorer.ts\" --target ES2017 --module commonjs --outDir \"$dir\" --skipLibCheck; done",
+    "build": "for dir in games/*/; do [ -f \"${dir}scorer.ts\" ] && npx tsc \"${dir}scorer.ts\" --target ES2017 --module commonjs --outDir \"$dir\" --skipLibCheck; done",
     "watch": "npx tsc --watch --project tsconfig.json"
   },
   "devDependencies": {
+    "commander": "^12.0.0",
     "jest": "^29.0.0",
     "typescript": "^5.9.3",
     "qrcode-terminal": "^0.12.0"

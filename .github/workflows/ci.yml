@@ -26,11 +26,11 @@ jobs:
         run: npx tsc --project tsconfig.json
 
       - name: Compile scorers for testing
-        run: npx tsc */scorer.ts --target ES2017 --module commonjs --outDir . --skipLibCheck
+        run: npx tsc games/*/scorer.ts --target ES2017 --module commonjs --outDir . --skipLibCheck
 
       - name: Validate game.json schemas
         run: |
-          for dir in */; do
+          for dir in games/*/; do
             dir="${dir%/}"
             json="$dir/game.json"
             if [ ! -f "$json" ]; then

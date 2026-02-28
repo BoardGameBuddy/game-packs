@@ -26,7 +26,7 @@ jobs:
         run: npm ci
 
       - name: Compile TypeScript scorers
-        run: npx tsc */scorer.ts --target ES2017 --module commonjs --outDir . --skipLibCheck
+        run: npx tsc games/*/scorer.ts --target ES2017 --module commonjs --outDir . --skipLibCheck
 
       - name: Run tests
         run: npm test
@@ -34,12 +34,13 @@ jobs:
       - name: Package packs into ZIPs
         run: |
           mkdir -p dist
-          for dir in */; do
+          for dir in games/*/; do
             dir="${dir%/}"
+            id=$(basename "$dir")
             if [ -f "$dir/game.json" ]; then
-              echo "Packaging $dir..."
-              (cd "$dir" && zip -r "../dist/${dir}.zip" .)
-              echo "Created dist/${dir}.zip"
+              echo "Packaging $id..."
+              (cd "$dir" && zip -r "../../dist/${id}.zip" .)
+              echo "Created dist/${id}.zip"
             fi
           done
 

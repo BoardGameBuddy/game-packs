@@ -17,7 +17,7 @@ A game pack is a self-contained directory that adds support for a new board game
 
 ## Quick start
 
-1. Copy `_template/` to a new directory named after your game ID (e.g. `mygame/`).
+1. Copy `games/_template/` to `games/mygame/` (or run `bgb new mygame`).
 2. Fill in `game.json` with your game's metadata.
 3. Implement the `score` function in `scorer.ts`.
 4. Compile: `npx tsc scorer.ts --outDir . --target ES2017 --module commonjs`
@@ -49,7 +49,7 @@ See [`../scorer-api/README.md`](../scorer-api/README.md) for full type documenta
 
 | Directory | Game | Status |
 |---|---|---|
-| `_template/` | Starter template | template only |
+| `games/_template/` | Starter template | template only |
 
 > **Note:** The built-in scorers for **Faraway**, **Mischwald**, and **Wizard** currently run as native Kotlin modules inside the app.  TypeScript rewrites for these games will be contributed here as separate follow-up work.
 

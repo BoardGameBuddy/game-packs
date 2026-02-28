@@ -15,14 +15,14 @@ npm run serve               # Start local dev server (run from a pack directory)
 npm run watch               # Watch and recompile TypeScript on change
 
 # Run tests for a single pack
-npx jest --testPathPattern=wizard
-npx jest --testPathPattern=faraway
+npx jest --testPathPattern=games/wizard
+npx jest --testPathPattern=games/faraway
 
-# Compile a single scorer manually
+# Compile a single scorer manually (run from the pack directory)
 npx tsc scorer.ts --outDir . --target ES2017 --module commonjs --skipLibCheck
 
 # Test with app: serve a pack and scan QR code
-cd wizard && node ../serve.js
+cd games/wizard && node ../../serve.js
 ```
 
 **Important**: Jest only runs compiled `.js` files. After modifying `scorer.ts` or `__tests__/scorer.test.ts`, compile before testing. The `npm test` command does NOT auto-compile.
@@ -49,7 +49,7 @@ Each pack directory contains:
 - `texts.json` (optional) — localization strings (nested JSON, flattened to `"section.key"` at runtime)
 - `__tests__/scorer.test.js` — compiled Jest tests
 
-Use `_template/` as the starting point for new packs.
+Use `games/_template/` as the starting point for new packs.
 
 ### Localization Pattern
 
@@ -61,7 +61,7 @@ Card IDs use colon-separated segments (e.g., `wizard:blue:05`, `region:03`). Par
 
 ### Visual Sorting
 
-For games where card play order matters, use a row-based sort: group cards by Y position (row threshold = avg card height / 2), then sort left-to-right within rows. See `faraway/scorer.ts` for the reference implementation.
+For games where card play order matters, use a row-based sort: group cards by Y position (row threshold = avg card height / 2), then sort left-to-right within rows. See `games/faraway/scorer.ts` for the reference implementation.
 
 ## CI/CD
 

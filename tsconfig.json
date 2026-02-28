@@ -5,5 +5,5 @@
     "strict": true,
     "noEmit": true
   },
-  "include": ["*/scorer.ts"]
+  "include": ["games/*/scorer.ts"]
 }
