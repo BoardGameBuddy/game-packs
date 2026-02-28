@@ -25,14 +25,14 @@ jobs:
 
       - name: Publish @boardgamebuddy/game-pack-api
         if: startsWith(github.ref_name, 'api-v')
-        run: npm publish --provenance
+        run: npm publish
         working-directory: api
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @boardgamebuddy/game-pack-cli
         if: startsWith(github.ref_name, 'cli-v')
-        run: npm publish --provenance
+        run: npm publish
         working-directory: cli
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
