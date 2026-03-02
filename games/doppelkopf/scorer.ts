@@ -28,7 +28,7 @@
  * Note: Dame and Bube are always trump regardless of suit; Herz 10 is trump.
  */
 
-import type { PlayerInput, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
+import type { DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // Localisation — t(key, fallback) resolves display strings from texts.json.
@@ -543,6 +543,21 @@ export function calculateAllRoundScores(context: RoundContext): RoundScoreResult
 }
 
 // ---------------------------------------------------------------------------
+// Player grouping (y-band spatial split)
+// ---------------------------------------------------------------------------
+
+function groupByPlayer(boxes: DetectedBox[], playerCount: number): DetectedBox[][] {
+  if (playerCount <= 1) return [boxes];
+  const groups: DetectedBox[][] = Array.from({ length: playerCount }, () => []);
+  const bandSize = 1.0 / playerCount;
+  for (const box of boxes) {
+    const idx = Math.min(Math.floor(box.cy / bandSize), playerCount - 1);
+    groups[idx].push(box);
+  }
+  return groups;
+}
+
+// ---------------------------------------------------------------------------
 // Photo-mode scorer
 // ---------------------------------------------------------------------------
 
@@ -550,13 +565,15 @@ export function calculateAllRoundScores(context: RoundContext): RoundScoreResult
  * Groups detected cards per player and annotates each card with its
  * Augen value and whether it is a trump card.
  */
-export function score(players: PlayerInput[]): PlayerScoreResult[] {
-  return players.map((player) => {
-    if (player.cards.length === 0) {
-      return { name: player.name, totalScore: 0, cardDetails: [] };
+export function score(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
+  const groups = groupByPlayer(boxes, context.players.length);
+  return context.players.map((playerName, i) => {
+    const playerBoxes = groups[i] ?? [];
+    if (playerBoxes.length === 0) {
+      return { name: playerName, totalScore: 0, cardDetails: [] };
     }
 
-    const cardDetails: CardScoreDetail[] = player.cards.map((card) => {
+    const cardDetails: CardScoreDetail[] = playerBoxes.map((card) => {
       const [suit] = parseCard(card.cardId);
       const points = cardAugen(card.cardId);
       const displayName = cardDisplayName(card.cardId);
@@ -572,6 +589,6 @@ export function score(players: PlayerInput[]): PlayerScoreResult[] {
     });
 
     const totalScore = cardDetails.reduce((sum, d) => sum + d.points, 0);
-    return { name: player.name, totalScore, cardDetails };
+    return { name: playerName, totalScore, cardDetails };
   });
 }

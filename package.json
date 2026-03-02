@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "description": "Community game packs for BoardGameBuddy",
-  "workspaces": ["api", "cli"],
+  "workspaces": [
+    "api",
+    "cli"
+  ],
   "scripts": {
     "test": "jest",
     "serve": "node ./serve.js",
@@ -12,9 +15,10 @@
   },
   "devDependencies": {
     "@boardgamebuddy/game-pack-api": "*",
+    "esbuild": "^0.27.3",
     "jest": "^29.0.0",
-    "typescript": "^5.9.3",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "typescript": "^5.9.3"
   },
   "jest": {
     "testMatch": [

@@ -10,7 +10,8 @@
  */
 
 import type {
-  PlayerInput,
+  DetectedBox,
+  ScorerContext,
   PlayerScoreResult,
   CardScoreDetail,
 } from '@boardgamebuddy/game-pack-api';
@@ -24,15 +25,29 @@ import type {
 // interface MyGameCard { id: string; points: number; ... }
 // type MyGameCards = MyGameCard[];
 
+function groupByPlayer(boxes: DetectedBox[], playerCount: number): DetectedBox[][] {
+  if (playerCount <= 1) return [boxes];
+  const groups: DetectedBox[][] = Array.from({ length: playerCount }, () => []);
+  const bandSize = 1.0 / playerCount;
+  for (const box of boxes) {
+    const idx = Math.min(Math.floor(box.cy / bandSize), playerCount - 1);
+    groups[idx].push(box);
+  }
+  return groups;
+}
+
 /**
  * Calculate scores for all players.
  *
- * @param players - All players with their detected cards.
- * @returns       - Score results in the same order as `players`.
+ * @param boxes   - Flat list of all detected cards (all players combined).
+ * @param context - Player names and session metadata.
+ * @returns       - Score results in the same order as `context.players`.
  */
-export function score(players: PlayerInput[]): PlayerScoreResult[] {
-  return players.map((player) => {
-    const cardDetails: CardScoreDetail[] = player.cards.map((card) => {
+export function score(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
+  const groups = groupByPlayer(boxes, context.players.length);
+  return context.players.map((playerName, i) => {
+    const playerBoxes = groups[i] ?? [];
+    const cardDetails: CardScoreDetail[] = playerBoxes.map((card) => {
       // TODO: replace with real scoring logic for your game
       const points = 1;
       return {
@@ -46,7 +61,7 @@ export function score(players: PlayerInput[]): PlayerScoreResult[] {
     const totalScore = cardDetails.reduce((sum, d) => sum + d.points, 0);
 
     return {
-      name: player.name,
+      name: playerName,
       totalScore,
       cardDetails,
     };

@@ -15,7 +15,8 @@
  * Card data is loaded from cards.json bundled with this pack.
  */
 
-import type { PlayerInput, PlayerScoreResult, CardScoreDetail, DetectedCard } from '@boardgamebuddy/game-pack-api';
+import type { DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
+import { sortVisuallyByBox, parseCardId } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of faraway_cards.json)
@@ -155,11 +156,11 @@ function buildCard(rawId: string, kind: 'region' | 'sanctuary', data: JsonCard):
 
 function loadCard(cardId: string, cards: CardsJson): Card | null {
   const trimmed = cardId.trim();
-  const colon = trimmed.indexOf(':');
-  if (colon < 0) return null;
+  const parsed = parseCardId(trimmed);
+  if (!parsed) return null;
 
-  const kind = trimmed.slice(0, colon).toLowerCase();
-  const rawId = trimmed.slice(colon + 1).trim();
+  const kind = parsed.prefix.toLowerCase();
+  const rawId = parsed.suffix;
   const key = idToKey(rawId);
 
   if (kind === 'region') {
@@ -174,23 +175,8 @@ function loadCard(cardId: string, cards: CardsJson): Card | null {
 }
 
 // ---------------------------------------------------------------------------
-// Visual sort (mirrors BoxSortUtils.sortVisually)
+// Visual sort (uses common spatial utilities)
 // ---------------------------------------------------------------------------
-
-/**
- * Sorts detected cards in reading order (by row top-to-bottom, then left-to-right
- * within each row). Cards whose y1 values are within half the average card height
- * are considered the same row.
- */
-function sortVisually(cards: DetectedCard[]): DetectedCard[] {
-  if (cards.length === 0) return cards;
-  const avgH = cards.reduce((sum, c) => sum + c.h, 0) / cards.length;
-  const rowThreshold = Math.max(avgH / 2, 1e-3);
-  return [...cards].sort((a, b) => {
-    if (Math.abs(a.y1 - b.y1) < rowThreshold) return a.x1 - b.x1;
-    return a.y1 - b.y1;
-  });
-}
 
 // ---------------------------------------------------------------------------
 // Condition check
@@ -337,10 +323,10 @@ function evalTask(card: Card, scope: Card[]): [number, string] {
 // ---------------------------------------------------------------------------
 
 function scorePlayer(
-  detectedCards: DetectedCard[],
+  detectedCards: DetectedBox[],
   cards: CardsJson,
 ): { total: number; cardDetails: CardScoreDetail[] } {
-  const sorted = sortVisually(detectedCards);
+  const sorted = sortVisuallyByBox(detectedCards, (card) => card);
 
   const regions: Card[] = [];
   const sanctuaries: Card[] = [];
@@ -411,15 +397,37 @@ function scorePlayer(
 }
 
 // ---------------------------------------------------------------------------
+// Player grouping (y-band spatial split)
+// ---------------------------------------------------------------------------
+
+/**
+ * Groups a flat box list into per-player arrays using y-coordinate bands.
+ * Player i receives all boxes with cy in [i/n, (i+1)/n).
+ * With a single player all boxes go to player 0.
+ */
+function groupByPlayer(boxes: DetectedBox[], playerCount: number): DetectedBox[][] {
+  if (playerCount <= 1) return [boxes];
+  const groups: DetectedBox[][] = Array.from({ length: playerCount }, () => []);
+  const bandSize = 1.0 / playerCount;
+  for (const box of boxes) {
+    const idx = Math.min(Math.floor(box.cy / bandSize), playerCount - 1);
+    groups[idx].push(box);
+  }
+  return groups;
+}
+
+// ---------------------------------------------------------------------------
 // Exported scorer function
 // ---------------------------------------------------------------------------
 
-export function score(players: PlayerInput[]): PlayerScoreResult[] {
-  return players.map((player) => {
-    if (player.cards.length === 0) {
-      return { name: player.name, totalScore: 0, cardDetails: [] };
+export function score(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
+  const groups = groupByPlayer(boxes, context.players.length);
+  return context.players.map((playerName, i) => {
+    const playerBoxes = groups[i] ?? [];
+    if (playerBoxes.length === 0) {
+      return { name: playerName, totalScore: 0, cardDetails: [] };
     }
-    const { total, cardDetails } = scorePlayer(player.cards, CARDS_JSON);
-    return { name: player.name, totalScore: total, cardDetails };
+    const { total, cardDetails } = scorePlayer(playerBoxes, CARDS_JSON);
+    return { name: playerName, totalScore: total, cardDetails };
   });
 }

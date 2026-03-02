@@ -13,7 +13,16 @@ const {
 
 // Helper: minimal DetectedCard
 function card(cardId) {
-  return { cardId, similarity: 0.95, x1: 0, y1: 0, x2: 0.2, y2: 0.3, cx: 0.1, cy: 0.15, w: 0.2, h: 0.3 };
+  return {
+    cardId,
+    similarity: 0.95,
+    x1: 0, y1: 0, x2: 0.2, y2: 0.3,
+    cx: 0.1, cy: 0.15,
+    w: 0.2, h: 0.3,
+    confidence: 0.95,
+    angle: 0,
+    keypoints: null,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -101,14 +110,18 @@ describe('determineTrickWinner', () => {
 // ---------------------------------------------------------------------------
 describe('score – photo mode', () => {
   it('total score is always 0 (full scoring is in live tracking)', () => {
-    const results = score([
-      { name: 'Alice', cards: [card('wizard:blue:05'), card('wizard:red:12')] },
-    ]);
+    const results = score(
+      [card('wizard:blue:05'), card('wizard:red:12')],
+      { players: ['Alice'], similarityThreshold: 0.85 },
+    );
     expect(results[0].totalScore).toBe(0);
   });
 
   it('each card gets points=0, displayName as reason and title', () => {
-    const results = score([{ name: 'Alice', cards: [card('wizard:green:07')] }]);
+    const results = score(
+      [card('wizard:green:07')],
+      { players: ['Alice'], similarityThreshold: 0.85 },
+    );
     expect(results[0].cardDetails[0]).toMatchObject({
       cardId: 'wizard:green:07',
       points: 0,
@@ -119,23 +132,23 @@ describe('score – photo mode', () => {
   });
 
   it('wizard and jester cards get correct group', () => {
-    const results = score([{
-      name: 'Alice',
-      cards: [card('wizard:wizard:01'), card('wizard:jester:03')],
-    }]);
+    const results = score(
+      [card('wizard:wizard:01'), card('wizard:jester:03')],
+      { players: ['Alice'], similarityThreshold: 0.85 },
+    );
     expect(results[0].cardDetails[0].group).toBe('Zauberer');
     expect(results[0].cardDetails[1].group).toBe('Narr');
   });
 
   it('empty hand returns empty cardDetails', () => {
-    const results = score([{ name: 'Alice', cards: [] }]);
+    const results = score([], { players: ['Alice'], similarityThreshold: 0.85 });
     expect(results[0].totalScore).toBe(0);
     expect(results[0].cardDetails).toHaveLength(0);
   });
 
   it('preserves player order', () => {
     const names = ['Alice', 'Bob', 'Charlie'];
-    const results = score(names.map((name) => ({ name, cards: [] })));
+    const results = score([], { players: names, similarityThreshold: 0.85 });
     expect(results.map((r) => r.name)).toEqual(names);
   });
 });

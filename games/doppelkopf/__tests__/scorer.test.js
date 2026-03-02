@@ -18,7 +18,16 @@ const {
 
 // Helper: minimal DetectedCard
 function card(cardId) {
-  return { cardId, similarity: 0.95, x1: 0, y1: 0, x2: 0.2, y2: 0.3, cx: 0.1, cy: 0.15, w: 0.2, h: 0.3 };
+  return {
+    cardId,
+    similarity: 0.95,
+    x1: 0, y1: 0, x2: 0.2, y2: 0.3,
+    cx: 0.1, cy: 0.15,
+    w: 0.2, h: 0.3,
+    confidence: 0.95,
+    angle: 0,
+    keypoints: null,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -252,40 +261,41 @@ describe('calculateRoundScore', () => {
 // ---------------------------------------------------------------------------
 describe('score – photo mode', () => {
   it('returns Augen as totalScore', () => {
-    const results = score([
-      { name: 'Alice', cards: [card('doppelkopf:kreuz:as'), card('doppelkopf:kreuz:10')] },
-    ]);
+    const results = score(
+      [card('doppelkopf:kreuz:as'), card('doppelkopf:kreuz:10')],
+      { players: ['Alice'], similarityThreshold: 0.85 },
+    );
     expect(results[0].totalScore).toBe(21); // 11 + 10
   });
 
   it('trump cards are grouped as Trumpf', () => {
-    const results = score([{
-      name: 'Alice',
-      cards: [card('doppelkopf:kreuz:dame'), card('doppelkopf:karo:9')],
-    }]);
+    const results = score(
+      [card('doppelkopf:kreuz:dame'), card('doppelkopf:karo:9')],
+      { players: ['Alice'], similarityThreshold: 0.85 },
+    );
     expect(results[0].cardDetails[0].group).toBe('Trumpf');
     expect(results[0].cardDetails[1].group).toBe('Trumpf');
   });
 
   it('Fehlfarbe cards are grouped by suit', () => {
-    const results = score([{
-      name: 'Alice',
-      cards: [card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'), card('doppelkopf:herz:koenig')],
-    }]);
+    const results = score(
+      [card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'), card('doppelkopf:herz:koenig')],
+      { players: ['Alice'], similarityThreshold: 0.85 },
+    );
     expect(results[0].cardDetails[0].group).toBe('Kreuz');
     expect(results[0].cardDetails[1].group).toBe('Pik');
     expect(results[0].cardDetails[2].group).toBe('Herz');
   });
 
   it('empty hand returns zero score', () => {
-    const results = score([{ name: 'Alice', cards: [] }]);
+    const results = score([], { players: ['Alice'], similarityThreshold: 0.85 });
     expect(results[0].totalScore).toBe(0);
     expect(results[0].cardDetails).toHaveLength(0);
   });
 
   it('preserves player order', () => {
     const names = ['Alice', 'Bob', 'Charlie', 'Dave'];
-    const results = score(names.map((name) => ({ name, cards: [] })));
+    const results = score([], { players: names, similarityThreshold: 0.85 });
     expect(results.map((r) => r.name)).toEqual(names);
   });
 });

@@ -12,7 +12,8 @@
  * Card data is loaded from cards.json bundled with this pack.
  */
 
-import type { PlayerInput, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
+import type { DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
+import { overlapHorizontal, overlapVertical, sortVisuallyByBox, parseCardId } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of mischwald_cards.json)
@@ -120,26 +121,14 @@ const MAX_SIDE_GAP_RATIO = 0.50;
 const CARDS_JSON: CardsJson = require('./cards.json');
 
 // ---------------------------------------------------------------------------
-// Geometry helpers
-// ---------------------------------------------------------------------------
-
-function overlapH(a: Box, b: Box): number {
-  return Math.max(0, Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1));
-}
-
-function overlapV(a: Box, b: Box): number {
-  return Math.max(0, Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1));
-}
-
-// ---------------------------------------------------------------------------
 // Card instance parsing
 // ---------------------------------------------------------------------------
 
 function parseCardInstance(box: Box, defById: Map<string, CardDef>): CardInstance | null {
-  const colon = box.clsName.indexOf(':');
-  if (colon < 0) return null;
-  const id = box.clsName.slice(0, colon).trim();
-  const treeSymbol = box.clsName.slice(colon + 1).trim();
+  const parsed = parseCardId(box.clsName);
+  if (!parsed) return null;
+  const id = parsed.prefix;
+  const treeSymbol = parsed.suffix;
   return { box, id, treeSymbol, definition: defById.get(id) ?? null };
 }
 
@@ -156,8 +145,8 @@ function bestPlacementCandidate(
 
   for (const side of sides) {
     const perpOverlap = (side === 'top' || side === 'bottom')
-      ? overlapH(card.box, tree.box)
-      : overlapV(card.box, tree.box);
+      ? overlapHorizontal(card.box, tree.box)
+      : overlapVertical(card.box, tree.box);
 
     const minPerpSize = Math.max(
       ADJACENT_EPSILON,
@@ -214,8 +203,8 @@ function pickDirectlyAdjacent(
 
   for (const card of cards) {
     const perpOverlap = (side === 'top' || side === 'bottom')
-      ? overlapH(card.box, anchorBox)
-      : overlapV(card.box, anchorBox);
+      ? overlapHorizontal(card.box, anchorBox)
+      : overlapVertical(card.box, anchorBox);
 
     const minPerpSize = Math.max(
       ADJACENT_EPSILON,
@@ -295,13 +284,12 @@ function buildForest(boxes: Box[], cards: CardsJson): Forest {
   );
 
   const treeBoxes = boxes.filter((b) => {
-    const colon = b.clsName.indexOf(':');
-    return colon >= 0 && treeIds.has(b.clsName.slice(0, colon).trim());
+    const parsed = parseCardId(b.clsName);
+    return parsed && treeIds.has(parsed.prefix);
   });
   const otherBoxes = boxes.filter((b) => {
-    const colon = b.clsName.indexOf(':');
-    if (colon < 0) return true;
-    return !treeIds.has(b.clsName.slice(0, colon).trim());
+    const parsed = parseCardId(b.clsName);
+    return !parsed || !treeIds.has(parsed.prefix);
   });
 
   const treeCards: CardInstance[] = treeBoxes.map((b) => parseCardInstance(b, defById)).filter(Boolean) as CardInstance[];
@@ -390,13 +378,7 @@ function buildPlacementsByBox(forest: Forest): Map<Box, Placement> {
 
 /** Sorts trees in visual reading order (row then left-to-right). */
 function sortTreesVisually(trees: Tree[]): Tree[] {
-  if (trees.length === 0) return trees;
-  const avgH = trees.reduce((s, t) => s + t.card.box.h, 0) / trees.length;
-  const thresh = Math.max(avgH / 2, ADJACENT_EPSILON);
-  return [...trees].sort((a, b) => {
-    if (Math.abs(a.card.box.y1 - b.card.box.y1) < thresh) return a.card.box.x1 - b.card.box.x1;
-    return a.card.box.y1 - b.card.box.y1;
-  });
+  return sortVisuallyByBox(trees, (tree) => tree.card.box, ADJACENT_EPSILON);
 }
 
 /** Returns tree-to-index mapping for group name generation. */
@@ -529,7 +511,7 @@ function countMatches(
     if (!tree || !side) return 0;
     pool = tree[side];
   } else if (cond.position?.includes('below')) {
-    pool = all.filter((o) => o.box.y1 >= self.box.y2 && overlapH(o.box, self.box) > 0);
+    pool = all.filter((o) => o.box.y1 >= self.box.y2 && overlapHorizontal(o.box, self.box) > 0);
   } else {
     pool = all;
   }
@@ -690,11 +672,27 @@ function countForMostKey(key: MostKey, cards: CardInstance[], cond: ConditionJso
 }
 
 // ---------------------------------------------------------------------------
+// Player grouping (y-band spatial split)
+// ---------------------------------------------------------------------------
+
+function groupByPlayer(boxes: DetectedBox[], playerCount: number): DetectedBox[][] {
+  if (playerCount <= 1) return [boxes];
+  const groups: DetectedBox[][] = Array.from({ length: playerCount }, () => []);
+  const bandSize = 1.0 / playerCount;
+  for (const box of boxes) {
+    const idx = Math.min(Math.floor(box.cy / bandSize), playerCount - 1);
+    groups[idx].push(box);
+  }
+  return groups;
+}
+
+// ---------------------------------------------------------------------------
 // Public score function
 // ---------------------------------------------------------------------------
 
-export function score(players: PlayerInput[]): PlayerScoreResult[] {
+export function score(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
   const cards = CARDS_JSON;
+  const playerGroups = groupByPlayer(boxes, context.players.length);
 
   // Phase 1: build forests
   interface PreparedPlayer {
@@ -702,15 +700,15 @@ export function score(players: PlayerInput[]): PlayerScoreResult[] {
     all: CardInstance[];
   }
 
-  const prepared: PreparedPlayer[] = players.map((p) => {
-    if (p.cards.length === 0) return { forest: null, all: [] };
-    // Convert DetectedCard → Box
-    const boxes: Box[] = p.cards.map((dc) => ({
+  const prepared: PreparedPlayer[] = playerGroups.map((playerBoxes) => {
+    if (playerBoxes.length === 0) return { forest: null, all: [] };
+    // Convert DetectedBox → internal Box
+    const internalBoxes: Box[] = playerBoxes.map((dc) => ({
       x1: dc.x1, y1: dc.y1, x2: dc.x2, y2: dc.y2,
       cx: dc.cx, cy: dc.cy, w: dc.w, h: dc.h,
       clsName: dc.cardId,
     }));
-    const forest = buildForest(boxes, cards);
+    const forest = buildForest(internalBoxes, cards);
     return { forest, all: allCardInstances(forest) };
   });
 
@@ -736,7 +734,7 @@ export function score(players: PlayerInput[]): PlayerScoreResult[] {
 
   // Phase 3: score each player
   return prepared.map((p, playerIndex) => {
-    const playerName = players[playerIndex].name;
+    const playerName = context.players[playerIndex];
     const forest = p.forest;
 
     if (!forest || p.all.length === 0) {

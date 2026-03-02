@@ -35,19 +35,24 @@ function loadFixtures() {
 }
 
 // ---------------------------------------------------------------------------
-// Convert fixture boxes → PlayerInput cards
+// Convert fixture boxes → DetectedBox, assigning y-band for multi-player
 // ---------------------------------------------------------------------------
 
-function boxToCard([x1, y1, x2, y2, clsName]) {
+function boxToCard([x1, y1, x2, y2, clsName], playerIndex = 0, playerCount = 1) {
   const w = x2 - x1;
   const h = y2 - y1;
+  // For multi-player, place each player's cards in their y-band centre.
+  const cy = playerCount <= 1 ? y1 + h / 2 : (playerIndex + 0.5) / playerCount;
   return {
     cardId: clsName,
     similarity: 1.0,
     x1, y1, x2, y2,
     cx: x1 + w / 2,
-    cy: y1 + h / 2,
+    cy,
     w, h,
+    confidence: 1.0,
+    angle: 0,
+    keypoints: null,
   };
 }
 
@@ -60,12 +65,16 @@ describe('Mischwald scorer – fixture-driven', () => {
 
   for (const fixture of fixtures) {
     test(fixture.name, () => {
-      const players = fixture.players.map((p) => ({
-        name: p.name,
-        cards: p.boxes.map(boxToCard),
-      }));
+      const playerCount = fixture.players.length;
+      const allBoxes = fixture.players.flatMap((p, playerIndex) =>
+        p.boxes.map((box) => boxToCard(box, playerIndex, playerCount)),
+      );
+      const context = {
+        players: fixture.players.map((p) => p.name),
+        similarityThreshold: 0.85,
+      };
 
-      const results = score(players);
+      const results = score(allBoxes, context);
 
       expect(results).toHaveLength(fixture.expected.length);
 
@@ -101,28 +110,24 @@ describe('Mischwald scorer – fixture-driven', () => {
 
 describe('Mischwald scorer – unit tests', () => {
   it('returns one result per player in the same order', () => {
-    const players = [
-      { name: 'Alice', cards: [] },
-      { name: 'Bob',   cards: [] },
-    ];
-    const results = score(players);
+    const results = score([], { players: ['Alice', 'Bob'], similarityThreshold: 0.85 });
     expect(results).toHaveLength(2);
     expect(results[0].name).toBe('Alice');
     expect(results[1].name).toBe('Bob');
   });
 
   it('scores 0 for a player with no cards', () => {
-    const results = score([{ name: 'Alice', cards: [] }]);
+    const results = score([], { players: ['Alice'], similarityThreshold: 0.85 });
     expect(results[0].totalScore).toBe(0);
     expect(results[0].cardDetails).toHaveLength(0);
   });
 
   it('a lone tree card with no score rule returns 0', () => {
     // brown_bear has no score rule
-    const results = score([{
-      name: 'Alice',
-      cards: [boxToCard([0.1, 0.4, 0.2, 0.6, 'oak:oak'])],
-    }]);
+    const results = score(
+      [boxToCard([0.1, 0.4, 0.2, 0.6, 'oak:oak'])],
+      { players: ['Alice'], similarityThreshold: 0.85 },
+    );
     // oak scores based on having ≥8 unique trees; alone it scores 0
     expect(results[0].cardDetails[0].cardId).toBe('oak:oak');
   });
@@ -130,9 +135,8 @@ describe('Mischwald scorer – unit tests', () => {
   it('groups cards under the correct tree label', () => {
     // Two trees, each with one attached animal
     // Layout: [oak][wolf] side-by-side on the top, [birch][wolf] below
-    const results = score([{
-      name: 'Alice',
-      cards: [
+    const results = score(
+      [
         // tree 1 (left)
         boxToCard([0.1, 0.4, 0.3, 0.7, 'oak:oak']),
         // attached to tree 1 on the right
@@ -142,7 +146,8 @@ describe('Mischwald scorer – unit tests', () => {
         // attached to tree 2 on the right
         boxToCard([0.81, 0.4, 0.99, 0.7, 'wolf:birch']),
       ],
-    }]);
+      { players: ['Alice'], similarityThreshold: 0.85 },
+    );
 
     const details = results[0].cardDetails;
     // Both wolf cards should have a group

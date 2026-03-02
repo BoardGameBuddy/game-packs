@@ -1,6 +1,7 @@
 export interface DetectedCard {
     cardId: string;
     similarity: number;
+    confidence: number;
     x1: number;
     y1: number;
     x2: number;
@@ -9,10 +10,17 @@ export interface DetectedCard {
     cy: number;
     w: number;
     h: number;
+    angle: number;
+    keypoints: number[] | null;
 }
+export type DetectedBox = DetectedCard;
 export interface PlayerInput {
     name: string;
     cards: DetectedCard[];
+}
+export interface ScorerContext {
+    players: string[];
+    similarityThreshold: number;
 }
 export interface CardScoreDetail {
     cardId: string;
