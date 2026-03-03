@@ -13,7 +13,7 @@
  *            suits, "01"–"04" for wizard/jester cards
  */
 
-import type { DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
+import type { DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail, LiveEvent, LiveGameState, LiveHudItem, FlutterAction } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // Localisation — t(key, fallback) resolves display strings from texts.json.
@@ -163,6 +163,310 @@ function groupByPlayer(boxes: DetectedBox[], playerCount: number): DetectedBox[]
     groups[idx].push(box);
   }
   return groups;
+}
+
+// ---------------------------------------------------------------------------
+// Live tracking — processEvent
+// ---------------------------------------------------------------------------
+
+/** Internal state carried across events. */
+interface WizardInternal {
+  players: string[];
+  round: number;       // current round, 1-based
+  maxRounds: number;   // total rounds = 60 / players.length
+  phase: 'trumpDetection' | 'bidCollection' | 'waitingForClear' | 'trickTracking';
+  trumpSuit: string | null;
+  bids: Record<string, number>;
+  bidIndex: number;    // index of next player to bid
+  tricksWon: Record<string, number>;
+  completedTricks: number;
+  cumulativeScores: Record<string, number>;
+}
+
+/** Formats a number with explicit sign (+/-). */
+function fmtSigned(n: number): string {
+  return n >= 0 ? `+${n}` : String(n);
+}
+
+function buildScores(s: WizardInternal): { name: string; totalScore: number }[] {
+  return s.players.map(p => ({ name: p, totalScore: s.cumulativeScores[p] ?? 0 }));
+}
+
+function buildHud(s: WizardInternal): LiveHudItem[] {
+  const hud: LiveHudItem[] = [];
+  const tricksPerRound = s.round;
+
+  hud.push({
+    label: `${t('ui.round_label', 'Runde')} ${s.round}/${s.maxRounds}`,
+    value: `${t('ui.trick_count', 'Stich')} ${s.completedTricks}/${tricksPerRound}`,
+  });
+
+  if (s.phase !== 'trumpDetection') {
+    const trumpName = s.trumpSuit
+      ? t(`suits.${s.trumpSuit}`, s.trumpSuit)
+      : t('suits.no_trump', 'Kein Trumpf');
+    hud.push({ label: 'Trumpf', value: trumpName });
+  }
+
+  if (s.phase === 'trickTracking') {
+    for (const player of s.players) {
+      const bid = s.bids[player];
+      const won = s.tricksWon[player] ?? 0;
+      hud.push({
+        label: player,
+        value: bid !== undefined ? `${won}/${bid}` : String(won),
+      });
+    }
+  }
+
+  return hud;
+}
+
+function buildRoundSummary(s: WizardInternal): LiveHudItem[] {
+  const summary: LiveHudItem[] = [];
+  for (const player of s.players) {
+    const bid = s.bids[player] ?? 0;
+    const won = s.tricksWon[player] ?? 0;
+    const score = calculateRoundScore(bid, won);
+    const cumulative = s.cumulativeScores[player] ?? 0;
+    summary.push({
+      label: player,
+      value: `${won}/${s.round} → ${fmtSigned(score)} (Σ ${cumulative})`,
+    });
+  }
+  return summary;
+}
+
+function buildGameOverSummary(s: WizardInternal): LiveHudItem[] {
+  const sorted = [...s.players].sort(
+    (a, b) => (s.cumulativeScores[b] ?? 0) - (s.cumulativeScores[a] ?? 0),
+  );
+  return sorted.map((p, i) => ({
+    label: `${i + 1}. ${p}`,
+    value: `${s.cumulativeScores[p] ?? 0} ${t('ui.points', 'Punkte')}`,
+  }));
+}
+
+/**
+ * Live tracking entry point.
+ * Called by Flutter on each game event; returns updated state + actions to execute.
+ */
+export function processEvent(event: LiveEvent, prevState: LiveGameState | null): LiveGameState {
+  const type = event.type;
+  const data = event.data;
+
+  // ---- gameStarted --------------------------------------------------------
+  if (type === 'gameStarted') {
+    const players = data.players as string[];
+    const maxRounds = Math.floor(60 / players.length);
+    const internal: WizardInternal = {
+      players,
+      round: 1,
+      maxRounds,
+      phase: 'trumpDetection',
+      trumpSuit: null,
+      bids: {},
+      bidIndex: 0,
+      tricksWon: {},
+      completedTricks: 0,
+      cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
+    };
+    const roundText = t('voice.round_start', 'Runde %d von %d.')
+      .replace('%d', String(internal.round)).replace('%d', String(internal.maxRounds));
+    const hintText = t('ui.trump_detection_hint', 'Bitte zeige die Trumpfkarte der Kamera.');
+    return {
+      _internal: internal,
+      display: { hud: [] },
+      scores: buildScores(internal),
+      actions: [
+        { type: 'cameraMode', mode: 'detectSingle' },
+        { type: 'speak', text: `${roundText} ${hintText}` },
+      ],
+    };
+  }
+
+  // Restore internal state for subsequent events
+  const internal = (prevState?._internal ?? {}) as WizardInternal;
+
+  // ---- cardDetected (trump detection) -------------------------------------
+  if (type === 'cardDetected') {
+    if (internal.phase !== 'trumpDetection') {
+      // Ignore card events during other phases
+      return { ...prevState!, actions: [] };
+    }
+    const cardId = data.cardId as string;
+    const suit = extractSuit(cardId);
+    const trumpSuit = (suit === 'wizard' || suit === 'jester') ? null : suit;
+    internal.trumpSuit = trumpSuit;
+    internal.phase = 'bidCollection';
+    internal.bidIndex = 0;
+
+    const trumpName = trumpSuit
+      ? t(`suits.${trumpSuit}`, trumpSuit)
+      : t('suits.no_trump', 'Kein Trumpf');
+    const trumpSpeak = trumpSuit
+      ? t('voice.trump_confirm', 'Trumpf ist %s. Jetzt Ansagen.').replace('%s', trumpName)
+      : t('voice.no_trump_confirm', 'Kein Trumpf. Jetzt ansagen.');
+    const firstPlayer = internal.players[0];
+    const bidPrompt = t('voice.bid_prompt', '%s, deine Ansage?').replace('%s', firstPlayer);
+
+    return {
+      _internal: internal,
+      display: { hud: buildHud(internal) },
+      scores: buildScores(internal),
+      actions: [
+        { type: 'speak', text: trumpSpeak },
+        { type: 'cameraMode', mode: 'pause' },
+        { type: 'listenForBid', prompt: bidPrompt, playerIndex: 0 },
+      ],
+    };
+  }
+
+  // ---- bidPlaced ----------------------------------------------------------
+  if (type === 'bidPlaced') {
+    const playerIndex = data.playerIndex as number;
+    const bid = data.bid as number;
+    const player = internal.players[playerIndex];
+    internal.bids[player] = bid;
+    internal.bidIndex = playerIndex + 1;
+
+    const confirmText = t('voice.bid_confirm', '%s sagt %s an.')
+      .replace('%s', player).replace('%s', String(bid));
+    const actions: FlutterAction[] = [
+      { type: 'speak', text: confirmText },
+    ];
+
+    const allBidsIn = internal.bidIndex >= internal.players.length;
+    if (allBidsIn) {
+      internal.phase = 'waitingForClear';
+      const bidsDoneText = t('voice.bids_done', 'Danke. Los gehts.');
+      actions.push(
+        { type: 'speak', text: bidsDoneText },
+        { type: 'cameraMode', mode: 'trackTrick' },
+        { type: 'awaitTableClear' },
+      );
+    } else {
+      const nextPlayer = internal.players[internal.bidIndex];
+      const nextPrompt = t('voice.bid_prompt', '%s, deine Ansage?').replace('%s', nextPlayer);
+      actions.push({ type: 'listenForBid', prompt: nextPrompt, playerIndex: internal.bidIndex });
+    }
+
+    return {
+      _internal: internal,
+      display: { hud: buildHud(internal) },
+      scores: buildScores(internal),
+      actions,
+    };
+  }
+
+  // ---- tableCleared -------------------------------------------------------
+  if (type === 'tableCleared') {
+    internal.phase = 'trickTracking';
+    return {
+      _internal: internal,
+      display: { hud: buildHud(internal) },
+      scores: buildScores(internal),
+      actions: [],
+    };
+  }
+
+  // ---- trickCompleted -----------------------------------------------------
+  if (type === 'trickCompleted') {
+    const cards = data.cards as [number, string][];
+    const winnerIndex = determineTrickWinner(cards, internal.trumpSuit);
+    const winnerName = internal.players[winnerIndex];
+
+    internal.tricksWon[winnerName] = (internal.tricksWon[winnerName] ?? 0) + 1;
+    internal.completedTricks++;
+
+    const tricksPerRound = internal.round;
+    const trickNum = internal.completedTricks;
+    const trickWonText = t('voice.trick_won', '%s gewinnt Stich %d.')
+      .replace('%s', winnerName).replace('%d', String(trickNum));
+
+    if (internal.completedTricks >= tricksPerRound) {
+      // Last trick — calculate round scores
+      for (const p of internal.players) {
+        const bid = internal.bids[p] ?? 0;
+        const won = internal.tricksWon[p] ?? 0;
+        const score = calculateRoundScore(bid, won);
+        internal.cumulativeScores[p] = (internal.cumulativeScores[p] ?? 0) + score;
+      }
+
+      const summaryItems = buildRoundSummary(internal);
+      const summaryText = t('voice.round_summary_intro', 'Rundenabschluss.');
+
+      return {
+        _internal: internal,
+        display: { hud: buildHud(internal), summary: summaryItems },
+        scores: buildScores(internal),
+        actions: [
+          { type: 'speak', text: `${trickWonText} ${summaryText}` },
+          { type: 'showSummary' },
+        ],
+      };
+    }
+
+    // Not last trick
+    return {
+      _internal: internal,
+      display: { hud: buildHud(internal) },
+      scores: buildScores(internal),
+      actions: [
+        { type: 'speak', text: trickWonText },
+        { type: 'setLeadPlayer', playerIndex: winnerIndex },
+      ],
+    };
+  }
+
+  // ---- roundEnded ---------------------------------------------------------
+  if (type === 'roundEnded') {
+    const justFinishedRound = internal.round;
+    internal.round++;
+    internal.trumpSuit = null;
+    internal.bids = {};
+    internal.bidIndex = 0;
+    internal.tricksWon = {};
+    internal.completedTricks = 0;
+
+    if (justFinishedRound >= internal.maxRounds) {
+      // Game over
+      const sorted = [...internal.players].sort(
+        (a, b) => (internal.cumulativeScores[b] ?? 0) - (internal.cumulativeScores[a] ?? 0),
+      );
+      const winner = sorted[0];
+      const gameOverText = t('voice.game_over', '%s gewinnt mit %d Punkten!')
+        .replace('%s', winner)
+        .replace('%d', String(internal.cumulativeScores[winner] ?? 0));
+      return {
+        _internal: internal,
+        display: { hud: [], summary: buildGameOverSummary(internal) },
+        scores: buildScores(internal),
+        actions: [
+          { type: 'speak', text: gameOverText },
+          { type: 'gameOver' },
+        ],
+      };
+    }
+
+    // Next round
+    internal.phase = 'trumpDetection';
+    const roundText = t('voice.round_start', 'Runde %d von %d.')
+      .replace('%d', String(internal.round)).replace('%d', String(internal.maxRounds));
+    const hintText = t('ui.trump_detection_hint', 'Bitte zeige die Trumpfkarte der Kamera.');
+    return {
+      _internal: internal,
+      display: { hud: [] },
+      scores: buildScores(internal),
+      actions: [
+        { type: 'cameraMode', mode: 'detectSingle' },
+        { type: 'speak', text: `${roundText} ${hintText}` },
+      ],
+    };
+  }
+
+  // Unknown event — return state unchanged
+  return { ...(prevState ?? { _internal: internal, display: { hud: [] }, scores: [], actions: [] }), actions: [] };
 }
 
 // ---------------------------------------------------------------------------

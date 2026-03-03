@@ -61,6 +61,8 @@
       "back": "Zurück"
     },
     "voice": {
+      "game_start": "Spiel beginnt. Tisch bitte leeren.",
+      "next_round": "Naechste Runde. Tisch bitte leeren.",
       "trick_won": "%s gewinnt Stich %d.",
       "trick_won_augen": "%s gewinnt Stich %d mit %d Augen.",
       "trick_status": "Stich %d, naechster Spieler %s.",
@@ -132,6 +134,8 @@
       "back": "Back"
     },
     "voice": {
+      "game_start": "Game starting. Clear the table please.",
+      "next_round": "Next round. Clear the table please.",
       "trick_won": "%s wins trick %d.",
       "trick_won_augen": "%s wins trick %d with %d Augen.",
       "trick_status": "Trick %d, next player %s.",

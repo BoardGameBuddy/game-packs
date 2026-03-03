@@ -41,3 +41,48 @@ export interface PlayerScoreResult {
   totalScore: number;
   cardDetails: CardScoreDetail[];
 }
+
+// ---------------------------------------------------------------------------
+// Live tracking types
+// ---------------------------------------------------------------------------
+
+export interface LiveEvent {
+  type: 'gameStarted'
+      | 'cardDetected'
+      | 'bidPlaced'
+      | 'trickCompleted'
+      | 'announcementMade'
+      | 'tableCleared'
+      | 'roundEnded';
+  data: Record<string, unknown>;
+}
+
+export type FlutterAction =
+  | { type: 'speak'; text: string }
+  | { type: 'cameraMode'; mode: 'detectSingle' | 'trackTrick' | 'pause' }
+  | { type: 'awaitTableClear' }
+  | { type: 'setLeadPlayer'; playerIndex: number }
+  | { type: 'listenForBid'; prompt: string; playerIndex: number }
+  | { type: 'startAnnouncementListening'; triggerWords: Record<string, string[]>; until: number }
+  | { type: 'stopAnnouncementListening' }
+  | { type: 'showSummary' }
+  | { type: 'gameOver' };
+
+export interface LiveHudItem {
+  label: string;
+  value: string;
+}
+
+export interface LiveGameState {
+  /** Opaque game data carried forward unchanged (scorer reads/writes; Flutter ignores). */
+  _internal?: unknown;
+  /** What Flutter displays (game-defined content). */
+  display: {
+    hud: LiveHudItem[];
+    summary?: LiveHudItem[];
+  };
+  /** Cumulative per-player scores (updated after each roundEnded). */
+  scores: { name: string; totalScore: number }[];
+  /** Actions Flutter executes in order after receiving this state. */
+  actions: FlutterAction[];
+}

@@ -28,7 +28,7 @@
  * Note: Dame and Bube are always trump regardless of suit; Herz 10 is trump.
  */
 
-import type { DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
+import type { DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail, LiveEvent, LiveGameState, LiveHudItem, FlutterAction } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // Localisation — t(key, fallback) resolves display strings from texts.json.
@@ -540,6 +540,234 @@ export function calculateAllRoundScores(context: RoundContext): RoundScoreResult
   }
 
   return { scores, summary };
+}
+
+// ---------------------------------------------------------------------------
+// Live tracking — processEvent
+// ---------------------------------------------------------------------------
+
+interface TrickHistoryEntry {
+  cards: [number, string][];
+  winnerIndex: number;
+}
+
+interface DoppelkopfInternal {
+  players: string[];
+  completedTricks: number;
+  trickHistory: TrickHistoryEntry[];
+  announcements: string[];
+  cumulativeScores: Record<string, number>;
+}
+
+/** Announcement trigger words keyed by id, as defined in game.json. */
+const ANNOUNCEMENT_TRIGGERS: Record<string, string[]> = {
+  re:     ['re', 'ree'],
+  kontra: ['kontra', 'contra'],
+};
+const ANNOUNCEMENT_UNTIL = 2; // maxTrick window
+
+function buildScoresDk(s: DoppelkopfInternal): { name: string; totalScore: number }[] {
+  return s.players.map(p => ({ name: p, totalScore: s.cumulativeScores[p] ?? 0 }));
+}
+
+function buildHudDk(s: DoppelkopfInternal): LiveHudItem[] {
+  const hud: LiveHudItem[] = [];
+  hud.push({
+    label: t('ui.trick_count', 'Stiche'),
+    value: `${s.completedTricks}/12`,
+  });
+
+  // Augen per player (from trickHistory)
+  const playerAugen: Record<string, number> = {};
+  for (const p of s.players) playerAugen[p] = 0;
+  for (const trick of s.trickHistory) {
+    const winner = s.players[trick.winnerIndex];
+    if (winner) {
+      let trickAugen = 0;
+      for (const [, cardId] of trick.cards) trickAugen += cardAugen(cardId);
+      playerAugen[winner] = (playerAugen[winner] ?? 0) + trickAugen;
+    }
+  }
+
+  for (const p of s.players) {
+    hud.push({ label: p, value: `${playerAugen[p] ?? 0} ${t('scoring.augen_unit', 'Augen')}` });
+  }
+
+  // Announcements
+  for (const ann of s.announcements) {
+    hud.push({ label: ann.toUpperCase(), value: '✓' });
+  }
+
+  return hud;
+}
+
+/**
+ * Live tracking entry point for Doppelkopf.
+ */
+export function processEvent(event: LiveEvent, prevState: LiveGameState | null): LiveGameState {
+  const type = event.type;
+  const data = event.data;
+
+  // ---- gameStarted --------------------------------------------------------
+  if (type === 'gameStarted') {
+    const players = data.players as string[];
+    const internal: DoppelkopfInternal = {
+      players,
+      completedTricks: 0,
+      trickHistory: [],
+      announcements: [],
+      cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
+    };
+    const gameStartText = t('voice.game_start', 'Spiel beginnt. Tisch bitte leeren.');
+    return {
+      _internal: internal,
+      display: { hud: [] },
+      scores: buildScoresDk(internal),
+      actions: [
+        { type: 'cameraMode', mode: 'trackTrick' },
+        { type: 'awaitTableClear' },
+        {
+          type: 'startAnnouncementListening',
+          triggerWords: ANNOUNCEMENT_TRIGGERS,
+          until: ANNOUNCEMENT_UNTIL,
+        },
+        { type: 'speak', text: gameStartText },
+      ],
+    };
+  }
+
+  const internal = (prevState?._internal ?? {
+    players: [],
+    completedTricks: 0,
+    trickHistory: [],
+    announcements: [],
+    cumulativeScores: {},
+  }) as DoppelkopfInternal;
+
+  // ---- tableCleared -------------------------------------------------------
+  if (type === 'tableCleared') {
+    return {
+      _internal: internal,
+      display: { hud: buildHudDk(internal) },
+      scores: buildScoresDk(internal),
+      actions: [],
+    };
+  }
+
+  // ---- announcementMade ---------------------------------------------------
+  if (type === 'announcementMade') {
+    const id = data.id as string;
+    if (!internal.announcements.includes(id)) {
+      internal.announcements.push(id);
+    }
+    const confirmText = t('voice.announcement_confirmed', '%s angesagt!').replace('%s', id.toUpperCase());
+    return {
+      _internal: internal,
+      display: { hud: buildHudDk(internal) },
+      scores: buildScoresDk(internal),
+      actions: [{ type: 'speak', text: confirmText }],
+    };
+  }
+
+  // ---- trickCompleted -----------------------------------------------------
+  if (type === 'trickCompleted') {
+    const cards = data.cards as [number, string][];
+    const winnerIndex = determineTrickWinner(cards, null);
+    const winnerName = internal.players[winnerIndex] ?? '?';
+
+    let trickAugen = 0;
+    for (const [, cardId] of cards) trickAugen += cardAugen(cardId);
+
+    internal.trickHistory.push({ cards, winnerIndex });
+    internal.completedTricks++;
+
+    const trickNum = internal.completedTricks;
+    const trickWonText = trickAugen > 0
+      ? t('voice.trick_won_augen', '%s gewinnt Stich %d mit %d Augen.')
+          .replace('%s', winnerName).replace('%d', String(trickNum)).replace('%d', String(trickAugen))
+      : t('voice.trick_won', '%s gewinnt Stich %d.')
+          .replace('%s', winnerName).replace('%d', String(trickNum));
+
+    if (internal.completedTricks >= 12) {
+      // Last trick — calculate round scores immediately
+      const roundResult = calculateAllRoundScores({
+        playerNames: internal.players,
+        trickHistory: internal.trickHistory,
+        announcements: internal.announcements,
+      });
+      for (const p of internal.players) {
+        internal.cumulativeScores[p] = (internal.cumulativeScores[p] ?? 0) + (roundResult.scores[p] ?? 0);
+      }
+
+      // Build summary from scorer result + cumulative
+      const summaryItems: LiveHudItem[] = [
+        ...roundResult.summary,
+        { label: '---', value: '' },
+        ...internal.players.map(p => ({
+          label: p,
+          value: `${t('ui.score_total', 'Gesamt:')} ${internal.cumulativeScores[p] ?? 0}`,
+        })),
+      ];
+
+      const summaryText = t('voice.round_summary_intro', 'Spielabschluss.');
+      return {
+        _internal: internal,
+        display: { hud: buildHudDk(internal), summary: summaryItems },
+        scores: buildScoresDk(internal),
+        actions: [
+          { type: 'speak', text: `${trickWonText} ${summaryText}` },
+          { type: 'stopAnnouncementListening' },
+          { type: 'showSummary' },
+        ],
+      };
+    }
+
+    // Not last trick
+    const actions: FlutterAction[] = [
+      { type: 'speak', text: trickWonText },
+      { type: 'setLeadPlayer', playerIndex: winnerIndex },
+    ];
+
+    // Stop announcement listening once we're past the window
+    if (internal.completedTricks >= ANNOUNCEMENT_UNTIL) {
+      actions.push({ type: 'stopAnnouncementListening' });
+    }
+
+    return {
+      _internal: internal,
+      display: { hud: buildHudDk(internal) },
+      scores: buildScoresDk(internal),
+      actions,
+    };
+  }
+
+  // ---- roundEnded ---------------------------------------------------------
+  if (type === 'roundEnded') {
+    // Reset round state
+    internal.completedTricks = 0;
+    internal.trickHistory = [];
+    internal.announcements = [];
+
+    const nextRoundText = t('voice.next_round', 'Naechste Runde. Tisch bitte leeren.');
+    return {
+      _internal: internal,
+      display: { hud: [] },
+      scores: buildScoresDk(internal),
+      actions: [
+        { type: 'speak', text: nextRoundText },
+        { type: 'cameraMode', mode: 'trackTrick' },
+        { type: 'awaitTableClear' },
+        {
+          type: 'startAnnouncementListening',
+          triggerWords: ANNOUNCEMENT_TRIGGERS,
+          until: ANNOUNCEMENT_UNTIL,
+        },
+      ],
+    };
+  }
+
+  // Unknown event
+  return { ...(prevState ?? { _internal: internal, display: { hud: [] }, scores: [], actions: [] }), actions: [] };
 }
 
 // ---------------------------------------------------------------------------

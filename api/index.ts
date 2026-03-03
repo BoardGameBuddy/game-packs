@@ -5,6 +5,10 @@ export type {
   ScorerContext,
   CardScoreDetail,
   PlayerScoreResult,
+  LiveEvent,
+  FlutterAction,
+  LiveHudItem,
+  LiveGameState,
 } from './types';
 
 export type { BoxLike } from './spatial-utils';

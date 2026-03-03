@@ -9,6 +9,7 @@ const {
   extractSuit,
   extractValue,
   determineTrickWinner,
+  processEvent,
 } = require('../scorer');
 
 // Helper: minimal DetectedCard

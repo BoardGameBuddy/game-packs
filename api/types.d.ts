@@ -34,3 +34,49 @@ export interface PlayerScoreResult {
     totalScore: number;
     cardDetails: CardScoreDetail[];
 }
+export interface LiveEvent {
+    type: 'gameStarted' | 'cardDetected' | 'bidPlaced' | 'trickCompleted' | 'announcementMade' | 'tableCleared' | 'roundEnded';
+    data: Record<string, unknown>;
+}
+export type FlutterAction = {
+    type: 'speak';
+    text: string;
+} | {
+    type: 'cameraMode';
+    mode: 'detectSingle' | 'trackTrick' | 'pause';
+} | {
+    type: 'awaitTableClear';
+} | {
+    type: 'setLeadPlayer';
+    playerIndex: number;
+} | {
+    type: 'listenForBid';
+    prompt: string;
+    playerIndex: number;
+} | {
+    type: 'startAnnouncementListening';
+    triggerWords: Record<string, string[]>;
+    until: number;
+} | {
+    type: 'stopAnnouncementListening';
+} | {
+    type: 'showSummary';
+} | {
+    type: 'gameOver';
+};
+export interface LiveHudItem {
+    label: string;
+    value: string;
+}
+export interface LiveGameState {
+    _internal?: unknown;
+    display: {
+        hud: LiveHudItem[];
+        summary?: LiveHudItem[];
+    };
+    scores: {
+        name: string;
+        totalScore: number;
+    }[];
+    actions: FlutterAction[];
+}
