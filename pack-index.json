@@ -5,37 +5,37 @@
       "id": "wizard",
       "displayName": "Wizard",
       "description": "Stichspiel mit Zauberern und Narren",
-      "version": 23,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v23/wizard.zip",
+      "version": 24,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v24/wizard.zip",
       "sizeBytes": 89074,
-      "checksum": "sha256:dfdb2ea7a44fe3e709b80463230e094f2994d329c0a108e1641f77138698cad5"
+      "checksum": "sha256:d095a2a03547d2e8ce4d1b394650b659578e575b8a42904fa99d6a0772d86199"
     },
     {
       "id": "faraway",
       "displayName": "Faraway",
       "description": "Regionen und Heiligtümer erkunden",
-      "version": 23,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v23/faraway.zip",
+      "version": 24,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v24/faraway.zip",
       "sizeBytes": 151868,
-      "checksum": "sha256:c51127bcb0b7d6424388131fa25fa945f25512d3229f9dd3718af0ef1df83724"
+      "checksum": "sha256:4d112f4e79856c768cbad73f7aa44ea16dde9760694e16659f9ed67b6a11ecda"
     },
     {
       "id": "mischwald",
       "displayName": "Mischwald",
       "description": "Waldbewohner sammeln und kombinieren",
-      "version": 23,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v23/mischwald.zip",
-      "sizeBytes": 204529,
-      "checksum": "sha256:d714afed802def9a5bb998dcf2a73ee8a5ba492bf7699a45837a9d16916647f6"
+      "version": 24,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v24/mischwald.zip",
+      "sizeBytes": 204881,
+      "checksum": "sha256:bff9c3be3b8404044ebbaa90b860274c61db93e1147d8903f4879928aac2735e"
     },
     {
       "id": "doppelkopf",
       "displayName": "Doppelkopf",
       "description": "Klassisches deutsches Kartenspiel",
-      "version": 23,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v23/doppelkopf.zip",
+      "version": 24,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v24/doppelkopf.zip",
       "sizeBytes": 23371,
-      "checksum": "sha256:e5af4f4e3612dc9640d973f6d9b350d23d8937cf059a4c10adf61256151fefd3"
+      "checksum": "sha256:3bea727ad6ce143c9494359c123a651d7126220e8d02ff82ed589a8467af1609"
     }
   ]
 }
