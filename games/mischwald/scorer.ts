@@ -89,6 +89,8 @@ interface Tree {
 
 interface Forest {
   trees: Tree[];
+  /** Cards that could not be placed next to any tree. */
+  unplaced: CardInstance[];
 }
 
 interface Placement {
@@ -108,7 +110,7 @@ interface PlacementCandidate {
 // ---------------------------------------------------------------------------
 
 const ADJACENT_EPSILON = 1e-3;
-const SIDE_OVERLAP_TOLERANCE = 2e-3;
+const SIDE_OVERLAP_TOLERANCE = 0.5;
 const MIN_PERP_OVERLAP_RATIO = 0.20;
 const MAX_SIDE_GAP_RATIO = 0.50;
 
@@ -166,7 +168,9 @@ function bestPlacementCandidate(
     }
 
     if (rawDist < -SIDE_OVERLAP_TOLERANCE) continue;
-    const dist = Math.max(0, rawDist);
+    // Keep negative rawDist so overlapping cards (on the tree) rank better
+    // than cards with a positive gap (near but not on the tree).
+    const dist = rawDist;
 
     const maxGap = Math.max(
       ADJACENT_EPSILON,
@@ -177,11 +181,16 @@ function bestPlacementCandidate(
 
     if (dist > maxGap) continue;
 
+    // Use real centers derived from edges (cy may be synthetic for player grouping)
+    const cardCenterY = (card.box.y1 + card.box.y2) / 2;
+    const treeCenterY = (tree.box.y1 + tree.box.y2) / 2;
+    const cardCenterX = (card.box.x1 + card.box.x2) / 2;
+    const treeCenterX = (tree.box.x1 + tree.box.x2) / 2;
     const onCorrectSide = (
-      (side === 'top' && card.box.cy <= tree.box.cy) ||
-      (side === 'bottom' && card.box.cy >= tree.box.cy) ||
-      (side === 'left' && card.box.cx <= tree.box.cx) ||
-      (side === 'right' && card.box.cx >= tree.box.cx)
+      (side === 'top' && cardCenterY <= treeCenterY) ||
+      (side === 'bottom' && cardCenterY >= treeCenterY) ||
+      (side === 'left' && cardCenterX <= treeCenterX) ||
+      (side === 'right' && cardCenterX >= treeCenterX)
     );
     if (!onCorrectSide) continue;
 
@@ -224,7 +233,9 @@ function pickDirectlyAdjacent(
     }
 
     if (rawDist < -SIDE_OVERLAP_TOLERANCE) continue;
-    const dist = Math.max(0, rawDist);
+    // Keep negative rawDist so overlapping cards (on the tree) rank better
+    // than cards with a positive gap (near but not on the tree).
+    const dist = rawDist;
 
     const onCorrectSide = (
       (side === 'top' && card.box.y2 <= anchorBox.y1 + ADJACENT_EPSILON) ||
@@ -346,7 +357,7 @@ function buildForest(boxes: Box[], cards: CardsJson): Forest {
     bottom: bottomByTree.get(tc.box) ?? [],
   }));
 
-  return { trees };
+  return { trees, unplaced: remaining };
 }
 
 // ---------------------------------------------------------------------------
@@ -360,6 +371,9 @@ function allCardInstances(forest: Forest): CardInstance[] {
     for (const c of [tree.card, ...tree.top, ...tree.left, ...tree.right, ...tree.bottom]) {
       if (!seen.has(c)) { seen.add(c); result.push(c); }
     }
+  }
+  for (const c of forest.unplaced) {
+    if (!seen.has(c)) { seen.add(c); result.push(c); }
   }
   return result;
 }
@@ -412,13 +426,13 @@ function sortCardsInUiOrder(forest: Forest): Box[] {
         default: return 0;
       }
     });
-    // filter to only cards geometrically on the correct side
+    // filter to only cards geometrically on the correct side (allow overlap)
     return result.filter((c) => {
       switch (side) {
-        case 'top': return c.box.y2 <= treeBox.y1 + 1e-3;
-        case 'bottom': return c.box.y1 >= treeBox.y2 - 1e-3;
-        case 'left': return c.box.x2 <= treeBox.x1 + 1e-3;
-        case 'right': return c.box.x1 >= treeBox.x2 - 1e-3;
+        case 'top': return c.box.y2 <= treeBox.y1 + SIDE_OVERLAP_TOLERANCE;
+        case 'bottom': return c.box.y1 >= treeBox.y2 - SIDE_OVERLAP_TOLERANCE;
+        case 'left': return c.box.x2 <= treeBox.x1 + SIDE_OVERLAP_TOLERANCE;
+        case 'right': return c.box.x1 >= treeBox.x2 - SIDE_OVERLAP_TOLERANCE;
         default: return true;
       }
     });
@@ -438,6 +452,11 @@ function sortCardsInUiOrder(forest: Forest): Box[] {
     ...tree.right.map((c) => c.box), ...tree.bottom.map((c) => c.box)]) {
       if (!seen.has(box)) { seen.add(box); sorted.push(box); }
     }
+  }
+
+  // Unplaced cards (not attached to any tree)
+  for (const c of forest.unplaced) {
+    if (!seen.has(c.box)) { seen.add(c.box); sorted.push(c.box); }
   }
 
   return sorted;
