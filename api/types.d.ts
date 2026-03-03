@@ -13,11 +13,13 @@ export interface DetectedCard {
     angle: number;
     keypoints: number[] | null;
 }
+/** Preferred alias for DetectedCard in the flat-box scorer API. */
 export type DetectedBox = DetectedCard;
 export interface PlayerInput {
     name: string;
     cards: DetectedCard[];
 }
+/** Game session metadata passed alongside the flat box list to `score()`. */
 export interface ScorerContext {
     players: string[];
     similarityThreshold: number;
@@ -69,14 +71,18 @@ export interface LiveHudItem {
     value: string;
 }
 export interface LiveGameState {
+    /** Opaque game data carried forward unchanged (scorer reads/writes; Flutter ignores). */
     _internal?: unknown;
+    /** What Flutter displays (game-defined content). */
     display: {
         hud: LiveHudItem[];
         summary?: LiveHudItem[];
     };
+    /** Cumulative per-player scores (updated after each roundEnded). */
     scores: {
         name: string;
         totalScore: number;
     }[];
+    /** Actions Flutter executes in order after receiving this state. */
     actions: FlutterAction[];
 }
