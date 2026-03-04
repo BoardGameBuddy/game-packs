@@ -278,6 +278,101 @@ program
     });
   });
 
+// ─── bgb receive-embeddings ──────────────────────────────────────────────────
+
+program
+  .command('receive-embeddings [pack-dir]')
+  .description('Start a server to receive embeddings.json from the app via QR code')
+  .action((packDirArg) => {
+    const packDir = packDirArg ? path.resolve(packDirArg) : process.cwd();
+    const gameJsonPath = path.join(packDir, 'game.json');
+
+    if (!fs.existsSync(gameJsonPath)) {
+      console.error(`Error: no game.json found in ${packDir}`);
+      console.error('Run this command from a pack directory or pass the pack path as argument.');
+      process.exit(1);
+    }
+
+    let gameJson;
+    try {
+      gameJson = JSON.parse(fs.readFileSync(gameJsonPath, 'utf8'));
+    } catch (err) {
+      console.error(`Error: could not parse game.json — ${err.message}`);
+      process.exit(1);
+    }
+    const packId = gameJson.id;
+
+    const server = http.createServer((req, res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+      if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
+
+      const urlPath = req.url.split('?')[0];
+
+      if (req.method === 'GET' && urlPath === '/') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ type: 'receive-embeddings', packId }));
+        return;
+      }
+
+      if (req.method === 'POST' && urlPath === '/upload') {
+        const chunks = [];
+        req.on('data', chunk => chunks.push(chunk));
+        req.on('end', () => {
+          const body = Buffer.concat(chunks).toString('utf8');
+
+          // Validate JSON
+          try {
+            const parsed = JSON.parse(body);
+            if (!parsed.labels || !parsed.embeddings) {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Missing labels or embeddings' }));
+              return;
+            }
+
+            const outputPath = path.join(packDir, 'embeddings.json');
+            fs.writeFileSync(outputPath, JSON.stringify(parsed, null, 2));
+
+            console.log(`\nReceived embeddings: ${parsed.labels.length} labels`);
+            console.log(`Saved to: ${outputPath}`);
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ success: true, labels: parsed.labels.length }));
+          } catch (err) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Invalid JSON: ' + err.message }));
+          }
+        });
+        return;
+      }
+
+      res.writeHead(404);
+      res.end('Not found');
+    });
+
+    server.listen(PORT, '0.0.0.0', () => {
+      const ip = getLocalIp();
+      const url = `http://${ip}:${PORT}/?type=receive-embeddings&packId=${packId}`;
+
+      console.log(`\nWaiting for embeddings upload for pack: ${packId}`);
+      console.log(`URL: ${url}\n`);
+
+      try {
+        const qrcode = require('qrcode-terminal');
+        qrcode.generate(url, { small: true }, (qr) => {
+          console.log(qr);
+          console.log('In the app: Pack Store → QR-Code scannen → Embeddings werden hochgeladen.\n');
+          console.log('Press Ctrl+C to stop.\n');
+        });
+      } catch {
+        console.log(`In the app: Pack Store → QR-Code scannen → ${url}\n`);
+        console.log('Press Ctrl+C to stop.\n');
+      }
+    });
+  });
+
 // ─── Parse ───────────────────────────────────────────────────────────────────
 
 program
