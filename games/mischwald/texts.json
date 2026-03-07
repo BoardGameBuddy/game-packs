@@ -64,6 +64,25 @@
       "unknown_card": "Unbekannt",
       "tree_label": "Baum %d",
       "tree_label_with_name": "Baum %d: %s"
+    },
+    "scoring": {
+      "point_singular": "Punkt",
+      "points_plural": "Punkte",
+      "cards": "Karten",
+      "or": "oder",
+      "same_tree": "im selben Baum",
+      "unique": "einzigartig",
+      "same_tree_symbol": "gleiches Baum-Symbol",
+      "full_tree": "voller Baum",
+      "same_spot": "gleicher Platz",
+      "most": "meiste",
+      "fixed_prefix": "feste",
+      "min_prefix": "mind.",
+      "hits": "Treffer",
+      "condition_not_met": "Bedingung nicht erfüllt",
+      "no_condition": "keine Bedingung",
+      "table_prefix": "Tabelle",
+      "per": "pro"
     }
   },
   "en": {
@@ -131,6 +150,25 @@
       "unknown_card": "Unknown",
       "tree_label": "Tree %d",
       "tree_label_with_name": "Tree %d: %s"
+    },
+    "scoring": {
+      "point_singular": "point",
+      "points_plural": "points",
+      "cards": "cards",
+      "or": "or",
+      "same_tree": "in same tree",
+      "unique": "unique",
+      "same_tree_symbol": "same tree symbol",
+      "full_tree": "full tree",
+      "same_spot": "same spot",
+      "most": "most",
+      "fixed_prefix": "fixed",
+      "min_prefix": "min.",
+      "hits": "hits",
+      "condition_not_met": "condition not met",
+      "no_condition": "no condition",
+      "table_prefix": "Table",
+      "per": "per"
     }
   }
 }
