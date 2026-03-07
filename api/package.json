@@ -12,6 +12,9 @@
     "index.js",
     "index.d.ts"
   ],
+  "scripts": {
+    "build": "tsc --project tsconfig.json"
+  },
   "publishConfig": {
     "access": "public"
   }
