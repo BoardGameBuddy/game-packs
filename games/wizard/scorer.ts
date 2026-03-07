@@ -148,7 +148,16 @@ interface WizardInternal {
   previousCardIds: string[];
   /** Cards detected in the current trick: [playerIndex, cardId] pairs. */
   currentTrickCards: [number, string][];
+  /** Guards against firing trick completion actions more than once. */
+  trickCompletionFired: boolean;
+  /** Counts consecutive processCards calls with no visible cards (for table-clear detection). */
+  emptyCallCount: number;
+  /** True after a trick completes, waiting for cards to be removed. */
+  waitingForTableClear: boolean;
 }
+
+/** Number of consecutive processCards calls with empty boxes required to confirm table clear. */
+const EMPTY_CALLS_THRESHOLD = 5;
 
 /** Formats a number with explicit sign (+/-). */
 function fmtSigned(n: number): string {
@@ -157,6 +166,25 @@ function fmtSigned(n: number): string {
 
 function buildScores(s: WizardInternal): PlayerScoreResult[] {
   return s.players.map(p => ({ name: p, totalScore: s.cumulativeScores[p] ?? 0, cardDetails: [] }));
+}
+
+function buildScoresWithCards(s: WizardInternal): PlayerScoreResult[] {
+  const cardDetails: CardScoreDetail[] = s.currentTrickCards.map(([playerIdx, cardId]) => {
+    const [displayName, group] = parseCardDisplay(cardId);
+    return {
+      cardId,
+      points: 0,
+      reason: `${s.players[playerIdx]}: ${displayName}`,
+      title: displayName,
+      group,
+    };
+  });
+  return s.players.map((name, i) => ({
+    name,
+    totalScore: s.cumulativeScores[name] ?? 0,
+    cardDetails: cardDetails.filter(d =>
+      s.currentTrickCards.some(([pi, id]) => id === d.cardId && s.players[pi] === name)),
+  }));
 }
 
 function buildHud(s: WizardInternal): LiveHudItem[] {
@@ -238,6 +266,9 @@ export class WizardGame implements GamePack {
       cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
       previousCardIds: [],
       currentTrickCards: [],
+      trickCompletionFired: false,
+      emptyCallCount: 0,
+      waitingForTableClear: false,
     };
   }
 
@@ -248,26 +279,47 @@ export class WizardGame implements GamePack {
     const newCards = boxes.filter(b => !previousSet.has(b.cardId));
     s.previousCardIds = currentIds;
 
-    // --- trumpDetection: show detected card as trump candidate ---
+    // --- trumpDetection: just show HUD ---
     if (s.phase === 'trumpDetection') {
-      const cardDetails: CardScoreDetail[] = newCards.map(card => {
-        const [displayName, group] = parseCardDisplay(card.cardId);
-        return { cardId: card.cardId, points: 0, reason: displayName, title: displayName, group };
-      });
       return {
         players: buildScores(s),
         display: { hud: buildHud(s) },
-        actions: [],
+      };
+    }
+
+    // --- waitingForClear: count empty frames, transition to trickTracking ---
+    if (s.phase === 'waitingForClear' || s.waitingForTableClear) {
+      if (boxes.length === 0) {
+        s.emptyCallCount++;
+        if (s.emptyCallCount >= EMPTY_CALLS_THRESHOLD) {
+          s.emptyCallCount = 0;
+          s.waitingForTableClear = false;
+          s.trickCompletionFired = false;
+          s.currentTrickCards = [];
+          s.previousCardIds = [];
+          if (s.phase === 'waitingForClear') {
+            s.phase = 'trickTracking';
+          }
+          return {
+            players: buildScores(s),
+            display: { hud: buildHud(s) },
+          };
+        }
+      } else {
+        s.emptyCallCount = 0;
+      }
+      return {
+        players: buildScores(s),
+        display: { hud: buildHud(s) },
       };
     }
 
     // --- trickTracking: track newly appeared cards per player ---
     if (s.phase === 'trickTracking') {
-      if (newCards.length > 0) {
+      if (newCards.length > 0 && !s.trickCompletionFired) {
         const groups = groupByPlayer(newCards, s.players.length);
         for (let i = 0; i < s.players.length; i++) {
           for (const card of (groups[i] ?? [])) {
-            // Avoid duplicate entries for the same card
             if (!s.currentTrickCards.some(([, id]) => id === card.cardId)) {
               s.currentTrickCards.push([i, card.cardId]);
             }
@@ -275,30 +327,62 @@ export class WizardGame implements GamePack {
         }
       }
 
-      // Build card details showing the current trick state
-      const cardDetails: CardScoreDetail[] = s.currentTrickCards.map(([playerIdx, cardId]) => {
-        const [displayName, group] = parseCardDisplay(cardId);
-        return {
-          cardId,
-          points: 0,
-          reason: `${s.players[playerIdx]}: ${displayName}`,
-          title: displayName,
-          group,
-        };
-      });
+      // Check for trick completion
+      if (s.currentTrickCards.length >= s.players.length && !s.trickCompletionFired) {
+        s.trickCompletionFired = true;
+        s.waitingForTableClear = true;
 
+        const cards = s.currentTrickCards;
+        const winnerIndex = determineTrickWinner(cards, s.trumpSuit);
+        const winnerName = s.players[winnerIndex];
+
+        s.tricksWon[winnerName] = (s.tricksWon[winnerName] ?? 0) + 1;
+        s.completedTricks++;
+
+        const trickNum = s.completedTricks;
+        const trickWonText = t('voice.trick_won', '%s gewinnt Stich %d.')
+          .replace('%s', winnerName).replace('%d', String(trickNum));
+
+        if (s.completedTricks >= s.round) {
+          // Last trick — calculate round scores
+          for (const p of s.players) {
+            const bid = s.bids[p] ?? 0;
+            const won = s.tricksWon[p] ?? 0;
+            const roundScore = calculateRoundScore(bid, won);
+            s.cumulativeScores[p] = (s.cumulativeScores[p] ?? 0) + roundScore;
+          }
+
+          const summaryItems = buildRoundSummary(s);
+          const summaryText = t('voice.round_summary_intro', 'Rundenabschluss.');
+
+          return {
+            players: buildScoresWithCards(s),
+            display: { hud: buildHud(s), summary: summaryItems },
+            actions: [
+              { type: 'speak', text: `${trickWonText} ${summaryText}` },
+              { type: 'showSummary' },
+            ],
+          };
+        }
+
+        // Not last trick
+        return {
+          players: buildScoresWithCards(s),
+          display: { hud: buildHud(s) },
+          actions: [
+            { type: 'speak', text: trickWonText },
+          ],
+        };
+      }
+
+      // No trick completion — just display current state with card details
       return {
-        players: s.players.map(name => ({
-          name,
-          totalScore: s.cumulativeScores[name] ?? 0,
-          cardDetails: cardDetails.filter(d =>
-            s.currentTrickCards.some(([pi, id]) => id === d.cardId && s.players[pi] === name)),
-        })),
+        players: buildScoresWithCards(s),
         display: { hud: buildHud(s) },
       };
     }
 
-    // --- bidCollection / waitingForClear: just show current HUD ---
+    // --- bidCollection: just show current HUD ---
     return {
       players: buildScores(s),
       display: { hud: buildHud(s) },
@@ -327,6 +411,9 @@ export class WizardGame implements GamePack {
         cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
         previousCardIds: [],
         currentTrickCards: [],
+        trickCompletionFired: false,
+        emptyCallCount: 0,
+        waitingForTableClear: false,
       };
       const roundText = t('voice.round_start', 'Runde %d von %d.')
         .replace('%d', String(this.state.round)).replace('%d', String(this.state.maxRounds));
@@ -411,9 +498,15 @@ export class WizardGame implements GamePack {
 
     // ---- tableCleared -------------------------------------------------------
     if (type === 'tableCleared') {
-      s.phase = 'trickTracking';
-      s.currentTrickCards = [];
-      s.previousCardIds = [];
+      // May already be handled by processCards table-clear detection.
+      if (s.phase === 'waitingForClear' || s.waitingForTableClear) {
+        s.phase = 'trickTracking';
+        s.waitingForTableClear = false;
+        s.trickCompletionFired = false;
+        s.emptyCallCount = 0;
+        s.currentTrickCards = [];
+        s.previousCardIds = [];
+      }
       return {
         players: buildScores(s),
         display: { hud: buildHud(s) },
@@ -423,6 +516,10 @@ export class WizardGame implements GamePack {
 
     // ---- trickCompleted -----------------------------------------------------
     if (type === 'trickCompleted') {
+      // Skip if processCards already handled this trick.
+      if (s.trickCompletionFired) {
+        return { players: buildScores(s), display: { hud: buildHud(s) }, actions: [] };
+      }
       // Use event data if provided, otherwise fall back to cards tracked by processCards
       const cards: [number, string][] = (data.cards as [number, string][] | undefined)
         ?? s.currentTrickCards;
@@ -482,6 +579,9 @@ export class WizardGame implements GamePack {
       s.completedTricks = 0;
       s.currentTrickCards = [];
       s.previousCardIds = [];
+      s.trickCompletionFired = false;
+      s.emptyCallCount = 0;
+      s.waitingForTableClear = false;
 
       if (justFinishedRound >= s.maxRounds) {
         // Game over

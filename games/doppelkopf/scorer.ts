@@ -534,11 +534,20 @@ interface DoppelkopfInternal {
   trickHistory: TrickHistoryEntry[];
   announcements: string[];
   cumulativeScores: Record<string, number>;
-  /** Card IDs seen in the previous processCards call — used for diffing new arrivals. */
+  /** Card IDs seen in the previous processCards call — used for count-based diffing (supports duplicates). */
   previousCardIds: string[];
   /** Cards detected in the current trick: [playerIndex, cardId] pairs. */
   currentTrickCards: [number, string][];
+  /** Guards against firing trick completion actions more than once. */
+  trickCompletionFired: boolean;
+  /** Counts consecutive processCards calls with no visible cards (for table-clear detection). */
+  emptyCallCount: number;
+  /** True after a trick completes, waiting for cards to be removed. */
+  waitingForTableClear: boolean;
 }
+
+/** Number of consecutive processCards calls with empty boxes required to confirm table clear. */
+const EMPTY_CALLS_THRESHOLD = 5;
 
 /** Announcement trigger words keyed by id, as defined in game.json. */
 const ANNOUNCEMENT_TRIGGERS: Record<string, string[]> = {
@@ -549,6 +558,29 @@ const ANNOUNCEMENT_UNTIL = 2; // maxTrick window
 
 function buildScoresDk(s: DoppelkopfInternal): PlayerScoreResult[] {
   return s.players.map(p => ({ name: p, totalScore: s.cumulativeScores[p] ?? 0, cardDetails: [] }));
+}
+
+function buildScoresDkWithCards(s: DoppelkopfInternal): PlayerScoreResult[] {
+  const cardDetails: CardScoreDetail[] = s.currentTrickCards.map(([playerIdx, cardId]) => {
+    const [suit] = parseCard(cardId);
+    const points = cardAugen(cardId);
+    const displayName = cardDisplayName(cardId);
+    const trump = isTrump(cardId);
+    const group = trump ? t('scoring.trump_group', 'Trumpf') : t(`suits.${suit}`, suit);
+    return {
+      cardId,
+      points,
+      reason: `${s.players[playerIdx]}: ${displayName}`,
+      title: displayName,
+      group,
+    };
+  });
+  return s.players.map(name => ({
+    name,
+    totalScore: s.cumulativeScores[name] ?? 0,
+    cardDetails: cardDetails.filter(d =>
+      s.currentTrickCards.some(([pi, id]) => id === d.cardId && s.players[pi] === name)),
+  }));
 }
 
 function buildHudDk(s: DoppelkopfInternal): LiveHudItem[] {
@@ -600,51 +632,148 @@ export class DoppelkopfGame implements GamePack {
       cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
       previousCardIds: [],
       currentTrickCards: [],
+      trickCompletionFired: false,
+      emptyCallCount: 0,
+      waitingForTableClear: false,
     };
+  }
+
+  /**
+   * Count-based diffing that supports duplicate card IDs (Doppelkopf has 2 copies of each card).
+   * Returns boxes that are "new" compared to the previous call.
+   */
+  private diffNewCards(boxes: DetectedBox[]): DetectedBox[] {
+    const s = this.state;
+    const currentIds = boxes.map(b => b.cardId);
+
+    // Build count maps
+    const prevCounts: Record<string, number> = {};
+    for (const id of s.previousCardIds) {
+      prevCounts[id] = (prevCounts[id] ?? 0) + 1;
+    }
+
+    // Track which boxes are genuinely new (count exceeds previous count)
+    const usedCounts: Record<string, number> = {};
+    const newCards: DetectedBox[] = [];
+    for (const box of boxes) {
+      const id = box.cardId;
+      usedCounts[id] = (usedCounts[id] ?? 0) + 1;
+      if (usedCounts[id] > (prevCounts[id] ?? 0)) {
+        newCards.push(box);
+      }
+    }
+
+    s.previousCardIds = currentIds;
+    return newCards;
   }
 
   processCards(boxes: DetectedBox[]): GameState {
     const s = this.state;
-    const currentIds = boxes.map(b => b.cardId);
-    const previousSet = new Set(s.previousCardIds);
-    const newCards = boxes.filter(b => !previousSet.has(b.cardId));
-    s.previousCardIds = currentIds;
+    const newCards = this.diffNewCards(boxes);
 
-    // Track newly appeared cards per player during trick tracking
-    if (newCards.length > 0) {
+    // --- waitingForTableClear: count empty frames ---
+    if (s.waitingForTableClear) {
+      if (boxes.length === 0) {
+        s.emptyCallCount++;
+        if (s.emptyCallCount >= EMPTY_CALLS_THRESHOLD) {
+          s.emptyCallCount = 0;
+          s.waitingForTableClear = false;
+          s.trickCompletionFired = false;
+          s.currentTrickCards = [];
+          s.previousCardIds = [];
+        }
+      } else {
+        s.emptyCallCount = 0;
+      }
+      return {
+        players: buildScoresDk(s),
+        display: { hud: buildHudDk(s) },
+      };
+    }
+
+    // Track newly appeared cards per player
+    if (newCards.length > 0 && !s.trickCompletionFired) {
       const groups = groupByPlayer(newCards, s.players.length);
       for (let i = 0; i < s.players.length; i++) {
         for (const card of (groups[i] ?? [])) {
-          if (!s.currentTrickCards.some(([, id]) => id === card.cardId)) {
-            s.currentTrickCards.push([i, card.cardId]);
-          }
+          s.currentTrickCards.push([i, card.cardId]);
         }
       }
     }
 
-    // Build card details from tracked trick cards
-    const cardDetails: CardScoreDetail[] = s.currentTrickCards.map(([playerIdx, cardId]) => {
-      const [suit] = parseCard(cardId);
-      const points = cardAugen(cardId);
-      const displayName = cardDisplayName(cardId);
-      const trump = isTrump(cardId);
-      const group = trump ? t('scoring.trump_group', 'Trumpf') : t(`suits.${suit}`, suit);
-      return {
-        cardId,
-        points,
-        reason: `${s.players[playerIdx]}: ${displayName}`,
-        title: displayName,
-        group,
-      };
-    });
+    // Check for trick completion
+    if (s.currentTrickCards.length >= s.players.length && !s.trickCompletionFired) {
+      s.trickCompletionFired = true;
+      s.waitingForTableClear = true;
 
+      const cards = s.currentTrickCards;
+      const winnerIndex = determineTrickWinner(cards, null);
+      const winnerName = s.players[winnerIndex] ?? '?';
+
+      let trickAugen = 0;
+      for (const [, cardId] of cards) trickAugen += cardAugen(cardId);
+
+      s.trickHistory.push({ cards, winnerIndex });
+      s.completedTricks++;
+
+      const trickNum = s.completedTricks;
+      const trickWonText = trickAugen > 0
+        ? t('voice.trick_won_augen', '%s gewinnt Stich %d mit %d Augen.')
+            .replace('%s', winnerName).replace('%d', String(trickNum)).replace('%d', String(trickAugen))
+        : t('voice.trick_won', '%s gewinnt Stich %d.')
+            .replace('%s', winnerName).replace('%d', String(trickNum));
+
+      if (s.completedTricks >= 12) {
+        // Last trick — calculate round scores
+        const roundResult = calculateAllRoundScores({
+          playerNames: s.players,
+          trickHistory: s.trickHistory,
+          announcements: s.announcements,
+        });
+        for (const p of s.players) {
+          s.cumulativeScores[p] = (s.cumulativeScores[p] ?? 0) + (roundResult.scores[p] ?? 0);
+        }
+
+        const summaryItems: LiveHudItem[] = [
+          ...roundResult.summary,
+          { label: '---', value: '' },
+          ...s.players.map(p => ({
+            label: p,
+            value: `${t('ui.score_total', 'Gesamt:')} ${s.cumulativeScores[p] ?? 0}`,
+          })),
+        ];
+
+        const summaryText = t('voice.round_summary_intro', 'Spielabschluss.');
+        return {
+          players: buildScoresDk(s),
+          display: { hud: buildHudDk(s), summary: summaryItems },
+          actions: [
+            { type: 'speak', text: `${trickWonText} ${summaryText}` },
+            { type: 'stopAnnouncementListening' },
+            { type: 'showSummary' },
+          ],
+        };
+      }
+
+      // Not last trick
+      const actions: FlutterAction[] = [
+        { type: 'speak', text: trickWonText },
+      ];
+
+      if (s.completedTricks >= ANNOUNCEMENT_UNTIL) {
+        actions.push({ type: 'stopAnnouncementListening' });
+      }
+
+      return {
+        players: buildScoresDk(s),
+        display: { hud: buildHudDk(s) },
+        actions,
+      };
+    }
+
+    // No trick completion — just display current state with card details
     return {
-      players: s.players.map(name => ({
-        name,
-        totalScore: s.cumulativeScores[name] ?? 0,
-        cardDetails: cardDetails.filter(d =>
-          s.currentTrickCards.some(([pi, id]) => id === d.cardId && s.players[pi] === name)),
-      })),
+      players: buildScoresDkWithCards(s),
       display: { hud: buildHudDk(s) },
     };
   }
@@ -665,6 +794,9 @@ export class DoppelkopfGame implements GamePack {
         cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
         previousCardIds: [],
         currentTrickCards: [],
+        trickCompletionFired: false,
+        emptyCallCount: 0,
+        waitingForTableClear: false,
       };
       const gameStartText = t('voice.game_start', 'Spiel beginnt. Tisch bitte leeren.');
       return {
@@ -685,6 +817,12 @@ export class DoppelkopfGame implements GamePack {
 
     // ---- tableCleared -------------------------------------------------------
     if (type === 'tableCleared') {
+      // May already be handled by processCards table-clear detection.
+      if (s.waitingForTableClear) {
+        s.waitingForTableClear = false;
+        s.trickCompletionFired = false;
+        s.emptyCallCount = 0;
+      }
       s.currentTrickCards = [];
       s.previousCardIds = [];
       return {
@@ -710,6 +848,10 @@ export class DoppelkopfGame implements GamePack {
 
     // ---- trickCompleted -----------------------------------------------------
     if (type === 'trickCompleted') {
+      // Skip if processCards already handled this trick.
+      if (s.trickCompletionFired) {
+        return { players: buildScoresDk(s), display: { hud: buildHudDk(s) }, actions: [] };
+      }
       // Use event data if provided, otherwise fall back to cards tracked by processCards
       const cards: [number, string][] = (data.cards as [number, string][] | undefined)
         ?? s.currentTrickCards;
@@ -790,6 +932,9 @@ export class DoppelkopfGame implements GamePack {
       s.announcements = [];
       s.currentTrickCards = [];
       s.previousCardIds = [];
+      s.trickCompletionFired = false;
+      s.emptyCallCount = 0;
+      s.waitingForTableClear = false;
 
       const nextRoundText = t('voice.next_round', 'Naechste Runde. Tisch bitte leeren.');
       return {
