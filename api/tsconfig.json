@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "commonjs",
+    "strict": true,
+    "declaration": true,
+    "skipLibCheck": true
+  },
+  "files": ["index.ts", "types.ts", "spatial-utils.ts", "scorer-utils.ts"]
+}
