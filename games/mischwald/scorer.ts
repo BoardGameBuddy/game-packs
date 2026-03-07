@@ -13,7 +13,9 @@
  */
 
 import type { GamePack, GameState, DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
-import { overlapHorizontal, overlapVertical, sortVisuallyByBox, parseCardId, groupByPlayer } from '@boardgamebuddy/game-pack-api';
+import { overlapHorizontal, overlapVertical, sortVisuallyByBox, parseCardId, groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
+
+const t = createTranslator('./texts.json');
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of mischwald_cards.json)
@@ -563,27 +565,27 @@ function scoreTableIndex(points: number[], count: number): number {
   return points[Math.max(0, Math.min(points.length - 1, count - 1))];
 }
 
-function pointsWord(n: number): string { return n === 1 ? 'Punkt' : 'Punkte'; }
+function pointsWord(n: number): string { return n === 1 ? t('scoring.point_singular') : t('scoring.points_plural'); }
 
 function describeTarget(cond: ConditionJson): string {
   const ids = (cond.name ?? []).filter(Boolean);
   const tags = (cond.tags ?? []).filter(Boolean);
   if (ids.length > 0) return ids.join('/');
-  if (tags.length > 0) return tags.join(' oder ');
-  return 'Karten';
+  if (tags.length > 0) return tags.join(` ${t('scoring.or')} `);
+  return t('scoring.cards');
 }
 
 function describeScope(cond: ConditionJson): string {
-  return cond.sameTree === true ? 'im selben Baum' : '';
+  return cond.sameTree === true ? t('scoring.same_tree') : '';
 }
 
 function describeExtras(cond: ConditionJson): string {
   const parts: string[] = [];
-  if (cond.unique === true) parts.push('einzigartig');
-  if (cond.sameTreeSymbol === true) parts.push('gleiches Baum-Symbol');
-  if (cond.fullTree === true) parts.push('voller Baum');
-  if (cond.sameSpot === true) parts.push('gleicher Platz');
-  if (cond.most === true) parts.push('meiste');
+  if (cond.unique === true) parts.push(t('scoring.unique'));
+  if (cond.sameTreeSymbol === true) parts.push(t('scoring.same_tree_symbol'));
+  if (cond.fullTree === true) parts.push(t('scoring.full_tree'));
+  if (cond.sameSpot === true) parts.push(t('scoring.same_spot'));
+  if (cond.most === true) parts.push(t('scoring.most'));
   if (cond.position?.length) parts.push(cond.position.join('/'));
   return parts.join(', ');
 }
@@ -596,43 +598,43 @@ function scoreInstanceWithReason(
   mostResolver: MostResolver | null,
 ): [number, string] {
   const scoreRule = instance.definition?.score;
-  if (!scoreRule) return [0, 'kein Effekt'];
+  if (!scoreRule) return [0, t('ui.no_effect')];
 
   const cond = scoreRule.condition;
   const type = scoreRule.type.toLowerCase();
 
   if (type === 'fixed') {
     const amount = Array.isArray(scoreRule.amount) ? 0 : (scoreRule.amount ?? 0);
-    if (!cond) return [amount, `${amount} feste ${pointsWord(amount)}`];
+    if (!cond) return [amount, `${amount} ${t('scoring.fixed_prefix')} ${pointsWord(amount)}`];
 
     const matches = countMatches(instance, cond, all, placementsByBox, assumeMost, mostResolver);
     const min = scoreRule.min;
     const satisfied = min != null ? matches >= min : matches > 0;
-    const minText = min != null ? `mind. ${min}` : 'mind. 1';
+    const minText = min != null ? `${t('scoring.min_prefix')} ${min}` : `${t('scoring.min_prefix')} 1`;
     const extra = describeExtras(cond);
     const extraStr = extra ? ` (${extra})` : '';
     const scopeStr = describeScope(cond) ? ` ${describeScope(cond)}` : '';
     const target = describeTarget(cond);
     if (satisfied) {
-      return [amount, `${amount} feste ${pointsWord(amount)} (${matches} Treffer, ${minText} ${target}${scopeStr}${extraStr})`];
+      return [amount, `${amount} ${t('scoring.fixed_prefix')} ${pointsWord(amount)} (${matches} ${t('scoring.hits')}, ${minText} ${target}${scopeStr}${extraStr})`];
     } else {
-      return [0, `0 ${pointsWord(0)} (Bedingung nicht erfüllt: ${matches} Treffer, ${minText} ${target}${scopeStr}${extraStr})`];
+      return [0, `0 ${pointsWord(0)} (${t('scoring.condition_not_met')}: ${matches} ${t('scoring.hits')}, ${minText} ${target}${scopeStr}${extraStr})`];
     }
   }
 
   if (type === 'multiplication') {
     const amount = Array.isArray(scoreRule.amount) ? 0 : (scoreRule.amount ?? 0);
-    if (!cond) return [0, '0 (keine Bedingung)'];
+    if (!cond) return [0, `0 (${t('scoring.no_condition')})`];
 
     const matches = countMatches(instance, cond, all, placementsByBox, assumeMost, mostResolver);
     const min = scoreRule.min;
     const effectiveMatches = (min != null && matches < min) ? 0 : matches;
     const pts = amount * effectiveMatches;
-    const minText = min != null ? `mind. ${min}` : '';
+    const minText = min != null ? `${t('scoring.min_prefix')} ${min}` : '';
     const extra = describeExtras(cond);
     const extraStr = extra ? ` (${extra})` : '';
     const scopeStr = describeScope(cond);
-    const perText = `${amount} ${pointsWord(amount)} pro ${describeTarget(cond)}`;
+    const perText = `${amount} ${pointsWord(amount)} ${t('scoring.per')} ${describeTarget(cond)}`;
     const detailsParts = [minText, scopeStr].filter(Boolean);
     const detailsStr = detailsParts.length > 0 ? ` (${detailsParts.join(', ')})` : '';
     return [pts, `${perText} · ${effectiveMatches}${detailsStr}${extraStr}`];
@@ -640,7 +642,7 @@ function scoreInstanceWithReason(
 
   if (type === 'table') {
     const arr = Array.isArray(scoreRule.amount) ? (scoreRule.amount as number[]) : [];
-    if (!cond) return [0, '0 (keine Bedingung)'];
+    if (!cond) return [0, `0 (${t('scoring.no_condition')})`];
 
     const matches = countMatches(instance, cond, all, placementsByBox, assumeMost, mostResolver);
 
@@ -648,10 +650,10 @@ function scoreInstanceWithReason(
     const extra = describeExtras(cond);
     const extraStr = extra ? ` (${extra})` : '';
     const scopeStr = describeScope(cond) ? ` ${describeScope(cond)}` : '';
-    return [pts, `Tabelle: ${matches} Treffer (${describeTarget(cond)}${scopeStr}${extraStr})`];
+    return [pts, `${t('scoring.table_prefix')}: ${matches} ${t('scoring.hits')} (${describeTarget(cond)}${scopeStr}${extraStr})`];
   }
 
-  return [0, 'kein Effekt'];
+  return [0, t('ui.no_effect')];
 }
 
 // ---------------------------------------------------------------------------
@@ -779,7 +781,7 @@ export class MischwaldGame implements GamePack {
           if (!inst) continue;
           const [points, reason] = scoreByBox.get(box) ?? [0, ''];
           const treeIdx = boxToTreeIdx.get(box);
-          const group = treeIdx != null ? `Baum ${treeIdx + 1}` : undefined;
+          const group = treeIdx != null ? t('ui.tree_label').replace('%d', String(treeIdx + 1)) : undefined;
           cardDetails.push({
             cardId: inst.box.clsName,
             points,

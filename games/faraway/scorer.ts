@@ -16,7 +16,9 @@
  */
 
 import type { GamePack, GameState, DetectedBox, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
-import { sortVisuallyByBox, parseCardId, groupByPlayer } from '@boardgamebuddy/game-pack-api';
+import { sortVisuallyByBox, parseCardId, groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
+
+const t = createTranslator('./texts.json');
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of faraway_cards.json)
@@ -200,7 +202,7 @@ function mult(taskPer: number, defaultM: number): number {
 
 function evalTask(card: Card, scope: Card[]): [number, string] {
   const type = card.taskType;
-  if (!type) return [0, 'keine Aufgabe'];
+  if (!type) return [0, t('scoring.no_task')];
 
   const p = card.taskPer;
 
@@ -208,32 +210,32 @@ function evalTask(card: Card, scope: Card[]): [number, string] {
     case 'perHint': {
       const n = scope.reduce((s, c) => s + c.hints, 0);
       const m = mult(p, 1);
-      return [n * m, `${m} pro Hinweis × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('scoring.hint')} × ${n}`];
     }
     case 'perStone': {
       const n = scope.reduce((s, c) => s + c.stone, 0);
       const m = mult(p, 2);
-      return [n * m, `${m} pro Stein × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('scoring.stone')} × ${n}`];
     }
     case 'perChimera': {
       const n = scope.reduce((s, c) => s + c.chimera, 0);
       const m = mult(p, 4);
-      return [n * m, `${m} pro Chimäre × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('scoring.chimera')} × ${n}`];
     }
     case 'perThistle': {
       const n = scope.reduce((s, c) => s + c.thistle, 0);
       const m = mult(p, 3);
-      return [n * m, `${m} pro Distel × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('scoring.thistle')} × ${n}`];
     }
     case 'perNight': {
       const n = scope.filter((c) => c.night).length;
       const m = mult(p, 4);
-      return [n * m, `${m} pro Nacht × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('scoring.night')} × ${n}`];
     }
     case 'perForest': {
       const n = scope.filter((c) => c.landscape === 'forest').length;
       const m = mult(p, 4);
-      return [n * m, `${m} pro Wald × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('ui.landscape_forest')} × ${n}`];
     }
     case 'perLandscapeSet': {
       const city = scope.filter((c) => c.landscape === 'city').length;
@@ -242,75 +244,75 @@ function evalTask(card: Card, scope: Card[]): [number, string] {
       const desert = scope.filter((c) => c.landscape === 'desert').length;
       const n = Math.min(city, river, forest, desert);
       const m = mult(p, 10);
-      return [n * m, `${m} pro Set (Stadt/Fluss/Wald/Wüste) × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('scoring.landscape_set')} (${t('ui.landscape_city')}/${t('ui.landscape_river')}/${t('ui.landscape_forest')}/${t('ui.landscape_desert')}) × ${n}`];
     }
     case 'perYellow': {
       const n = scope.filter((c) => c.landscape === 'desert').length;
       const m = mult(p, 1);
-      return [n * m, `${m} pro Wüste × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('ui.landscape_desert')} × ${n}`];
     }
     case 'perBlue': {
       const n = scope.filter((c) => c.landscape === 'river').length;
       const m = mult(p, 1);
-      return [n * m, `${m} pro Fluss × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('ui.landscape_river')} × ${n}`];
     }
     case 'perGreen': {
       const n = scope.filter((c) => c.landscape === 'forest').length;
       const m = mult(p, 1);
-      return [n * m, `${m} pro Wald × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('ui.landscape_forest')} × ${n}`];
     }
     case 'perRed': {
       const n = scope.filter((c) => c.landscape === 'city').length;
       const m = mult(p, 1);
-      return [n * m, `${m} pro Stadt × ${n}`];
+      return [n * m, `${m} ${t('scoring.per')} ${t('ui.landscape_city')} × ${n}`];
     }
     case 'perCityOrRiver': {
       const c1 = scope.filter((c) => c.landscape === 'city').length;
       const c2 = scope.filter((c) => c.landscape === 'river').length;
       const m = mult(p, 2);
-      return [(c1 + c2) * m, `${m} pro Stadt (${c1}) + Fluss (${c2})`];
+      return [(c1 + c2) * m, `${m} ${t('scoring.per')} ${t('ui.landscape_city')} (${c1}) + ${t('ui.landscape_river')} (${c2})`];
     }
     case 'perYellowOrBlue': {
       const c1 = scope.filter((c) => c.landscape === 'desert').length;
       const c2 = scope.filter((c) => c.landscape === 'river').length;
       const m = mult(p, 1);
-      return [(c1 + c2) * m, `${m} pro Wüste (${c1}) + Fluss (${c2})`];
+      return [(c1 + c2) * m, `${m} ${t('scoring.per')} ${t('ui.landscape_desert')} (${c1}) + ${t('ui.landscape_river')} (${c2})`];
     }
     case 'perYellowOrGreen': {
       const c1 = scope.filter((c) => c.landscape === 'desert').length;
       const c2 = scope.filter((c) => c.landscape === 'forest').length;
       const m = mult(p, 1);
-      return [(c1 + c2) * m, `${m} pro Wüste (${c1}) + Wald (${c2})`];
+      return [(c1 + c2) * m, `${m} ${t('scoring.per')} ${t('ui.landscape_desert')} (${c1}) + ${t('ui.landscape_forest')} (${c2})`];
     }
     case 'perYellowOrRed': {
       const c1 = scope.filter((c) => c.landscape === 'desert').length;
       const c2 = scope.filter((c) => c.landscape === 'city').length;
       const m = mult(p, 1);
-      return [(c1 + c2) * m, `${m} pro Wüste (${c1}) + Stadt (${c2})`];
+      return [(c1 + c2) * m, `${m} ${t('scoring.per')} ${t('ui.landscape_desert')} (${c1}) + ${t('ui.landscape_city')} (${c2})`];
     }
     case 'perGreenOrRed': {
       const c1 = scope.filter((c) => c.landscape === 'forest').length;
       const c2 = scope.filter((c) => c.landscape === 'city').length;
       const m = mult(p, 1);
-      return [(c1 + c2) * m, `${m} pro Wald (${c1}) + Stadt (${c2})`];
+      return [(c1 + c2) * m, `${m} ${t('scoring.per')} ${t('ui.landscape_forest')} (${c1}) + ${t('ui.landscape_city')} (${c2})`];
     }
     case 'perGreenOrBlue': {
       const c1 = scope.filter((c) => c.landscape === 'forest').length;
       const c2 = scope.filter((c) => c.landscape === 'river').length;
       const m = mult(p, 1);
-      return [(c1 + c2) * m, `${m} pro Wald (${c1}) + Fluss (${c2})`];
+      return [(c1 + c2) * m, `${m} ${t('scoring.per')} ${t('ui.landscape_forest')} (${c1}) + ${t('ui.landscape_river')} (${c2})`];
     }
     case 'perBlueOrRed': {
       const c1 = scope.filter((c) => c.landscape === 'river').length;
       const c2 = scope.filter((c) => c.landscape === 'city').length;
       const m = mult(p, 1);
-      return [(c1 + c2) * m, `${m} pro Fluss (${c1}) + Stadt (${c2})`];
+      return [(c1 + c2) * m, `${m} ${t('scoring.per')} ${t('ui.landscape_river')} (${c1}) + ${t('ui.landscape_city')} (${c2})`];
     }
     case 'fixed': {
-      return [card.taskValue, `feste ${card.taskValue} Punkte`];
+      return [card.taskValue, t('scoring.fixed_points').replace('%d', String(card.taskValue))];
     }
     default:
-      return [0, 'unbekannte Aufgabe'];
+      return [0, t('scoring.unknown_task')];
   }
 }
 
@@ -357,8 +359,8 @@ export class FarawayGame implements GamePack {
     const cardDetails: CardScoreDetail[] = [];
     let total = 0;
 
-    const regionsGroup = `${regions.length} Regionen`;
-    const sanctuariesGroup = `${sanctuaries.length} Heiligtümer`;
+    const regionsGroup = t('scoring.regions_group').replace('%d', String(regions.length));
+    const sanctuariesGroup = t('scoring.sanctuaries_group').replace('%d', String(sanctuaries.length));
 
     // Regions scored last-to-first; scope grows as each scored region is "revealed"
     const revealed: Card[] = [];
@@ -367,13 +369,13 @@ export class FarawayGame implements GamePack {
       const scope: Card[] = [...revealed, region, ...sanctuaries];
 
       let points = 0;
-      let reason = 'keine Aufgabe';
+      let reason = t('scoring.no_task');
 
       if (region.taskType !== null) {
         if (meetsCondition(scope, region)) {
           [points, reason] = evalTask(region, scope);
         } else {
-          reason = 'Bedingung nicht erfüllt';
+          reason = t('scoring.condition_not_met');
         }
       }
 
@@ -383,7 +385,7 @@ export class FarawayGame implements GamePack {
         cardId: `region:${region.id}`,
         points,
         reason,
-        title: `Region ${displayId}`,
+        title: `${t('cards.region_prefix')} ${displayId}`,
         group: regionsGroup,
       });
       revealed.push(region);
@@ -392,7 +394,7 @@ export class FarawayGame implements GamePack {
     // Sanctuaries scored against all cards
     for (const sanctuary of sanctuaries) {
       let points = 0;
-      let reason = 'kein Effekt';
+      let reason = t('scoring.no_effect');
 
       if (sanctuary.taskType !== null) {
         [points, reason] = evalTask(sanctuary, allCards);
@@ -404,7 +406,7 @@ export class FarawayGame implements GamePack {
         cardId: `sanctuary:${sanctuary.id}`,
         points,
         reason,
-        title: `Karte ${displayId}`,
+        title: `${t('cards.sanctuary_title_prefix')} ${displayId}`,
         group: sanctuariesGroup,
       });
     }
