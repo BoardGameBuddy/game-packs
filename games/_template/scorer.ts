@@ -10,11 +10,14 @@
  */
 
 import type {
+  GamePack,
+  GameState,
   DetectedBox,
   ScorerContext,
   PlayerScoreResult,
   CardScoreDetail,
 } from '@boardgamebuddy/game-pack-api';
+import { groupByPlayer } from '@boardgamebuddy/game-pack-api';
 
 /**
  * Optional: load card definitions from cards.json to drive scoring rules.
@@ -25,45 +28,45 @@ import type {
 // interface MyGameCard { id: string; points: number; ... }
 // type MyGameCards = MyGameCard[];
 
-function groupByPlayer(boxes: DetectedBox[], playerCount: number): DetectedBox[][] {
-  if (playerCount <= 1) return [boxes];
-  const groups: DetectedBox[][] = Array.from({ length: playerCount }, () => []);
-  const bandSize = 1.0 / playerCount;
-  for (const box of boxes) {
-    const idx = Math.min(Math.floor(box.cy / bandSize), playerCount - 1);
-    groups[idx].push(box);
+export class MyGame implements GamePack {
+  private players: string[];
+
+  constructor(players: string[]) {
+    this.players = players;
   }
-  return groups;
-}
 
-/**
- * Calculate scores for all players.
- *
- * @param boxes   - Flat list of all detected cards (all players combined).
- * @param context - Player names and session metadata.
- * @returns       - Score results in the same order as `context.players`.
- */
-export function score(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
-  const groups = groupByPlayer(boxes, context.players.length);
-  return context.players.map((playerName, i) => {
-    const playerBoxes = groups[i] ?? [];
-    const cardDetails: CardScoreDetail[] = playerBoxes.map((card) => {
-      // TODO: replace with real scoring logic for your game
-      const points = 1;
-      return {
-        cardId: card.cardId,
-        points,
-        reason: `${card.cardId} (similarity ${card.similarity.toFixed(2)})`,
-        title: card.cardId,
-      };
-    });
-
-    const totalScore = cardDetails.reduce((sum, d) => sum + d.points, 0);
-
+  processCards(boxes: DetectedBox[]): GameState {
+    const groups = groupByPlayer(boxes, this.players.length);
     return {
-      name: playerName,
-      totalScore,
-      cardDetails,
+      players: this.players.map((name, i) => {
+        const playerBoxes = groups[i] ?? [];
+        const cardDetails: CardScoreDetail[] = playerBoxes.map((card) => {
+          // TODO: replace with real scoring logic for your game
+          const points = 1;
+          return {
+            cardId: card.cardId,
+            points,
+            reason: `${card.cardId} (similarity ${card.similarity.toFixed(2)})`,
+            title: card.cardId,
+          };
+        });
+
+        const totalScore = cardDetails.reduce((sum, d) => sum + d.points, 0);
+
+        return { name, totalScore, cardDetails };
+      }),
     };
-  });
+  }
 }
+
+// ---------------------------------------------------------------------------
+// Legacy wrapper — maintains backward compatibility with the existing
+// function-based scorer contract until the app is updated.
+// ---------------------------------------------------------------------------
+
+export function processCards(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
+  const game = new MyGame(context.players);
+  return game.processCards(boxes).players;
+}
+
+export { MyGame as Game };

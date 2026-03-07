@@ -19,7 +19,7 @@ export interface PlayerInput {
     name: string;
     cards: DetectedCard[];
 }
-/** Game session metadata passed alongside the flat box list to `score()`. */
+/** Game session metadata passed alongside the flat box list to `processCards()`. */
 export interface ScorerContext {
     players: string[];
     similarityThreshold: number;
@@ -85,4 +85,26 @@ export interface LiveGameState {
     }[];
     /** Actions Flutter executes in order after receiving this state. */
     actions: FlutterAction[];
+}
+/** Unified game state returned by processCards() and processEvent(). */
+export interface GameState {
+    /** Per-player scores with card-level breakdown. */
+    players: PlayerScoreResult[];
+    /** HUD and summary display data (used by live tracking, optional for photo). */
+    display?: {
+        hud: LiveHudItem[];
+        summary?: LiveHudItem[];
+    };
+    /** Actions for Flutter to execute (TTS, camera mode, etc.). */
+    actions?: FlutterAction[];
+}
+/** The contract every game pack class implements. */
+export interface GamePack {
+    /** Process currently visible cards and return updated state.
+     *  Receives ALL currently visible cards — the pack diffs against
+     *  previous state internally to determine what's new. */
+    processCards(cards: DetectedBox[]): GameState;
+    /** Handle non-card events (bids, announcements, round transitions).
+     *  Only needed for live tracking games. */
+    processEvent?(event: LiveEvent): GameState;
 }

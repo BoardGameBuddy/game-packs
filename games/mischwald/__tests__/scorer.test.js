@@ -14,7 +14,7 @@
 
 const path = require('path');
 const fs   = require('fs');
-const { score } = require('../scorer');
+const { processCards } = require('../scorer');
 
 // ---------------------------------------------------------------------------
 // Fixture loading
@@ -74,7 +74,7 @@ describe('Mischwald scorer – fixture-driven', () => {
         similarityThreshold: 0.85,
       };
 
-      const results = score(allBoxes, context);
+      const results = processCards(allBoxes, context);
 
       expect(results).toHaveLength(fixture.expected.length);
 
@@ -110,21 +110,21 @@ describe('Mischwald scorer – fixture-driven', () => {
 
 describe('Mischwald scorer – unit tests', () => {
   it('returns one result per player in the same order', () => {
-    const results = score([], { players: ['Alice', 'Bob'], similarityThreshold: 0.85 });
+    const results = processCards([], { players: ['Alice', 'Bob'], similarityThreshold: 0.85 });
     expect(results).toHaveLength(2);
     expect(results[0].name).toBe('Alice');
     expect(results[1].name).toBe('Bob');
   });
 
   it('scores 0 for a player with no cards', () => {
-    const results = score([], { players: ['Alice'], similarityThreshold: 0.85 });
+    const results = processCards([], { players: ['Alice'], similarityThreshold: 0.85 });
     expect(results[0].totalScore).toBe(0);
     expect(results[0].cardDetails).toHaveLength(0);
   });
 
   it('a lone tree card with no score rule returns 0', () => {
     // brown_bear has no score rule
-    const results = score(
+    const results = processCards(
       [boxToCard([0.1, 0.4, 0.2, 0.6, 'oak:oak'])],
       { players: ['Alice'], similarityThreshold: 0.85 },
     );
@@ -135,7 +135,7 @@ describe('Mischwald scorer – unit tests', () => {
   it('groups cards under the correct tree label', () => {
     // Two trees, each with one attached animal
     // Layout: [oak][wolf] side-by-side on the top, [birch][wolf] below
-    const results = score(
+    const results = processCards(
       [
         // tree 1 (left)
         boxToCard([0.1, 0.4, 0.3, 0.7, 'oak:oak']),

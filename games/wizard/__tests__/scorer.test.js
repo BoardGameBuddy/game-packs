@@ -3,7 +3,7 @@
  */
 
 const {
-  score,
+  processCards,
   parseCardDisplay,
   calculateRoundScore,
   extractSuit,
@@ -109,47 +109,91 @@ describe('determineTrickWinner', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('score – photo mode', () => {
-  it('total score is always 0 (full scoring is in live tracking)', () => {
-    const results = score(
+describe('processCards – legacy wrapper (always trumpDetection phase)', () => {
+  it('returns scores with totalScore 0', () => {
+    const results = processCards(
       [card('wizard:blue:05'), card('wizard:red:12')],
       { players: ['Alice'], similarityThreshold: 0.85 },
     );
     expect(results[0].totalScore).toBe(0);
   });
 
-  it('each card gets points=0, displayName as reason and title', () => {
-    const results = score(
-      [card('wizard:green:07')],
-      { players: ['Alice'], similarityThreshold: 0.85 },
-    );
-    expect(results[0].cardDetails[0]).toMatchObject({
-      cardId: 'wizard:green:07',
-      points: 0,
-      reason: 'Grün 7',
-      title: 'Grün 7',
-      group: 'Grün',
-    });
-  });
-
-  it('wizard and jester cards get correct group', () => {
-    const results = score(
-      [card('wizard:wizard:01'), card('wizard:jester:03')],
-      { players: ['Alice'], similarityThreshold: 0.85 },
-    );
-    expect(results[0].cardDetails[0].group).toBe('Zauberer');
-    expect(results[0].cardDetails[1].group).toBe('Narr');
-  });
-
   it('empty hand returns empty cardDetails', () => {
-    const results = score([], { players: ['Alice'], similarityThreshold: 0.85 });
+    const results = processCards([], { players: ['Alice'], similarityThreshold: 0.85 });
     expect(results[0].totalScore).toBe(0);
     expect(results[0].cardDetails).toHaveLength(0);
   });
 
   it('preserves player order', () => {
     const names = ['Alice', 'Bob', 'Charlie'];
-    const results = score([], { players: names, similarityThreshold: 0.85 });
+    const results = processCards([], { players: names, similarityThreshold: 0.85 });
     expect(results.map((r) => r.name)).toEqual(names);
+  });
+});
+
+// ---------------------------------------------------------------------------
+const { WizardGame } = require('../scorer');
+
+describe('processCards – stateful (via WizardGame class)', () => {
+  function makeGame(players) {
+    const game = new WizardGame(players);
+    // Advance to trickTracking via processEvent
+    game.processEvent({ type: 'gameStarted', data: { players } });
+    game.processEvent({ type: 'cardDetected', data: { cardId: 'wizard:blue:07' } });
+    for (let i = 0; i < players.length; i++) {
+      game.processEvent({ type: 'bidPlaced', data: { playerIndex: i, bid: 1 } });
+    }
+    game.processEvent({ type: 'tableCleared', data: {} });
+    return game;
+  }
+
+  it('tracks new cards during trickTracking phase', () => {
+    const game = makeGame(['Alice', 'Bob']);
+    // First call: both cards are new
+    const result1 = game.processCards([card('wizard:blue:05'), card('wizard:red:03')]);
+    expect(result1.display.hud.length).toBeGreaterThan(0);
+  });
+
+  it('diffs cards between calls — only new cards are tracked', () => {
+    const game = makeGame(['Alice', 'Bob']);
+    // First frame: Alice plays blue 5
+    game.processCards([card('wizard:blue:05')]);
+    // Second frame: same card still visible + Bob plays red 3
+    const result = game.processCards([card('wizard:blue:05'), card('wizard:red:03')]);
+    // Both players should have card details
+    const allDetails = result.players.flatMap(p => p.cardDetails);
+    expect(allDetails).toHaveLength(2);
+  });
+
+  it('resets tracked cards after trickCompleted', () => {
+    const game = makeGame(['Alice', 'Bob']);
+    game.processCards([card('wizard:blue:05'), card('wizard:red:03')]);
+    // Complete the trick
+    game.processEvent({
+      type: 'trickCompleted',
+      data: { cards: [[0, 'wizard:blue:05'], [1, 'wizard:red:03']] },
+    });
+    // New processCards call should start fresh
+    const result = game.processCards([]);
+    const allDetails = result.players.flatMap(p => p.cardDetails);
+    expect(allDetails).toHaveLength(0);
+  });
+
+  it('returns HUD with round/trump/bid info during trickTracking', () => {
+    const game = makeGame(['Alice', 'Bob']);
+    const result = game.processCards([]);
+    const hudLabels = result.display.hud.map(h => h.label);
+    // Should have round info and player bid tracking
+    expect(hudLabels.length).toBeGreaterThanOrEqual(3); // round, trump, alice, bob
+  });
+
+  it('trickCompleted uses currentTrickCards as fallback when no event data', () => {
+    const game = makeGame(['Alice', 'Bob']);
+    // Camera detects cards
+    game.processCards([card('wizard:blue:05'), card('wizard:red:03')]);
+    // trickCompleted with no cards in data — should use tracked cards
+    const result = game.processEvent({ type: 'trickCompleted', data: {} });
+    // Should have processed the trick (not crashed)
+    expect(result.players).toHaveLength(2);
   });
 });

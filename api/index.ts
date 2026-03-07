@@ -9,6 +9,8 @@ export type {
   FlutterAction,
   LiveHudItem,
   LiveGameState,
+  GameState,
+  GamePack,
 } from './types';
 
 export type { BoxLike } from './spatial-utils';
@@ -18,3 +20,5 @@ export {
   sortVisuallyByBox,
   parseCardId,
 } from './spatial-utils';
+
+export { groupByPlayer, createTranslator } from './scorer-utils';

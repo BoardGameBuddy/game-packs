@@ -65,9 +65,9 @@ When `scorer.ts` changes, the CLI automatically recompiles it with `tsc` and pus
    bgb new my-game
    ```
 
-2. **Implement scoring** in `my-game/scorer.ts`. The `score` function receives all players and their detected cards and must return a score result for each player:
+2. **Implement scoring** in `my-game/scorer.ts`. The `processCards` function receives all players and their detected cards and must return a score result for each player:
    ```ts
-   export function score(players: PlayerInput[]): PlayerScoreResult[] {
+   export function processCards(players: PlayerInput[]): PlayerScoreResult[] {
      // your logic here
    }
    ```

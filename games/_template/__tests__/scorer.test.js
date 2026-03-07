@@ -5,11 +5,11 @@
  */
 
 // When using the compiled JS in tests:
-const { score } = require('../scorer');
+const { processCards } = require('../scorer');
 
-describe('score', () => {
+describe('processCards', () => {
   it('returns one result per player', () => {
-    const results = score([], { players: ['Alice', 'Bob'], similarityThreshold: 0.85 });
+    const results = processCards([], { players: ['Alice', 'Bob'], similarityThreshold: 0.85 });
     expect(results).toHaveLength(2);
     expect(results[0].name).toBe('Alice');
     expect(results[1].name).toBe('Bob');
@@ -33,14 +33,14 @@ describe('score', () => {
       },
     ];
 
-    const results = score(cards, { players: ['Alice'], similarityThreshold: 0.85 });
+    const results = processCards(cards, { players: ['Alice'], similarityThreshold: 0.85 });
     expect(results[0].totalScore).toBe(2);
     expect(results[0].cardDetails).toHaveLength(2);
   });
 
   it('preserves player order', () => {
     const names = ['Alice', 'Bob', 'Charlie'];
-    const results = score([], { players: names, similarityThreshold: 0.85 });
+    const results = processCards([], { players: names, similarityThreshold: 0.85 });
     expect(results.map((r) => r.name)).toEqual(names);
   });
 });

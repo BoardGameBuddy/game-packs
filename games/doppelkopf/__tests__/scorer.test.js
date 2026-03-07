@@ -3,7 +3,7 @@
  */
 
 const {
-  score,
+  processCards,
   parseCard,
   trumpRank,
   isTrump,
@@ -259,44 +259,98 @@ describe('calculateRoundScore', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('score – photo mode', () => {
-  it('returns Augen as totalScore', () => {
-    const results = score(
+describe('processCards – legacy wrapper', () => {
+  it('returns scores with totalScore 0 (cumulative, fresh instance)', () => {
+    const results = processCards(
       [card('doppelkopf:kreuz:as'), card('doppelkopf:kreuz:10')],
       { players: ['Alice'], similarityThreshold: 0.85 },
     );
-    expect(results[0].totalScore).toBe(21); // 11 + 10
-  });
-
-  it('trump cards are grouped as Trumpf', () => {
-    const results = score(
-      [card('doppelkopf:kreuz:dame'), card('doppelkopf:karo:9')],
-      { players: ['Alice'], similarityThreshold: 0.85 },
-    );
-    expect(results[0].cardDetails[0].group).toBe('Trumpf');
-    expect(results[0].cardDetails[1].group).toBe('Trumpf');
-  });
-
-  it('Fehlfarbe cards are grouped by suit', () => {
-    const results = score(
-      [card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'), card('doppelkopf:herz:koenig')],
-      { players: ['Alice'], similarityThreshold: 0.85 },
-    );
-    expect(results[0].cardDetails[0].group).toBe('Kreuz');
-    expect(results[0].cardDetails[1].group).toBe('Pik');
-    expect(results[0].cardDetails[2].group).toBe('Herz');
+    expect(results[0].totalScore).toBe(0);
   });
 
   it('empty hand returns zero score', () => {
-    const results = score([], { players: ['Alice'], similarityThreshold: 0.85 });
+    const results = processCards([], { players: ['Alice'], similarityThreshold: 0.85 });
     expect(results[0].totalScore).toBe(0);
     expect(results[0].cardDetails).toHaveLength(0);
   });
 
   it('preserves player order', () => {
     const names = ['Alice', 'Bob', 'Charlie', 'Dave'];
-    const results = score([], { players: names, similarityThreshold: 0.85 });
+    const results = processCards([], { players: names, similarityThreshold: 0.85 });
     expect(results.map((r) => r.name)).toEqual(names);
+  });
+});
+
+// ---------------------------------------------------------------------------
+const { DoppelkopfGame } = require('../scorer');
+
+describe('processCards – stateful (via DoppelkopfGame class)', () => {
+  const PLAYERS = ['Alice', 'Bob', 'Charlie', 'Dave'];
+
+  function makeGame(players) {
+    const game = new DoppelkopfGame(players);
+    game.processEvent({ type: 'gameStarted', data: { players } });
+    game.processEvent({ type: 'tableCleared', data: {} });
+    return game;
+  }
+
+  it('tracks new cards during trick tracking', () => {
+    const game = makeGame(PLAYERS);
+    const result = game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10')]);
+    expect(result.display.hud.length).toBeGreaterThan(0);
+  });
+
+  it('diffs cards between calls — only new cards are tracked', () => {
+    const game = makeGame(PLAYERS);
+    // First frame: one card
+    game.processCards([card('doppelkopf:kreuz:as')]);
+    // Second frame: same card + new card
+    const result = game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10')]);
+    const allDetails = result.players.flatMap(p => p.cardDetails);
+    expect(allDetails).toHaveLength(2);
+  });
+
+  it('resets tracked cards after trickCompleted', () => {
+    const game = makeGame(PLAYERS);
+    game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'),
+                       card('doppelkopf:herz:koenig'), card('doppelkopf:karo:9')]);
+    game.processEvent({
+      type: 'trickCompleted',
+      data: { cards: [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:10'],
+                       [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:9']] },
+    });
+    const result = game.processCards([]);
+    const allDetails = result.players.flatMap(p => p.cardDetails);
+    expect(allDetails).toHaveLength(0);
+  });
+
+  it('card details show Augen points', () => {
+    const game = makeGame(PLAYERS);
+    const result = game.processCards([card('doppelkopf:kreuz:as')]);
+    const allDetails = result.players.flatMap(p => p.cardDetails);
+    expect(allDetails[0].points).toBe(11); // As = 11 Augen
+  });
+
+  it('card details show trump grouping', () => {
+    const game = makeGame(PLAYERS);
+    const result = game.processCards([card('doppelkopf:kreuz:dame')]);
+    const allDetails = result.players.flatMap(p => p.cardDetails);
+    expect(allDetails[0].group).toBe('Trumpf');
+  });
+
+  it('trickCompleted uses currentTrickCards as fallback when no event data', () => {
+    const game = makeGame(PLAYERS);
+    game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'),
+                       card('doppelkopf:herz:koenig'), card('doppelkopf:karo:9')]);
+    const result = game.processEvent({ type: 'trickCompleted', data: {} });
+    expect(result.players).toHaveLength(4);
+  });
+
+  it('returns HUD with trick count and player Augen', () => {
+    const game = makeGame(PLAYERS);
+    const result = game.processCards([]);
+    const hudLabels = result.display.hud.map(h => h.label);
+    expect(hudLabels.length).toBeGreaterThanOrEqual(1);
   });
 });
 

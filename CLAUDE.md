@@ -35,7 +35,7 @@ cd games/wizard && node ../../serve.js
 Every game pack exposes a single function:
 
 ```typescript
-export function score(players: PlayerInput[]): PlayerScoreResult[]
+export function processCards(players: PlayerInput[]): PlayerScoreResult[]
 ```
 
 Types are defined in `scorer-api/types.ts`. Input provides detected card positions (bounding box + center coordinates). Output includes `totalScore` and `cardDetails` (per-card breakdown with `points`, `reason`, `title`, `group`).

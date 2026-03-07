@@ -15,8 +15,8 @@
  * Card data is loaded from cards.json bundled with this pack.
  */
 
-import type { DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
-import { sortVisuallyByBox, parseCardId } from '@boardgamebuddy/game-pack-api';
+import type { GamePack, GameState, DetectedBox, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
+import { sortVisuallyByBox, parseCardId, groupByPlayer } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of faraway_cards.json)
@@ -175,10 +175,6 @@ function loadCard(cardId: string, cards: CardsJson): Card | null {
 }
 
 // ---------------------------------------------------------------------------
-// Visual sort (uses common spatial utilities)
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
 // Condition check
 // ---------------------------------------------------------------------------
 
@@ -319,115 +315,114 @@ function evalTask(card: Card, scope: Card[]): [number, string] {
 }
 
 // ---------------------------------------------------------------------------
-// Core scoring
+// FarawayGame class
 // ---------------------------------------------------------------------------
 
-function scorePlayer(
-  detectedCards: DetectedBox[],
-  cards: CardsJson,
-): { total: number; cardDetails: CardScoreDetail[] } {
-  const sorted = sortVisuallyByBox(detectedCards, (card) => card);
+export class FarawayGame implements GamePack {
+  private players: string[];
 
-  const regions: Card[] = [];
-  const sanctuaries: Card[] = [];
-  for (const dc of sorted) {
-    const card = loadCard(dc.cardId, cards);
-    if (!card) continue;
-    if (card.kind === 'region') regions.push(card);
-    else sanctuaries.push(card);
+  constructor(players: string[]) {
+    this.players = players;
   }
 
-  const allCards: Card[] = [...regions, ...sanctuaries];
-  const cardDetails: CardScoreDetail[] = [];
-  let total = 0;
+  processCards(boxes: DetectedBox[]): GameState {
+    const groups = groupByPlayer(boxes, this.players.length);
+    return {
+      players: this.players.map((playerName, i) => {
+        const playerBoxes = groups[i] ?? [];
+        if (playerBoxes.length === 0) {
+          return { name: playerName, totalScore: 0, cardDetails: [] };
+        }
+        const { total, cardDetails } = this.scorePlayer(playerBoxes);
+        return { name: playerName, totalScore: total, cardDetails };
+      }),
+    };
+  }
 
-  const regionsGroup = `${regions.length} Regionen`;
-  const sanctuariesGroup = `${sanctuaries.length} Heiligtümer`;
+  private scorePlayer(
+    detectedCards: DetectedBox[],
+  ): { total: number; cardDetails: CardScoreDetail[] } {
+    const sorted = sortVisuallyByBox(detectedCards, (card) => card);
 
-  // Regions scored last-to-first; scope grows as each scored region is "revealed"
-  const revealed: Card[] = [];
-  for (let i = regions.length - 1; i >= 0; i--) {
-    const region = regions[i];
-    const scope: Card[] = [...revealed, region, ...sanctuaries];
+    const regions: Card[] = [];
+    const sanctuaries: Card[] = [];
+    for (const dc of sorted) {
+      const card = loadCard(dc.cardId, CARDS_JSON);
+      if (!card) continue;
+      if (card.kind === 'region') regions.push(card);
+      else sanctuaries.push(card);
+    }
 
-    let points = 0;
-    let reason = 'keine Aufgabe';
+    const allCards: Card[] = [...regions, ...sanctuaries];
+    const cardDetails: CardScoreDetail[] = [];
+    let total = 0;
 
-    if (region.taskType !== null) {
-      if (meetsCondition(scope, region)) {
-        [points, reason] = evalTask(region, scope);
-      } else {
-        reason = 'Bedingung nicht erfüllt';
+    const regionsGroup = `${regions.length} Regionen`;
+    const sanctuariesGroup = `${sanctuaries.length} Heiligtümer`;
+
+    // Regions scored last-to-first; scope grows as each scored region is "revealed"
+    const revealed: Card[] = [];
+    for (let i = regions.length - 1; i >= 0; i--) {
+      const region = regions[i];
+      const scope: Card[] = [...revealed, region, ...sanctuaries];
+
+      let points = 0;
+      let reason = 'keine Aufgabe';
+
+      if (region.taskType !== null) {
+        if (meetsCondition(scope, region)) {
+          [points, reason] = evalTask(region, scope);
+        } else {
+          reason = 'Bedingung nicht erfüllt';
+        }
       }
+
+      total += points;
+      const displayId = region.id.replace(/^0+/, '') || '0';
+      cardDetails.push({
+        cardId: `region:${region.id}`,
+        points,
+        reason,
+        title: `Region ${displayId}`,
+        group: regionsGroup,
+      });
+      revealed.push(region);
     }
 
-    total += points;
-    const displayId = region.id.replace(/^0+/, '') || '0';
-    cardDetails.push({
-      cardId: `region:${region.id}`,
-      points,
-      reason,
-      title: `Region ${displayId}`,
-      group: regionsGroup,
-    });
-    revealed.push(region);
-  }
+    // Sanctuaries scored against all cards
+    for (const sanctuary of sanctuaries) {
+      let points = 0;
+      let reason = 'kein Effekt';
 
-  // Sanctuaries scored against all cards
-  for (const sanctuary of sanctuaries) {
-    let points = 0;
-    let reason = 'kein Effekt';
+      if (sanctuary.taskType !== null) {
+        [points, reason] = evalTask(sanctuary, allCards);
+      }
 
-    if (sanctuary.taskType !== null) {
-      [points, reason] = evalTask(sanctuary, allCards);
+      total += points;
+      const displayId = sanctuary.id.replace(/^0+/, '') || '0';
+      cardDetails.push({
+        cardId: `sanctuary:${sanctuary.id}`,
+        points,
+        reason,
+        title: `Karte ${displayId}`,
+        group: sanctuariesGroup,
+      });
     }
 
-    total += points;
-    const displayId = sanctuary.id.replace(/^0+/, '') || '0';
-    cardDetails.push({
-      cardId: `sanctuary:${sanctuary.id}`,
-      points,
-      reason,
-      title: `Karte ${displayId}`,
-      group: sanctuariesGroup,
-    });
+    return { total, cardDetails };
   }
-
-  return { total, cardDetails };
 }
 
 // ---------------------------------------------------------------------------
-// Player grouping (y-band spatial split)
+// Legacy wrapper — maintains backward compatibility with the existing
+// function-based scorer contract until the app is updated.
 // ---------------------------------------------------------------------------
 
-/**
- * Groups a flat box list into per-player arrays using y-coordinate bands.
- * Player i receives all boxes with cy in [i/n, (i+1)/n).
- * With a single player all boxes go to player 0.
- */
-function groupByPlayer(boxes: DetectedBox[], playerCount: number): DetectedBox[][] {
-  if (playerCount <= 1) return [boxes];
-  const groups: DetectedBox[][] = Array.from({ length: playerCount }, () => []);
-  const bandSize = 1.0 / playerCount;
-  for (const box of boxes) {
-    const idx = Math.min(Math.floor(box.cy / bandSize), playerCount - 1);
-    groups[idx].push(box);
-  }
-  return groups;
+import type { ScorerContext, PlayerScoreResult } from '@boardgamebuddy/game-pack-api';
+
+export function processCards(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
+  const game = new FarawayGame(context.players);
+  return game.processCards(boxes).players;
 }
 
-// ---------------------------------------------------------------------------
-// Exported scorer function
-// ---------------------------------------------------------------------------
-
-export function score(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
-  const groups = groupByPlayer(boxes, context.players.length);
-  return context.players.map((playerName, i) => {
-    const playerBoxes = groups[i] ?? [];
-    if (playerBoxes.length === 0) {
-      return { name: playerName, totalScore: 0, cardDetails: [] };
-    }
-    const { total, cardDetails } = scorePlayer(playerBoxes, CARDS_JSON);
-    return { name: playerName, totalScore: total, cardDetails };
-  });
-}
+export { FarawayGame as Game };

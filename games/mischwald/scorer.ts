@@ -12,8 +12,8 @@
  * Card data is loaded from cards.json bundled with this pack.
  */
 
-import type { DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
-import { overlapHorizontal, overlapVertical, sortVisuallyByBox, parseCardId } from '@boardgamebuddy/game-pack-api';
+import type { GamePack, GameState, DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
+import { overlapHorizontal, overlapVertical, sortVisuallyByBox, parseCardId, groupByPlayer } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of mischwald_cards.json)
@@ -691,115 +691,118 @@ function countForMostKey(key: MostKey, cards: CardInstance[], cond: ConditionJso
 }
 
 // ---------------------------------------------------------------------------
-// Player grouping (y-band spatial split)
+// MischwaldGame class
 // ---------------------------------------------------------------------------
 
-function groupByPlayer(boxes: DetectedBox[], playerCount: number): DetectedBox[][] {
-  if (playerCount <= 1) return [boxes];
-  const groups: DetectedBox[][] = Array.from({ length: playerCount }, () => []);
-  const bandSize = 1.0 / playerCount;
-  for (const box of boxes) {
-    const idx = Math.min(Math.floor(box.cy / bandSize), playerCount - 1);
-    groups[idx].push(box);
-  }
-  return groups;
+interface PreparedPlayer {
+  forest: Forest | null;
+  all: CardInstance[];
 }
 
-// ---------------------------------------------------------------------------
-// Public score function
-// ---------------------------------------------------------------------------
+export class MischwaldGame implements GamePack {
+  private players: string[];
 
-export function score(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
-  const cards = CARDS_JSON;
-  const playerGroups = groupByPlayer(boxes, context.players.length);
-
-  // Phase 1: build forests
-  interface PreparedPlayer {
-    forest: Forest | null;
-    all: CardInstance[];
+  constructor(players: string[]) {
+    this.players = players;
   }
 
-  const prepared: PreparedPlayer[] = playerGroups.map((playerBoxes) => {
-    if (playerBoxes.length === 0) return { forest: null, all: [] };
-    // Convert DetectedBox → internal Box
-    const internalBoxes: Box[] = playerBoxes.map((dc) => ({
-      x1: dc.x1, y1: dc.y1, x2: dc.x2, y2: dc.y2,
-      cx: dc.cx, cy: dc.cy, w: dc.w, h: dc.h,
-      clsName: dc.cardId,
-    }));
-    const forest = buildForest(internalBoxes, cards);
-    return { forest, all: allCardInstances(forest) };
-  });
+  processCards(boxes: DetectedBox[]): GameState {
+    const cards = CARDS_JSON;
+    const playerGroups = groupByPlayer(boxes, this.players.length);
 
-  // Phase 2: build cross-player "most" cache
-  // Map from key-string → {max, winnerSet}
-  const mostWinnerCache = new Map<string, { max: number; winners: Set<number> }>();
-  const condByKeyStr = new Map<string, ConditionJson>();
+    // Phase 1: build forests
+    const prepared: PreparedPlayer[] = playerGroups.map((playerBoxes) => {
+      if (playerBoxes.length === 0) return { forest: null, all: [] };
+      // Convert DetectedBox → internal Box
+      const internalBoxes: Box[] = playerBoxes.map((dc) => ({
+        x1: dc.x1, y1: dc.y1, x2: dc.x2, y2: dc.y2,
+        cx: dc.cx, cy: dc.cy, w: dc.w, h: dc.h,
+        clsName: dc.cardId,
+      }));
+      const forest = buildForest(internalBoxes, cards);
+      return { forest, all: allCardInstances(forest) };
+    });
 
-  function getMostWinners(key: MostKey, cond: ConditionJson): { max: number; winners: Set<number> } {
-    const ks = mostKeyStr(key);
-    if (mostWinnerCache.has(ks)) return mostWinnerCache.get(ks)!;
-    const counts = prepared.map((p) => countForMostKey(key, p.all, cond));
-    const max = Math.max(0, ...counts);
-    const winners = new Set<number>(
-      max <= 0
-        ? []
-        : counts.map((c, i) => (c === max ? i : -1)).filter((i) => i >= 0),
-    );
-    mostWinnerCache.set(ks, { max, winners });
-    condByKeyStr.set(ks, cond);
-    return { max, winners };
-  }
+    // Phase 2: build cross-player "most" cache
+    const mostWinnerCache = new Map<string, { max: number; winners: Set<number> }>();
 
-  // Phase 3: score each player
-  return prepared.map((p, playerIndex) => {
-    const playerName = context.players[playerIndex];
-    const forest = p.forest;
-
-    if (!forest || p.all.length === 0) {
-      return { name: playerName, totalScore: 0, cardDetails: [] };
-    }
-
-    const mostResolver: MostResolver = (self, cond) => {
-      if (cond.most !== true) return true;
-      const key = makeMostKey(self, cond);
-      return getMostWinners(key, cond).winners.has(playerIndex);
-    };
-
-    const placementsByBox = buildPlacementsByBox(forest);
-    const all = p.all;
-
-    // Score all instances first
-    const scoreByBox = new Map<Box, [number, string]>();
-    for (const inst of all) {
-      const result = scoreInstanceWithReason(
-        inst, all, placementsByBox, false, mostResolver,
+    function getMostWinners(key: MostKey, cond: ConditionJson): { max: number; winners: Set<number> } {
+      const ks = mostKeyStr(key);
+      if (mostWinnerCache.has(ks)) return mostWinnerCache.get(ks)!;
+      const counts = prepared.map((p) => countForMostKey(key, p.all, cond));
+      const max = Math.max(0, ...counts);
+      const winners = new Set<number>(
+        max <= 0
+          ? []
+          : counts.map((c, i) => (c === max ? i : -1)).filter((i) => i >= 0),
       );
-      scoreByBox.set(inst.box, result);
+      mostWinnerCache.set(ks, { max, winners });
+      return { max, winners };
     }
 
-    // Sort into UI order
-    const sortedBoxes = sortCardsInUiOrder(forest);
-    const instByBox = new Map<Box, CardInstance>(all.map((c) => [c.box, c]));
-    const boxToTreeIdx = buildBoxToTreeIndex(forest);
+    // Phase 3: score each player
+    return {
+      players: prepared.map((p, playerIndex) => {
+        const playerName = this.players[playerIndex];
+        const forest = p.forest;
 
-    const cardDetails: CardScoreDetail[] = [];
-    for (const box of sortedBoxes) {
-      const inst = instByBox.get(box);
-      if (!inst) continue;
-      const [points, reason] = scoreByBox.get(box) ?? [0, ''];
-      const treeIdx = boxToTreeIdx.get(box);
-      const group = treeIdx != null ? `Baum ${treeIdx + 1}` : undefined;
-      cardDetails.push({
-        cardId: inst.box.clsName,
-        points,
-        reason,
-        title: inst.id,
-        group,
-      });
-    }
+        if (!forest || p.all.length === 0) {
+          return { name: playerName, totalScore: 0, cardDetails: [] };
+        }
 
-    const totalScore = cardDetails.reduce((s, d) => s + d.points, 0);
-    return { name: playerName, totalScore, cardDetails };
-  });
+        const mostResolver: MostResolver = (self, cond) => {
+          if (cond.most !== true) return true;
+          const key = makeMostKey(self, cond);
+          return getMostWinners(key, cond).winners.has(playerIndex);
+        };
+
+        const placementsByBox = buildPlacementsByBox(forest);
+        const all = p.all;
+
+        // Score all instances first
+        const scoreByBox = new Map<Box, [number, string]>();
+        for (const inst of all) {
+          const result = scoreInstanceWithReason(
+            inst, all, placementsByBox, false, mostResolver,
+          );
+          scoreByBox.set(inst.box, result);
+        }
+
+        // Sort into UI order
+        const sortedBoxes = sortCardsInUiOrder(forest);
+        const instByBox = new Map<Box, CardInstance>(all.map((c) => [c.box, c]));
+        const boxToTreeIdx = buildBoxToTreeIndex(forest);
+
+        const cardDetails: CardScoreDetail[] = [];
+        for (const box of sortedBoxes) {
+          const inst = instByBox.get(box);
+          if (!inst) continue;
+          const [points, reason] = scoreByBox.get(box) ?? [0, ''];
+          const treeIdx = boxToTreeIdx.get(box);
+          const group = treeIdx != null ? `Baum ${treeIdx + 1}` : undefined;
+          cardDetails.push({
+            cardId: inst.box.clsName,
+            points,
+            reason,
+            title: inst.id,
+            group,
+          });
+        }
+
+        const totalScore = cardDetails.reduce((s, d) => s + d.points, 0);
+        return { name: playerName, totalScore, cardDetails };
+      }),
+    };
+  }
 }
+
+// ---------------------------------------------------------------------------
+// Legacy wrapper
+// ---------------------------------------------------------------------------
+
+export function processCards(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
+  const game = new MischwaldGame(context.players);
+  return game.processCards(boxes).players;
+}
+
+export { MischwaldGame as Game };
