@@ -5,37 +5,37 @@
       "id": "wizard",
       "displayName": "Wizard",
       "description": "Stichspiel mit Zauberern und Narren",
-      "version": 29,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v29/wizard.zip",
-      "sizeBytes": 89666,
-      "checksum": "sha256:fba0576e77d8c92e61902b2021d6d88fc1e8c97b8db93731c634011c832de525"
+      "version": 30,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v30/wizard.zip",
+      "sizeBytes": 89861,
+      "checksum": "sha256:1d4267b01b89d5afe6a7829a2c0a7d7eb9985c7eeec891fd30aba9e9b3b29c83"
     },
     {
       "id": "faraway",
       "displayName": "Faraway",
       "description": "Regionen und Heiligtümer erkunden",
-      "version": 29,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v29/faraway.zip",
-      "sizeBytes": 152518,
-      "checksum": "sha256:ff08b8ceb56d6cc08193cc31bb3f6de98105ea13cfe40d7e490ae3e185c2d05b"
+      "version": 30,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v30/faraway.zip",
+      "sizeBytes": 153162,
+      "checksum": "sha256:72a6c32b4a88a27dbed71d58f43bb2ebe01b8a5599adaa1b8fc9d9ea6d2130f7"
     },
     {
       "id": "mischwald",
       "displayName": "Mischwald",
       "description": "Waldbewohner sammeln und kombinieren",
-      "version": 29,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v29/mischwald.zip",
-      "sizeBytes": 205682,
-      "checksum": "sha256:7c9f64bb0df09a84b20b11f46479974dadb2774da9087a1c96281dabf9f4ac3a"
+      "version": 30,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v30/mischwald.zip",
+      "sizeBytes": 206390,
+      "checksum": "sha256:424ac17da437d5e19c0bd59ffe3ad792318671230fe83984b5db4b248abca69e"
     },
     {
       "id": "doppelkopf",
       "displayName": "Doppelkopf",
       "description": "Klassisches deutsches Kartenspiel",
-      "version": 29,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v29/doppelkopf.zip",
-      "sizeBytes": 24006,
-      "checksum": "sha256:b883a4f783faed01aba421ccfeacd48d621b73b30e1f9109561f35e470eafb58"
+      "version": 30,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v30/doppelkopf.zip",
+      "sizeBytes": 24136,
+      "checksum": "sha256:43be4b92c6a3a6300207d743d58948a6b19e58bf9475cff7a82221a190a3f73c"
     }
   ]
 }
