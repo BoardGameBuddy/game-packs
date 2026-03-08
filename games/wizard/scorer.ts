@@ -15,7 +15,7 @@
  */
 
 import type { GamePack, GameState, DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail, LiveEvent, LiveGameState, LiveHudItem, FlutterAction } from '@boardgamebuddy/game-pack-api';
-import { groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
+import { createTranslator } from '@boardgamebuddy/game-pack-api';
 
 // ---------------------------------------------------------------------------
 // Localisation
@@ -154,6 +154,8 @@ interface WizardInternal {
   emptyCallCount: number;
   /** True after a trick completes, waiting for cards to be removed. */
   waitingForTableClear: boolean;
+  /** Index of the player who leads the current trick (round-robin assignment). */
+  trickLeader: number;
 }
 
 /** Number of consecutive processCards calls with empty boxes required to confirm table clear. */
@@ -269,6 +271,7 @@ export class WizardGame implements GamePack {
       trickCompletionFired: false,
       emptyCallCount: 0,
       waitingForTableClear: false,
+      trickLeader: 0,
     };
   }
 
@@ -314,15 +317,13 @@ export class WizardGame implements GamePack {
       };
     }
 
-    // --- trickTracking: track newly appeared cards per player ---
+    // --- trickTracking: track newly appeared cards sequentially from trick leader ---
     if (s.phase === 'trickTracking') {
       if (newCards.length > 0 && !s.trickCompletionFired) {
-        const groups = groupByPlayer(newCards, s.players.length);
-        for (let i = 0; i < s.players.length; i++) {
-          for (const card of (groups[i] ?? [])) {
-            if (!s.currentTrickCards.some(([, id]) => id === card.cardId)) {
-              s.currentTrickCards.push([i, card.cardId]);
-            }
+        for (const card of newCards) {
+          if (!s.currentTrickCards.some(([, id]) => id === card.cardId)) {
+            const playerIdx = (s.trickLeader + s.currentTrickCards.length) % s.players.length;
+            s.currentTrickCards.push([playerIdx, card.cardId]);
           }
         }
       }
@@ -338,6 +339,7 @@ export class WizardGame implements GamePack {
 
         s.tricksWon[winnerName] = (s.tricksWon[winnerName] ?? 0) + 1;
         s.completedTricks++;
+        s.trickLeader = winnerIndex;
 
         const trickNum = s.completedTricks;
         const trickWonText = t('voice.trick_won', '%s gewinnt Stich %d.')
@@ -414,6 +416,7 @@ export class WizardGame implements GamePack {
         trickCompletionFired: false,
         emptyCallCount: 0,
         waitingForTableClear: false,
+        trickLeader: 0,
       };
       const roundText = t('voice.round_start', 'Runde %d von %d.')
         .replace('%d', String(this.state.round)).replace('%d', String(this.state.maxRounds));

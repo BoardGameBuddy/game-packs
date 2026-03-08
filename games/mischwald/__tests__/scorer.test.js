@@ -35,20 +35,29 @@ function loadFixtures() {
 }
 
 // ---------------------------------------------------------------------------
-// Convert fixture boxes → DetectedBox, assigning y-band for multi-player
+// Convert fixture boxes → DetectedBox, positioning for angle-based grouping
 // ---------------------------------------------------------------------------
 
 function boxToCard([x1, y1, x2, y2, clsName], playerIndex = 0, playerCount = 1) {
   const w = x2 - x1;
   const h = y2 - y1;
-  // For multi-player, place each player's cards in their y-band centre.
-  const cy = playerCount <= 1 ? y1 + h / 2 : (playerIndex + 0.5) / playerCount;
+  let cx, cy;
+  if (playerCount <= 1) {
+    cx = x1 + w / 2;
+    cy = y1 + h / 2;
+  } else {
+    // Place each player's cards at a distinct angle from center (0.5, 0.5).
+    // Player 0 = bottom (angle 0), proceeding clockwise — matching groupByPlayer.
+    const sliceAngle = (2 * Math.PI) / playerCount;
+    const angle = playerIndex * sliceAngle;
+    cx = 0.5 + 0.3 * Math.sin(angle);
+    cy = 0.5 + 0.3 * Math.cos(angle);
+  }
   return {
     cardId: clsName,
     similarity: 1.0,
     x1, y1, x2, y2,
-    cx: x1 + w / 2,
-    cy,
+    cx, cy,
     w, h,
     confidence: 1.0,
     angle: 0,
