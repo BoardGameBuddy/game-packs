@@ -116,6 +116,51 @@ export function groupByPlayer(boxes: DetectedBox[], playerCount: number): Detect
 }
 
 /**
+ * Removes duplicate detections of the same card.
+ *
+ * When two (or more) boxes share the same `cardId` and overlap significantly
+ * (IoU >= `iouThreshold`), only the one with the highest `similarity` score
+ * is kept.  Boxes with different `cardId` values are never suppressed, and
+ * non-overlapping duplicates are preserved (they may represent genuinely
+ * distinct physical cards with the same ID, e.g. two copies of a card).
+ *
+ * @param boxes        Array of detected boxes.
+ * @param iouThreshold Minimum IoU to consider two same-ID boxes duplicates (default 0.3).
+ * @returns            Filtered array with duplicates removed.
+ */
+export function deduplicateBoxes(boxes: DetectedBox[], iouThreshold: number = 0.3): DetectedBox[] {
+  if (boxes.length <= 1) return boxes;
+
+  const suppressed = new Set<number>();
+
+  for (let i = 0; i < boxes.length; i++) {
+    if (suppressed.has(i)) continue;
+    for (let j = i + 1; j < boxes.length; j++) {
+      if (suppressed.has(j)) continue;
+      if (boxes[i].cardId !== boxes[j].cardId) continue;
+
+      const iou = computeIoU(boxes[i], boxes[j]);
+      if (iou >= iouThreshold) {
+        // Suppress the one with lower similarity
+        suppressed.add(boxes[i].similarity >= boxes[j].similarity ? j : i);
+      }
+    }
+  }
+
+  return boxes.filter((_, i) => !suppressed.has(i));
+}
+
+function computeIoU(a: DetectedBox, b: DetectedBox): number {
+  const interW = Math.max(0, Math.min(a.x2, b.x2) - Math.max(a.x1, b.x1));
+  const interH = Math.max(0, Math.min(a.y2, b.y2) - Math.max(a.y1, b.y1));
+  const inter = interW * interH;
+  if (inter === 0) return 0;
+  const areaA = a.w * a.h;
+  const areaB = b.w * b.h;
+  return inter / (areaA + areaB - inter);
+}
+
+/**
  * Creates a translator function `t(key, fallback)` that resolves dot-separated
  * keys against a texts.json file.
  *

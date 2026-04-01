@@ -13,7 +13,7 @@
  */
 
 import type { GamePack, GameState, DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
-import { overlapHorizontal, overlapVertical, sortVisuallyByBox, rectifyBoxes, parseCardId, groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
+import { overlapHorizontal, overlapVertical, sortVisuallyByBox, rectifyBoxes, deduplicateBoxes, parseCardId, groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
 
 const t = createTranslator('./texts.json');
 
@@ -710,7 +710,7 @@ export class MischwaldGame implements GamePack {
 
   processCards(boxes: DetectedBox[]): GameState {
     const cards = CARDS_JSON;
-    const playerGroups = groupByPlayer(rectifyBoxes(boxes), this.players.length);
+    const playerGroups = groupByPlayer(rectifyBoxes(deduplicateBoxes(boxes)), this.players.length);
 
     // Phase 1: build forests
     const prepared: PreparedPlayer[] = playerGroups.map((playerBoxes) => {

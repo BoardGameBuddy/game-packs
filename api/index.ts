@@ -22,4 +22,4 @@ export {
   parseCardId,
 } from './spatial-utils';
 
-export { groupByPlayer, createTranslator } from './scorer-utils';
+export { groupByPlayer, deduplicateBoxes, createTranslator } from './scorer-utils';

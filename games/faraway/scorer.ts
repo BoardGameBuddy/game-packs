@@ -16,7 +16,7 @@
  */
 
 import type { GamePack, GameState, DetectedBox, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
-import { sortVisuallyByBox, rectifyBoxes, parseCardId, groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
+import { sortVisuallyByBox, rectifyBoxes, deduplicateBoxes, parseCardId, groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
 
 const t = createTranslator('./texts.json');
 
@@ -344,7 +344,7 @@ export class FarawayGame implements GamePack {
   private scorePlayer(
     detectedCards: DetectedBox[],
   ): { total: number; cardDetails: CardScoreDetail[] } {
-    const sorted = sortVisuallyByBox(rectifyBoxes(detectedCards), (card) => card);
+    const sorted = sortVisuallyByBox(rectifyBoxes(deduplicateBoxes(detectedCards)), (card) => card);
 
     const regions: Card[] = [];
     const sanctuaries: Card[] = [];
