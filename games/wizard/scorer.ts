@@ -282,8 +282,36 @@ export class WizardGame implements GamePack {
     const newCards = boxes.filter(b => !previousSet.has(b.cardId));
     s.previousCardIds = currentIds;
 
-    // --- trumpDetection: just show HUD ---
+    // --- trumpDetection: detect trump from visible cards ---
     if (s.phase === 'trumpDetection') {
+      // When exactly one card is visible, treat it as the trump card.
+      if (boxes.length === 1) {
+        const cardId = boxes[0].cardId;
+        const suit = extractSuit(cardId);
+        const trumpSuit = (suit === 'wizard' || suit === 'jester') ? null : suit;
+        s.trumpSuit = trumpSuit;
+        s.phase = 'bidCollection';
+        s.bidIndex = 0;
+
+        const trumpName = trumpSuit
+          ? t(`suits.${trumpSuit}`, trumpSuit)
+          : t('suits.no_trump', 'Kein Trumpf');
+        const trumpSpeak = trumpSuit
+          ? t('voice.trump_confirm', 'Trumpf ist %s. Jetzt Ansagen.').replace('%s', trumpName)
+          : t('voice.no_trump_confirm', 'Kein Trumpf. Jetzt ansagen.');
+        const firstPlayer = s.players[0];
+        const bidPrompt = t('voice.bid_prompt', '%s, deine Ansage?').replace('%s', firstPlayer);
+
+        return {
+          players: buildScores(s),
+          display: { hud: buildHud(s) },
+          actions: [
+            { type: 'speak', text: trumpSpeak },
+            { type: 'cameraMode', mode: 'paused' },
+            { type: 'listenForBid', prompt: bidPrompt, playerIndex: 0 },
+          ],
+        };
+      }
       return {
         players: buildScores(s),
         display: { hud: buildHud(s) },
@@ -425,40 +453,8 @@ export class WizardGame implements GamePack {
         players: buildScores(this.state),
         display: { hud: [] },
         actions: [
-          { type: 'cameraMode', mode: 'detectSingle' },
+          { type: 'cameraMode', mode: 'detecting' },
           { type: 'speak', text: `${roundText} ${hintText}` },
-        ],
-      };
-    }
-
-    // ---- cardDetected (trump detection) -------------------------------------
-    if (type === 'cardDetected') {
-      if (s.phase !== 'trumpDetection') {
-        return { players: buildScores(s), display: { hud: buildHud(s) }, actions: [] };
-      }
-      const cardId = data.cardId as string;
-      const suit = extractSuit(cardId);
-      const trumpSuit = (suit === 'wizard' || suit === 'jester') ? null : suit;
-      s.trumpSuit = trumpSuit;
-      s.phase = 'bidCollection';
-      s.bidIndex = 0;
-
-      const trumpName = trumpSuit
-        ? t(`suits.${trumpSuit}`, trumpSuit)
-        : t('suits.no_trump', 'Kein Trumpf');
-      const trumpSpeak = trumpSuit
-        ? t('voice.trump_confirm', 'Trumpf ist %s. Jetzt Ansagen.').replace('%s', trumpName)
-        : t('voice.no_trump_confirm', 'Kein Trumpf. Jetzt ansagen.');
-      const firstPlayer = s.players[0];
-      const bidPrompt = t('voice.bid_prompt', '%s, deine Ansage?').replace('%s', firstPlayer);
-
-      return {
-        players: buildScores(s),
-        display: { hud: buildHud(s) },
-        actions: [
-          { type: 'speak', text: trumpSpeak },
-          { type: 'cameraMode', mode: 'pause' },
-          { type: 'listenForBid', prompt: bidPrompt, playerIndex: 0 },
         ],
       };
     }
@@ -483,7 +479,7 @@ export class WizardGame implements GamePack {
         const bidsDoneText = t('voice.bids_done', 'Danke. Los gehts.');
         actions.push(
           { type: 'speak', text: bidsDoneText },
-          { type: 'cameraMode', mode: 'trackTrick' },
+          { type: 'cameraMode', mode: 'detecting' },
           { type: 'awaitTableClear' },
         );
       } else {
@@ -496,78 +492,6 @@ export class WizardGame implements GamePack {
         players: buildScores(s),
         display: { hud: buildHud(s) },
         actions,
-      };
-    }
-
-    // ---- tableCleared -------------------------------------------------------
-    if (type === 'tableCleared') {
-      // May already be handled by processCards table-clear detection.
-      if (s.phase === 'waitingForClear' || s.waitingForTableClear) {
-        s.phase = 'trickTracking';
-        s.waitingForTableClear = false;
-        s.trickCompletionFired = false;
-        s.emptyCallCount = 0;
-        s.currentTrickCards = [];
-        s.previousCardIds = [];
-      }
-      return {
-        players: buildScores(s),
-        display: { hud: buildHud(s) },
-        actions: [],
-      };
-    }
-
-    // ---- trickCompleted -----------------------------------------------------
-    if (type === 'trickCompleted') {
-      // Skip if processCards already handled this trick.
-      if (s.trickCompletionFired) {
-        return { players: buildScores(s), display: { hud: buildHud(s) }, actions: [] };
-      }
-      // Use event data if provided, otherwise fall back to cards tracked by processCards
-      const cards: [number, string][] = (data.cards as [number, string][] | undefined)
-        ?? s.currentTrickCards;
-      s.currentTrickCards = [];
-      s.previousCardIds = [];
-      const winnerIndex = determineTrickWinner(cards, s.trumpSuit);
-      const winnerName = s.players[winnerIndex];
-
-      s.tricksWon[winnerName] = (s.tricksWon[winnerName] ?? 0) + 1;
-      s.completedTricks++;
-
-      const trickNum = s.completedTricks;
-      const trickWonText = t('voice.trick_won', '%s gewinnt Stich %d.')
-        .replace('%s', winnerName).replace('%d', String(trickNum));
-
-      if (s.completedTricks >= s.round) {
-        // Last trick — calculate round scores
-        for (const p of s.players) {
-          const bid = s.bids[p] ?? 0;
-          const won = s.tricksWon[p] ?? 0;
-          const roundScore = calculateRoundScore(bid, won);
-          s.cumulativeScores[p] = (s.cumulativeScores[p] ?? 0) + roundScore;
-        }
-
-        const summaryItems = buildRoundSummary(s);
-        const summaryText = t('voice.round_summary_intro', 'Rundenabschluss.');
-
-        return {
-          players: buildScores(s),
-          display: { hud: buildHud(s), summary: summaryItems },
-          actions: [
-            { type: 'speak', text: `${trickWonText} ${summaryText}` },
-            { type: 'showSummary' },
-          ],
-        };
-      }
-
-      // Not last trick
-      return {
-        players: buildScores(s),
-        display: { hud: buildHud(s) },
-        actions: [
-          { type: 'speak', text: trickWonText },
-          { type: 'setLeadPlayer', playerIndex: winnerIndex },
-        ],
       };
     }
 
@@ -614,7 +538,7 @@ export class WizardGame implements GamePack {
         players: buildScores(s),
         display: { hud: [] },
         actions: [
-          { type: 'cameraMode', mode: 'detectSingle' },
+          { type: 'cameraMode', mode: 'detecting' },
           { type: 'speak', text: `${roundText} ${hintText}` },
         ],
       };

@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoardGameBuddy Playground</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 12px; align-items: center; padding: 8px 16px; background: #16213e; border-bottom: 1px solid #0f3460; flex-shrink: 0; }
+  .toolbar label { font-size: 13px; color: #a0a0c0; }
+  .toolbar select, .toolbar input { background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; padding: 4px 8px; font-size: 13px; }
+  .toolbar select:focus, .toolbar input:focus { outline: none; border-color: #e94560; }
+
+  /* Main layout */
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Drawer */
+  .drawer { width: 220px; background: #16213e; border-right: 1px solid #0f3460; display: flex; flex-direction: column; flex-shrink: 0; }
+  .drawer-header { padding: 8px 12px; font-size: 12px; font-weight: 600; color: #a0a0c0; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #0f3460; }
+  .drawer-filter { padding: 6px 8px; border-bottom: 1px solid #0f3460; }
+  .drawer-filter input { width: 100%; background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; padding: 4px 8px; font-size: 12px; }
+  .drawer-cards { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 3px; }
+  .drawer-card { padding: 6px 10px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 4px; cursor: grab; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; transition: background 0.15s; }
+  .drawer-card:hover { background: #2a2a4a; border-color: #e94560; }
+  .drawer-card.on-table { opacity: 0.35; }
+  .drawer-card[draggable="false"] { cursor: default; }
+
+  /* Table */
+  .table-area { flex: 1; position: relative; overflow: hidden; background: #1a1a2e; }
+  .table-surface { width: 100%; height: 100%; position: relative; }
+  .player-zone-line { position: absolute; pointer-events: none; border: none; border-top: 1px dashed #2a2a4a; transform-origin: 0 0; }
+  .player-zone-label { position: absolute; color: #3a3a5a; font-size: 11px; pointer-events: none; }
+  .table-card { position: absolute; width: 80px; height: 112px; background: #16213e; border: 2px solid #0f3460; border-radius: 6px; cursor: grab; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; padding: 4px; user-select: none; z-index: 1; transition: box-shadow 0.15s; word-break: break-word; line-height: 1.3; }
+  .table-card:hover { box-shadow: 0 0 12px rgba(233, 69, 96, 0.4); }
+  .table-card.dragging { opacity: 0.6; z-index: 100; }
+  .table-empty-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #3a3a5a; font-size: 14px; pointer-events: none; }
+
+  /* Results */
+  .results { width: 320px; background: #16213e; border-left: 1px solid #0f3460; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
+  .results-header { padding: 8px 12px; font-size: 12px; font-weight: 600; color: #a0a0c0; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #0f3460; }
+  .results-content { flex: 1; overflow-y: auto; padding: 8px 12px; font-size: 12px; }
+
+  /* Score sections */
+  .player-score { margin-bottom: 12px; }
+  .player-score-header { display: flex; justify-content: space-between; padding: 4px 0; font-weight: 600; border-bottom: 1px solid #0f3460; margin-bottom: 4px; }
+  .player-score-header .total { color: #e94560; }
+  .card-group-name { font-size: 11px; color: #a0a0c0; margin-top: 6px; margin-bottom: 2px; font-weight: 600; }
+  .card-detail { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px solid #1a1a2e; }
+  .card-detail .title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-detail .points { font-weight: 600; min-width: 30px; text-align: right; }
+  .card-detail .points.positive { color: #4ecca3; }
+  .card-detail .points.negative { color: #e94560; }
+  .card-detail .reason { font-size: 10px; color: #888; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* HUD + Actions (live tracking) */
+  .hud-section, .actions-section { margin-top: 12px; padding-top: 8px; border-top: 1px solid #0f3460; }
+  .hud-section h3, .actions-section h3 { font-size: 11px; color: #a0a0c0; text-transform: uppercase; margin-bottom: 4px; }
+  .hud-item { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
+  .hud-item .label { color: #a0a0c0; }
+  .action-item { font-size: 11px; color: #888; padding: 1px 0; }
+  .action-item .action-type { color: #e94560; font-weight: 600; }
+
+  /* Live tracking controls */
+  .live-controls { padding: 8px 12px; border-top: 1px solid #0f3460; flex-shrink: 0; }
+  .live-controls h3 { font-size: 11px; color: #a0a0c0; text-transform: uppercase; margin-bottom: 6px; }
+  .live-controls .btn-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+  .live-btn { padding: 4px 8px; font-size: 11px; background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; cursor: pointer; }
+  .live-btn:hover { border-color: #e94560; background: #2a2a4a; }
+  .live-btn:disabled { opacity: 0.3; cursor: default; }
+  .bid-input { width: 40px; text-align: center; }
+
+  /* Summary overlay */
+  .summary-overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #16213e; border: 2px solid #e94560; border-radius: 8px; padding: 16px; z-index: 200; min-width: 250px; }
+  .summary-overlay.visible { display: block; }
+  .summary-overlay h3 { color: #e94560; margin-bottom: 8px; font-size: 14px; }
+  .summary-close { margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <label>Game:</label>
+  <select id="gameSelect"></select>
+  <label>Players:</label>
+  <select id="playerCount">
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+  </select>
+  <label>Lang:</label>
+  <select id="langSelect">
+    <option value="de">DE</option>
+    <option value="en">EN</option>
+  </select>
+</div>
+
+<div class="main">
+  <div class="drawer">
+    <div class="drawer-header">Cards</div>
+    <div class="drawer-filter"><input type="text" id="drawerFilter" placeholder="Filter cards..."></div>
+    <div class="drawer-cards" id="drawerCards"></div>
+  </div>
+
+  <div class="table-area" id="tableArea">
+    <div class="table-surface" id="tableSurface">
+      <div class="table-empty-hint" id="tableHint">Drag cards here</div>
+    </div>
+    <div class="summary-overlay" id="summaryOverlay">
+      <h3>Summary</h3>
+      <div id="summaryContent"></div>
+      <button class="live-btn summary-close" onclick="document.getElementById('summaryOverlay').classList.remove('visible')">Close</button>
+    </div>
+  </div>
+
+  <div class="results">
+    <div class="results-header">Results</div>
+    <div class="results-content" id="resultsContent">
+      <div style="color: #3a3a5a; padding: 20px 0; text-align: center;">Select a game and place cards</div>
+    </div>
+    <div class="live-controls" id="liveControls" style="display: none;">
+      <h3>Live Tracking</h3>
+      <div class="btn-row">
+        <button class="live-btn" id="btnGameStart" onclick="fireEvent('gameStarted')">Start Game</button>
+        <button class="live-btn" id="btnRoundEnd" onclick="fireEvent('roundEnded')">Round End</button>
+      </div>
+      <div class="btn-row" id="bidRow" style="display: none;">
+        <label style="font-size: 11px; color: #a0a0c0;">Bid:</label>
+        <input type="number" class="toolbar bid-input" id="bidValue" value="0" min="0">
+        <button class="live-btn" id="btnBid" onclick="placeBid()">Place Bid</button>
+        <span id="bidPlayerLabel" style="font-size: 11px; color: #888;"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let games = [];
+let currentGame = null;       // game.json metadata
+let cardIds = [];             // all card IDs for this game
+let texts = null;             // texts.json content
+let scorer = null;            // loaded scorer module
+let gameInstance = null;       // Game class instance (persistent for live tracking)
+let tableCards = new Map();   // cardId → { el, x, y } (pixel coords on table)
+let isLiveTracking = false;
+let bidPlayerIndex = 0;
+let playerNames = [];
+
+// ── Init ──
+async function init() {
+  games = await fetch('/api/games').then(r => r.json());
+  const sel = document.getElementById('gameSelect');
+  for (const g of games) {
+    const opt = document.createElement('option');
+    opt.value = g.id;
+    opt.textContent = g.displayName;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', () => loadGame(sel.value));
+  document.getElementById('playerCount').addEventListener('change', resetGame);
+  document.getElementById('langSelect').addEventListener('change', () => loadGame(document.getElementById('gameSelect').value));
+  document.getElementById('drawerFilter').addEventListener('input', filterDrawer);
+  if (games.length > 0) loadGame(games[0].id);
+}
+
+// ── Load game ──
+async function loadGame(gameId) {
+  currentGame = games.find(g => g.id === gameId);
+  if (!currentGame) return;
+
+  // Load card IDs, texts, scorer in parallel
+  const [ids, textsData, scorerCode] = await Promise.all([
+    fetch(`/api/games/${gameId}/card-ids`).then(r => r.json()),
+    fetch(`/api/games/${gameId}/texts.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(`/api/games/${gameId}/scorer.js`).then(r => r.text()),
+  ]);
+
+  cardIds = ids;
+  texts = textsData;
+
+  // Load scorer in browser via CommonJS shim
+  const module = { exports: {} };
+  try {
+    const fn = new Function('module', 'exports', 'require', scorerCode);
+    fn(module, module.exports, () => ({}));
+    scorer = module.exports;
+  } catch (e) {
+    console.error('Failed to load scorer:', e);
+    scorer = null;
+  }
+
+  isLiveTracking = !!(currentGame.supportsLiveTracking);
+
+  // Show/hide live controls
+  document.getElementById('liveControls').style.display = isLiveTracking ? '' : 'none';
+
+  clearTable();
+  buildDrawer();
+  resetGame();
+}
+
+// ── Reset game instance ──
+function resetGame() {
+  const count = parseInt(document.getElementById('playerCount').value);
+  playerNames = Array.from({ length: count }, (_, i) => `Player ${i + 1}`);
+
+  if (scorer && scorer.Game) {
+    gameInstance = new scorer.Game(playerNames);
+  } else {
+    gameInstance = null;
+  }
+
+  bidPlayerIndex = 0;
+  document.getElementById('bidRow').style.display = 'none';
+  drawPlayerZones();
+  runScorer();
+}
+
+// ── Build drawer ──
+function buildDrawer() {
+  const container = document.getElementById('drawerCards');
+  container.innerHTML = '';
+  const lang = document.getElementById('langSelect').value;
+
+  for (const cardId of cardIds) {
+    const el = document.createElement('div');
+    el.className = 'drawer-card';
+    el.draggable = true;
+    el.dataset.cardId = cardId;
+    el.textContent = resolveCardLabel(cardId, lang);
+    el.title = cardId;
+
+    el.addEventListener('dragstart', (e) => {
+      if (tableCards.has(cardId) && currentGame?.uniqueCards) return e.preventDefault();
+      e.dataTransfer.setData('text/plain', cardId);
+      e.dataTransfer.setData('application/x-source', 'drawer');
+    });
+
+    container.appendChild(el);
+  }
+
+  document.getElementById('drawerFilter').value = '';
+}
+
+function resolveCardLabel(cardId, lang) {
+  if (!texts) return cardId;
+  const langTexts = texts[lang] || texts['de'] || {};
+  const cardsTexts = langTexts.cards || {};
+  const suitsTexts = langTexts.suits || {};
+
+  // Try common patterns
+  const parts = cardId.split(':');
+
+  // Faraway: region:03 → "Region 3"
+  if (parts[0] === 'region' || parts[0] === 'sanctuary') {
+    const prefix = cardsTexts[`${parts[0]}_prefix`] || parts[0];
+    const num = parseInt(parts[1], 10);
+    return `${prefix} ${isNaN(num) ? parts[1] : num}`;
+  }
+
+  // Wizard: wizard:blue:05 → "Blau 5", Doppelkopf: doppelkopf:kreuz:dame → "Kreuz Dame"
+  if (parts.length === 3) {
+    const suit = suitsTexts[parts[1]] || parts[1];
+    const num = parseInt(parts[2], 10);
+    const val = isNaN(num) ? (cardsTexts[parts[2]] || parts[2]) : num;
+    return `${suit} ${val}`;
+  }
+
+  // Mischwald: wolf:oak → "Wolf (Eiche)"
+  if (parts.length === 2) {
+    const name = cardsTexts[parts[0]] || parts[0];
+    const tree = cardsTexts[parts[1]] || parts[1];
+    if (parts[1] && parts[0] !== parts[1]) {
+      return `${name} (${tree})`;
+    }
+    return name;
+  }
+
+  return cardsTexts[cardId] || cardId;
+}
+
+function filterDrawer() {
+  const q = document.getElementById('drawerFilter').value.toLowerCase();
+  for (const el of document.querySelectorAll('.drawer-card')) {
+    const show = !q || el.textContent.toLowerCase().includes(q) || el.dataset.cardId.toLowerCase().includes(q);
+    el.style.display = show ? '' : 'none';
+  }
+}
+
+function updateDrawerState() {
+  for (const el of document.querySelectorAll('.drawer-card')) {
+    const onTable = tableCards.has(el.dataset.cardId);
+    el.classList.toggle('on-table', onTable && currentGame?.uniqueCards);
+  }
+}
+
+// ── Player zones ──
+function drawPlayerZones() {
+  const surface = document.getElementById('tableSurface');
+  surface.querySelectorAll('.player-zone-line, .player-zone-label').forEach(el => el.remove());
+
+  // No zones for live-tracking games (cards represent shared state).
+  if (currentGame?.supportsLiveTracking) return;
+
+  const count = parseInt(document.getElementById('playerCount').value);
+  if (count <= 1) return;
+
+  const rect = surface.getBoundingClientRect();
+  const cx = rect.width / 2;
+  const cy = rect.height / 2;
+  const radius = Math.max(rect.width, rect.height);
+
+  // Draw radial dividing lines from center outward.
+  // Angle 0 = bottom (6 o'clock), increasing clockwise — matching groupByPlayer.
+  const sliceAngle = (2 * Math.PI) / count;
+  for (let i = 0; i < count; i++) {
+    // Boundary angle between player i and i+1.
+    const angle = i * sliceAngle + sliceAngle / 2;
+
+    const line = document.createElement('div');
+    line.className = 'player-zone-line';
+    line.style.left = `${cx}px`;
+    line.style.top = `${cy}px`;
+    line.style.width = `${radius}px`;
+    // CSS rotate: 0deg = right. atan2(dx,dy) 0 = bottom.
+    // Convert: visual angle (from top, CW) = angle (from bottom, CW) + 180°.
+    // CSS rotate 0° = right, so rotate = -(90° - visualAngle) = visualAngle - 90°.
+    const cssDeg = (angle * 180 / Math.PI) + 90;
+    line.style.transform = `rotate(${cssDeg}deg)`;
+    surface.appendChild(line);
+  }
+
+  // Label each zone.
+  for (let i = 0; i < count; i++) {
+    const angle = i * sliceAngle;
+    // Place label at ~30% from center.
+    const lx = cx + Math.sin(angle) * radius * 0.3;
+    const ly = cy + Math.cos(angle) * radius * 0.3;
+
+    const label = document.createElement('div');
+    label.className = 'player-zone-label';
+    label.style.left = `${lx}px`;
+    label.style.top = `${ly}px`;
+    label.style.transform = 'translate(-50%, -50%)';
+    label.textContent = `Player ${i + 1}`;
+    surface.appendChild(label);
+  }
+}
+
+// ── Table drag & drop ──
+const tableArea = document.getElementById('tableArea');
+const tableSurface = document.getElementById('tableSurface');
+
+tableSurface.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+});
+
+tableSurface.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const cardId = e.dataTransfer.getData('text/plain');
+  if (!cardId) return;
+
+  const rect = tableSurface.getBoundingClientRect();
+  const x = e.clientX - rect.left - 40;
+  const y = e.clientY - rect.top - 56;
+
+  const source = e.dataTransfer.getData('application/x-source');
+
+  if (source === 'table' && tableCards.has(cardId)) {
+    // Move existing card
+    const card = tableCards.get(cardId);
+    card.x = Math.max(0, Math.min(x, rect.width - 80));
+    card.y = Math.max(0, Math.min(y, rect.height - 112));
+    card.el.style.left = card.x + 'px';
+    card.el.style.top = card.y + 'px';
+  } else {
+    // New card from drawer (or duplicate for non-unique games)
+    if (tableCards.has(cardId) && currentGame?.uniqueCards) return;
+    placeCard(cardId, Math.max(0, Math.min(x, rect.width - 80)), Math.max(0, Math.min(y, rect.height - 112)));
+  }
+
+  updateDrawerState();
+  updateHint();
+  runScorer();
+});
+
+function placeCard(cardId, x, y) {
+  const lang = document.getElementById('langSelect').value;
+  const el = document.createElement('div');
+  el.className = 'table-card';
+  el.draggable = true;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.textContent = resolveCardLabel(cardId, lang);
+  el.title = cardId;
+
+  el.addEventListener('dragstart', (e) => {
+    e.dataTransfer.setData('text/plain', cardId);
+    e.dataTransfer.setData('application/x-source', 'table');
+    el.classList.add('dragging');
+  });
+  el.addEventListener('dragend', (e) => {
+    el.classList.remove('dragging');
+  });
+
+  // Double-click to remove
+  el.addEventListener('dblclick', () => {
+    removeCard(cardId);
+  });
+
+  tableSurface.appendChild(el);
+  tableCards.set(cardId, { el, x, y });
+}
+
+function removeCard(cardId) {
+  const card = tableCards.get(cardId);
+  if (card) {
+    card.el.remove();
+    tableCards.delete(cardId);
+    updateDrawerState();
+    updateHint();
+    runScorer();
+  }
+}
+
+function clearTable() {
+  for (const [, card] of tableCards) card.el.remove();
+  tableCards.clear();
+  updateDrawerState();
+  updateHint();
+}
+
+function updateHint() {
+  document.getElementById('tableHint').style.display = tableCards.size === 0 ? '' : 'none';
+}
+
+// ── Drawer drop zone (remove cards) ──
+const drawerEl = document.querySelector('.drawer-cards');
+drawerEl.addEventListener('dragover', (e) => {
+  if (e.dataTransfer.types.includes('application/x-source')) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+});
+drawerEl.addEventListener('drop', (e) => {
+  const source = e.dataTransfer.getData('application/x-source');
+  if (source === 'table') {
+    const cardId = e.dataTransfer.getData('text/plain');
+    removeCard(cardId);
+  }
+});
+
+// ── Scorer execution ──
+function runScorer() {
+  if (!scorer) return;
+
+  const rect = tableSurface.getBoundingClientRect();
+  const boxes = [];
+
+  for (const [cardId, card] of tableCards) {
+    const cardW = 80, cardH = 112;
+    const x1 = card.x / rect.width;
+    const y1 = card.y / rect.height;
+    const w = cardW / rect.width;
+    const h = cardH / rect.height;
+
+    boxes.push({
+      cardId,
+      similarity: 1,
+      confidence: 1,
+      x1, y1,
+      x2: x1 + w,
+      y2: y1 + h,
+      cx: x1 + w / 2,
+      cy: y1 + h / 2,
+      w, h,
+      angle: 0,
+      keypoints: null,
+    });
+  }
+
+  let result;
+  try {
+    if (gameInstance) {
+      result = gameInstance.processCards(boxes);
+    } else if (scorer.processCards) {
+      const count = parseInt(document.getElementById('playerCount').value);
+      const context = {
+        players: playerNames,
+        similarityThreshold: 0.5,
+      };
+      const players = scorer.processCards(boxes, context);
+      result = { players };
+    } else {
+      return;
+    }
+  } catch (e) {
+    console.error('Scorer error:', e);
+    document.getElementById('resultsContent').innerHTML = `<div style="color: #e94560; padding: 8px;">Error: ${e.message}</div>`;
+    return;
+  }
+
+  renderResults(result);
+}
+
+// ── Live tracking events ──
+function fireEvent(type) {
+  if (!gameInstance || !gameInstance.processEvent) return;
+
+  let data = {};
+
+  if (type === 'gameStarted') {
+    const count = parseInt(document.getElementById('playerCount').value);
+    playerNames = Array.from({ length: count }, (_, i) => `Player ${i + 1}`);
+    gameInstance = new scorer.Game(playerNames);
+    data = { players: playerNames };
+    bidPlayerIndex = 0;
+  }
+
+  let result;
+  try {
+    result = gameInstance.processEvent({ type, data });
+  } catch (e) {
+    console.error('processEvent error:', e);
+    return;
+  }
+
+  renderResults(result);
+
+  // Check for bid phase
+  if (result.actions) {
+    for (const action of result.actions) {
+      if (action.type === 'listenForBid') {
+        bidPlayerIndex = action.playerIndex;
+        document.getElementById('bidRow').style.display = '';
+        document.getElementById('bidPlayerLabel').textContent = playerNames[bidPlayerIndex] || '';
+        document.getElementById('bidValue').value = '0';
+        document.getElementById('bidValue').focus();
+      }
+      if (action.type === 'showSummary' && result.display?.summary) {
+        showSummary(result.display.summary);
+      }
+    }
+  }
+}
+
+function placeBid() {
+  if (!gameInstance || !gameInstance.processEvent) return;
+  const bid = parseInt(document.getElementById('bidValue').value) || 0;
+  let result;
+  try {
+    result = gameInstance.processEvent({
+      type: 'bidPlaced',
+      data: { playerIndex: bidPlayerIndex, bid },
+    });
+  } catch (e) {
+    console.error('placeBid error:', e);
+    return;
+  }
+
+  renderResults(result);
+
+  // Check if more bids needed
+  let moreBids = false;
+  if (result.actions) {
+    for (const action of result.actions) {
+      if (action.type === 'listenForBid') {
+        bidPlayerIndex = action.playerIndex;
+        document.getElementById('bidPlayerLabel').textContent = playerNames[bidPlayerIndex] || '';
+        document.getElementById('bidValue').value = '0';
+        document.getElementById('bidValue').focus();
+        moreBids = true;
+      }
+      if (action.type === 'showSummary' && result.display?.summary) {
+        showSummary(result.display.summary);
+      }
+    }
+  }
+  if (!moreBids) {
+    document.getElementById('bidRow').style.display = 'none';
+  }
+}
+
+function showSummary(items) {
+  const overlay = document.getElementById('summaryOverlay');
+  const content = document.getElementById('summaryContent');
+  content.innerHTML = items.map(item =>
+    `<div class="hud-item"><span class="label">${esc(item.label)}</span><span>${esc(item.value)}</span></div>`
+  ).join('');
+  overlay.classList.add('visible');
+}
+
+// ── Render results ──
+function renderResults(result) {
+  const container = document.getElementById('resultsContent');
+  if (!result || !result.players) {
+    container.innerHTML = '<div style="color: #3a3a5a; padding: 20px 0; text-align: center;">No results</div>';
+    return;
+  }
+
+  let html = '';
+
+  for (const player of result.players) {
+    html += `<div class="player-score">`;
+    html += `<div class="player-score-header"><span>${esc(player.name)}</span><span class="total">${player.totalScore}</span></div>`;
+
+    if (player.cardDetails && player.cardDetails.length > 0) {
+      // Group by group field
+      const groups = new Map();
+      for (const cd of player.cardDetails) {
+        const g = cd.group || '';
+        if (!groups.has(g)) groups.set(g, []);
+        groups.get(g).push(cd);
+      }
+
+      for (const [groupName, cards] of groups) {
+        if (groupName) {
+          html += `<div class="card-group-name">${esc(groupName)}</div>`;
+        }
+        for (const cd of cards) {
+          const pts = cd.points;
+          const cls = pts > 0 ? 'positive' : pts < 0 ? 'negative' : '';
+          html += `<div class="card-detail">`;
+          html += `<div><span class="title">${esc(cd.title || cd.cardId)}</span><span class="reason">${esc(cd.reason || '')}</span></div>`;
+          html += `<span class="points ${cls}">${pts > 0 ? '+' : ''}${pts}</span>`;
+          html += `</div>`;
+        }
+      }
+    }
+
+    html += `</div>`;
+  }
+
+  // HUD
+  if (result.display?.hud?.length > 0) {
+    html += `<div class="hud-section"><h3>HUD</h3>`;
+    for (const item of result.display.hud) {
+      html += `<div class="hud-item"><span class="label">${esc(item.label)}</span><span>${esc(item.value)}</span></div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Actions
+  if (result.actions?.length > 0) {
+    html += `<div class="actions-section"><h3>Actions</h3>`;
+    for (const action of result.actions) {
+      html += `<div class="action-item"><span class="action-type">${esc(action.type)}</span>`;
+      if (action.text) html += ` ${esc(action.text)}`;
+      if (action.mode) html += ` → ${esc(action.mode)}`;
+      if (action.prompt) html += ` "${esc(action.prompt)}"`;
+      if (action.playerIndex !== undefined) html += ` [player ${action.playerIndex}]`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  container.innerHTML = html || '<div style="color: #3a3a5a; padding: 20px 0; text-align: center;">Place cards to see results</div>';
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ── Start ──
+init();
+</script>
+</body>
+</html>

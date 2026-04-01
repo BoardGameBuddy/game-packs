@@ -48,18 +48,15 @@ export interface PlayerScoreResult {
 
 export interface LiveEvent {
   type: 'gameStarted'
-      | 'cardDetected'
       | 'bidPlaced'
-      | 'trickCompleted'
       | 'announcementMade'
-      | 'tableCleared'
       | 'roundEnded';
   data: Record<string, unknown>;
 }
 
 export type FlutterAction =
   | { type: 'speak'; text: string }
-  | { type: 'cameraMode'; mode: 'detectSingle' | 'trackTrick' | 'pause' }
+  | { type: 'cameraMode'; mode: 'detecting' | 'paused' }
   | { type: 'awaitTableClear' }
   | { type: 'setLeadPlayer'; playerIndex: number }
   | { type: 'listenForBid'; prompt: string; playerIndex: number }

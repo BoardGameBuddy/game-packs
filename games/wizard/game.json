@@ -3,7 +3,6 @@
   "displayName": "Wizard",
   "uniqueCards": false,
   "supportsLiveTracking": true,
-  "supportsTrickTracking": true,
   "liveTracking": {
     "trumpDetection": true,
     "bidPhase": true,

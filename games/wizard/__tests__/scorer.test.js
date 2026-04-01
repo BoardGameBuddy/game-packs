@@ -135,48 +135,33 @@ describe('processCards – legacy wrapper (always trumpDetection phase)', () => 
 const { WizardGame } = require('../scorer');
 
 describe('processCards – stateful (via WizardGame class)', () => {
+  /** Advances game to trickTracking phase via processCards-based trump detection. */
   function makeGame(players) {
     const game = new WizardGame(players);
-    // Advance to trickTracking via processEvent
     game.processEvent({ type: 'gameStarted', data: { players } });
-    game.processEvent({ type: 'cardDetected', data: { cardId: 'wizard:blue:07' } });
+    // Trump detection via single visible card
+    game.processCards([card('wizard:blue:07')]);
+    // Place bids
     for (let i = 0; i < players.length; i++) {
       game.processEvent({ type: 'bidPlaced', data: { playerIndex: i, bid: 1 } });
     }
-    game.processEvent({ type: 'tableCleared', data: {} });
+    // Clear table (5+ empty frames)
+    for (let i = 0; i < 6; i++) game.processCards([]);
     return game;
   }
 
   it('tracks new cards during trickTracking phase', () => {
     const game = makeGame(['Alice', 'Bob']);
-    // First call: both cards are new
     const result1 = game.processCards([card('wizard:blue:05'), card('wizard:red:03')]);
     expect(result1.display.hud.length).toBeGreaterThan(0);
   });
 
   it('diffs cards between calls — only new cards are tracked', () => {
     const game = makeGame(['Alice', 'Bob']);
-    // First frame: Alice plays blue 5
     game.processCards([card('wizard:blue:05')]);
-    // Second frame: same card still visible + Bob plays red 3
     const result = game.processCards([card('wizard:blue:05'), card('wizard:red:03')]);
-    // Both players should have card details
     const allDetails = result.players.flatMap(p => p.cardDetails);
     expect(allDetails).toHaveLength(2);
-  });
-
-  it('resets tracked cards after trickCompleted', () => {
-    const game = makeGame(['Alice', 'Bob']);
-    game.processCards([card('wizard:blue:05'), card('wizard:red:03')]);
-    // Complete the trick
-    game.processEvent({
-      type: 'trickCompleted',
-      data: { cards: [[0, 'wizard:blue:05'], [1, 'wizard:red:03']] },
-    });
-    // New processCards call should start fresh
-    const result = game.processCards([]);
-    const allDetails = result.players.flatMap(p => p.cardDetails);
-    expect(allDetails).toHaveLength(0);
   });
 
   it('returns HUD with round/trump/bid info during trickTracking', () => {
@@ -185,15 +170,5 @@ describe('processCards – stateful (via WizardGame class)', () => {
     const hudLabels = result.display.hud.map(h => h.label);
     // Should have round info and player bid tracking
     expect(hudLabels.length).toBeGreaterThanOrEqual(3); // round, trump, alice, bob
-  });
-
-  it('trickCompleted uses currentTrickCards as fallback when no event data', () => {
-    const game = makeGame(['Alice', 'Bob']);
-    // Camera detects cards
-    game.processCards([card('wizard:blue:05'), card('wizard:red:03')]);
-    // trickCompleted with no cards in data — should use tracked cards
-    const result = game.processEvent({ type: 'trickCompleted', data: {} });
-    // Should have processed the trick (not crashed)
-    expect(result.players).toHaveLength(2);
   });
 });

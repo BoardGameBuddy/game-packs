@@ -3,7 +3,6 @@
   "displayName": "Doppelkopf",
   "uniqueCards": false,
   "supportsLiveTracking": true,
-  "supportsTrickTracking": true,
   "liveTracking": {
     "trumpDetection": false,
     "bidPhase": false,

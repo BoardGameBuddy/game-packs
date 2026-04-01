@@ -806,7 +806,7 @@ export class DoppelkopfGame implements GamePack {
         players: buildScoresDk(this.state),
         display: { hud: [] },
         actions: [
-          { type: 'cameraMode', mode: 'trackTrick' },
+          { type: 'cameraMode', mode: 'detecting' },
           { type: 'awaitTableClear' },
           {
             type: 'startAnnouncementListening',
@@ -815,23 +815,6 @@ export class DoppelkopfGame implements GamePack {
           },
           { type: 'speak', text: gameStartText },
         ],
-      };
-    }
-
-    // ---- tableCleared -------------------------------------------------------
-    if (type === 'tableCleared') {
-      // May already be handled by processCards table-clear detection.
-      if (s.waitingForTableClear) {
-        s.waitingForTableClear = false;
-        s.trickCompletionFired = false;
-        s.emptyCallCount = 0;
-      }
-      s.currentTrickCards = [];
-      s.previousCardIds = [];
-      return {
-        players: buildScoresDk(s),
-        display: { hud: buildHudDk(s) },
-        actions: [],
       };
     }
 
@@ -846,85 +829,6 @@ export class DoppelkopfGame implements GamePack {
         players: buildScoresDk(s),
         display: { hud: buildHudDk(s) },
         actions: [{ type: 'speak', text: confirmText }],
-      };
-    }
-
-    // ---- trickCompleted -----------------------------------------------------
-    if (type === 'trickCompleted') {
-      // Skip if processCards already handled this trick.
-      if (s.trickCompletionFired) {
-        return { players: buildScoresDk(s), display: { hud: buildHudDk(s) }, actions: [] };
-      }
-      // Use event data if provided, otherwise fall back to cards tracked by processCards
-      const cards: [number, string][] = (data.cards as [number, string][] | undefined)
-        ?? s.currentTrickCards;
-      s.currentTrickCards = [];
-      s.previousCardIds = [];
-      const winnerIndex = determineTrickWinner(cards, null);
-      const winnerName = s.players[winnerIndex] ?? '?';
-
-      let trickAugen = 0;
-      for (const [, cardId] of cards) trickAugen += cardAugen(cardId);
-
-      s.trickHistory.push({ cards, winnerIndex });
-      s.completedTricks++;
-      s.trickLeader = winnerIndex;
-
-      const trickNum = s.completedTricks;
-      const trickWonText = trickAugen > 0
-        ? t('voice.trick_won_augen', '%s gewinnt Stich %d mit %d Augen.')
-            .replace('%s', winnerName).replace('%d', String(trickNum)).replace('%d', String(trickAugen))
-        : t('voice.trick_won', '%s gewinnt Stich %d.')
-            .replace('%s', winnerName).replace('%d', String(trickNum));
-
-      if (s.completedTricks >= 12) {
-        // Last trick — calculate round scores immediately
-        const roundResult = calculateAllRoundScores({
-          playerNames: s.players,
-          trickHistory: s.trickHistory,
-          announcements: s.announcements,
-        });
-        for (const p of s.players) {
-          s.cumulativeScores[p] = (s.cumulativeScores[p] ?? 0) + (roundResult.scores[p] ?? 0);
-        }
-
-        // Build summary from scorer result + cumulative
-        const summaryItems: LiveHudItem[] = [
-          ...roundResult.summary,
-          { label: '---', value: '' },
-          ...s.players.map(p => ({
-            label: p,
-            value: `${t('ui.score_total', 'Gesamt:')} ${s.cumulativeScores[p] ?? 0}`,
-          })),
-        ];
-
-        const summaryText = t('voice.round_summary_intro', 'Spielabschluss.');
-        return {
-          players: buildScoresDk(s),
-          display: { hud: buildHudDk(s), summary: summaryItems },
-          actions: [
-            { type: 'speak', text: `${trickWonText} ${summaryText}` },
-            { type: 'stopAnnouncementListening' },
-            { type: 'showSummary' },
-          ],
-        };
-      }
-
-      // Not last trick
-      const actions: FlutterAction[] = [
-        { type: 'speak', text: trickWonText },
-        { type: 'setLeadPlayer', playerIndex: winnerIndex },
-      ];
-
-      // Stop announcement listening once we're past the window
-      if (s.completedTricks >= ANNOUNCEMENT_UNTIL) {
-        actions.push({ type: 'stopAnnouncementListening' });
-      }
-
-      return {
-        players: buildScoresDk(s),
-        display: { hud: buildHudDk(s) },
-        actions,
       };
     }
 
@@ -947,7 +851,7 @@ export class DoppelkopfGame implements GamePack {
         display: { hud: [] },
         actions: [
           { type: 'speak', text: nextRoundText },
-          { type: 'cameraMode', mode: 'trackTrick' },
+          { type: 'cameraMode', mode: 'detecting' },
           { type: 'awaitTableClear' },
           {
             type: 'startAnnouncementListening',

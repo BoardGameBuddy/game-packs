@@ -290,7 +290,8 @@ describe('processCards – stateful (via DoppelkopfGame class)', () => {
   function makeGame(players) {
     const game = new DoppelkopfGame(players);
     game.processEvent({ type: 'gameStarted', data: { players } });
-    game.processEvent({ type: 'tableCleared', data: {} });
+    // Clear table (5+ empty frames)
+    for (let i = 0; i < 6; i++) game.processCards([]);
     return game;
   }
 
@@ -310,15 +311,14 @@ describe('processCards – stateful (via DoppelkopfGame class)', () => {
     expect(allDetails).toHaveLength(2);
   });
 
-  it('resets tracked cards after trickCompleted', () => {
+  it('resets tracked cards after trick completion via processCards', () => {
     const game = makeGame(PLAYERS);
+    // Play trick (4 cards = complete for 4 players)
     game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'),
                        card('doppelkopf:herz:koenig'), card('doppelkopf:karo:9')]);
-    game.processEvent({
-      type: 'trickCompleted',
-      data: { cards: [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:10'],
-                       [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:9']] },
-    });
+    // Clear table
+    for (let i = 0; i < 6; i++) game.processCards([]);
+    // New trick should start fresh
     const result = game.processCards([]);
     const allDetails = result.players.flatMap(p => p.cardDetails);
     expect(allDetails).toHaveLength(0);
@@ -338,11 +338,10 @@ describe('processCards – stateful (via DoppelkopfGame class)', () => {
     expect(allDetails[0].group).toBe('Trumpf');
   });
 
-  it('trickCompleted uses currentTrickCards as fallback when no event data', () => {
+  it('trick completion via processCards returns players', () => {
     const game = makeGame(PLAYERS);
-    game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'),
+    const result = game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'),
                        card('doppelkopf:herz:koenig'), card('doppelkopf:karo:9')]);
-    const result = game.processEvent({ type: 'trickCompleted', data: {} });
     expect(result.players).toHaveLength(4);
   });
 
