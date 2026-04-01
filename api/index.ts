@@ -18,6 +18,7 @@ export {
   overlapHorizontal,
   overlapVertical,
   sortVisuallyByBox,
+  rectifyBoxes,
   parseCardId,
 } from './spatial-utils';
 
