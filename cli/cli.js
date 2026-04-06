@@ -222,20 +222,21 @@ program
 
     server.listen(PORT, '0.0.0.0', () => {
       const ip = getLocalIp();
-      const url = `http://${ip}:${PORT}/`;
+      const httpUrl = `http://${ip}:${PORT}/`;
+      const deeplink = `bgb://install?url=${encodeURIComponent(httpUrl)}`;
 
       console.log(`\nServing pack: ${packName}`);
-      console.log(`URL: ${url}\n`);
+      console.log(`URL: ${httpUrl}\n`);
 
       try {
         const qrcode = require('qrcode-terminal');
-        qrcode.generate(url, { small: true }, (qr) => {
+        qrcode.generate(deeplink, { small: true }, (qr) => {
           console.log(qr);
-          console.log('In the app: Pack Store → QR-Code scannen → fertig.\n');
+          console.log('Kamera-App → QR-Code scannen → Pack wird installiert.\n');
           console.log('Watching scorer.ts for changes... Press Ctrl+C to stop.\n');
         });
       } catch {
-        console.log(`In the app: Pack Store → Von URL importieren → ${url}\n`);
+        console.log(`Kamera-App → QR-Code scannen → ${deeplink}\n`);
         console.log('Watching scorer.ts for changes... Press Ctrl+C to stop.\n');
       }
     });
@@ -353,10 +354,22 @@ program
           const outputPath = path.join(packDir, 'embeddings.bin');
           fs.writeFileSync(outputPath, body);
           receivedBin = true;
-          console.log(`Received embeddings.bin: ${body.length} bytes`);
-          if (receivedLabels && receivedBin) console.log('\nAll embeddings files received. Ready to use.\n');
+
+          // Auto-generate labels.txt from embedding count.
+          // Format: N × 130 float32 values (little-endian), so N = byteLength / (130 * 4).
+          const EMBEDDING_DIM = 130;
+          const count = Math.floor(body.length / (EMBEDDING_DIM * 4));
+          const labels = Array.from({ length: count }, (_, i) =>
+            `${packId}:${String(i + 1).padStart(3, '0')}`
+          ).join('\n') + '\n';
+          fs.writeFileSync(path.join(packDir, 'labels.txt'), labels);
+
+          console.log(`Received embeddings.bin: ${body.length} bytes (${count} embeddings)`);
+          console.log(`Generated labels.txt: ${count} labels (${packId}:001 … ${packId}:${String(count).padStart(3, '0')})`);
+          console.log(`\nEdit labels.txt to replace the auto-generated IDs with your real card IDs.\n`);
+          if (receivedLabels && receivedBin) console.log('All embeddings files received. Ready to use.\n');
           res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true, bytes: body.length }));
+          res.end(JSON.stringify({ success: true, bytes: body.length, count }));
         });
         return;
       }
@@ -367,20 +380,21 @@ program
 
     server.listen(PORT, '0.0.0.0', () => {
       const ip = getLocalIp();
-      const url = `http://${ip}:${PORT}/upload?type=receive-embeddings&packId=${packId}`;
+      const httpUrl = `http://${ip}:${PORT}/`;
+      const deeplink = `bgb://capture?packId=${encodeURIComponent(packId)}&url=${encodeURIComponent(httpUrl)}`;
 
-      console.log(`\nWaiting for embeddings upload for pack: ${packId}`);
-      console.log(`URL: ${url}\n`);
+      console.log(`\nWaiting for card capture session for pack: ${packId}`);
+      console.log(`URL: ${httpUrl}\n`);
 
       try {
         const qrcode = require('qrcode-terminal');
-        qrcode.generate(url, { small: true }, (qr) => {
+        qrcode.generate(deeplink, { small: true }, (qr) => {
           console.log(qr);
-          console.log('In the app: Pack Store → QR-Code scannen → Embeddings werden hochgeladen.\n');
+          console.log('Kamera-App → QR-Code scannen → Karten erfassen → Hochladen.\n');
           console.log('Press Ctrl+C to stop.\n');
         });
       } catch {
-        console.log(`In the app: Pack Store → QR-Code scannen → ${url}\n`);
+        console.log(`Kamera-App → QR-Code scannen → ${deeplink}\n`);
         console.log('Press Ctrl+C to stop.\n');
       }
     });
