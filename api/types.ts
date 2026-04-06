@@ -22,10 +22,25 @@ export interface PlayerInput {
   cards: DetectedCard[];
 }
 
+/** Declares an extra input a game pack needs from the user before scoring. */
+export interface AdditionalInput {
+  id: string;
+  label: string;
+  type: 'stepper';
+  perPlayer: boolean;
+  min?: number;
+  default?: number;
+}
+
 /** Game session metadata passed alongside the flat box list to `processCards()`. */
 export interface ScorerContext {
   players: string[];
   similarityThreshold: number;
+  /**
+   * Values collected from the user for each declared AdditionalInput.
+   * perPlayer inputs: Record<playerName, number>; global inputs: number.
+   */
+  additionalInputs?: Record<string, Record<string, number> | number>;
 }
 
 export interface CardScoreDetail {
@@ -105,8 +120,9 @@ export interface GameState {
 export interface GamePack {
   /** Process currently visible cards and return updated state.
    *  Receives ALL currently visible cards — the pack diffs against
-   *  previous state internally to determine what's new. */
-  processCards(cards: DetectedBox[]): GameState;
+   *  previous state internally to determine what's new.
+   *  [context] carries additional user-provided inputs when declared via `inputs`. */
+  processCards(cards: DetectedBox[], context?: ScorerContext): GameState;
   /** Handle non-card events (bids, announcements, round transitions).
    *  Only needed for live tracking games. */
   processEvent?(event: LiveEvent): GameState;

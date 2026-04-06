@@ -1,4 +1,5 @@
 export type {
+  AdditionalInput,
   DetectedCard,
   DetectedBox,
   PlayerInput,

@@ -12,7 +12,7 @@
  * Card data is loaded from cards.json bundled with this pack.
  */
 
-import type { GamePack, GameState, DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
+import type { AdditionalInput, GamePack, GameState, DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
 import { overlapHorizontal, overlapVertical, sortVisuallyByBox, rectifyBoxes, parseCardId, groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
 
 const t = createTranslator('./texts.json');
@@ -708,7 +708,7 @@ export class MischwaldGame implements GamePack {
     this.players = players;
   }
 
-  processCards(boxes: DetectedBox[]): GameState {
+  processCards(boxes: DetectedBox[], context?: ScorerContext): GameState {
     const cards = CARDS_JSON;
     const playerGroups = groupByPlayer(rectifyBoxes(boxes), this.players.length);
 
@@ -791,6 +791,17 @@ export class MischwaldGame implements GamePack {
           });
         }
 
+        const caveCards = (context?.additionalInputs?.caveCards ?? {}) as Record<string, number>;
+        const cave = caveCards[playerName] ?? 0;
+        if (cave > 0) {
+          cardDetails.push({
+            cardId: 'cave',
+            points: cave,
+            reason: `${cave} ${cave === 1 ? t('cave.singular', 'Höhlenkarte') : t('cave.plural', 'Höhlenkarten')}`,
+            title: t('cave.title', 'Höhle'),
+          });
+        }
+
         const totalScore = cardDetails.reduce((s, d) => s + d.points, 0);
         return { name: playerName, totalScore, cardDetails };
       }),
@@ -799,12 +810,27 @@ export class MischwaldGame implements GamePack {
 }
 
 // ---------------------------------------------------------------------------
+// Additional inputs declaration
+// ---------------------------------------------------------------------------
+
+export const inputs: AdditionalInput[] = [
+  {
+    id: 'caveCards',
+    label: t('inputs.caveCards', 'Höhlenkarten'),
+    type: 'stepper',
+    perPlayer: true,
+    min: 0,
+    default: 0,
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Legacy wrapper
 // ---------------------------------------------------------------------------
 
 export function processCards(boxes: DetectedBox[], context: ScorerContext): PlayerScoreResult[] {
   const game = new MischwaldGame(context.players);
-  return game.processCards(boxes).players;
+  return game.processCards(boxes, context).players;
 }
 
 export { MischwaldGame as Game };
