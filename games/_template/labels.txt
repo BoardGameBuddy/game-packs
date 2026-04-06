@@ -1,0 +1,2 @@
+mygame:card01
+mygame:card02

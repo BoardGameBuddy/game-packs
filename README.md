@@ -8,8 +8,9 @@ A game pack is a self-contained directory that adds support for a new board game
 
 | File | Required | Purpose |
 |---|---|---|
-| `game.json` | ✅ | Game metadata (id, display name, embeddings path, flags) |
-| `embeddings.json` | ✅ | Card reference embeddings for on-device identification |
+| `game.json` | ✅ | Game metadata (id, display name, flags) |
+| `embeddings.bin` | ✅ | Card reference embeddings for on-device identification (raw float32 LE) |
+| `labels.txt` | ✅ | Card label list for on-device identification (one label per line) |
 | `scorer.ts` | ✅ | TypeScript scorer source (compiled to `scorer.js`) |
 | `scorer.js` | ✅ | Compiled JavaScript loaded by the app at runtime |
 | `cards.json` | ☑️ optional | Card definitions with scoring rules, used by the scorer |

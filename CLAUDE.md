@@ -45,7 +45,8 @@ Types are defined in `scorer-api/types.ts`. Input provides detected card positio
 Each pack directory contains:
 - `game.json` — metadata (`id`, `displayName`, optional feature flags)
 - `scorer.ts` + `scorer.js` — TypeScript source and compiled output
-- `embeddings.json` — ML embeddings for card recognition (not manually edited)
+- `embeddings.bin` — ML embeddings for card recognition: raw float32 LE values, N×D row-major (not manually edited)
+- `labels.txt` — one card label per line, parallel to `embeddings.bin` rows (not manually edited)
 - `cards.json` (optional) — card definitions loaded at runtime by the scorer
 - `texts.json` (optional) — localization strings (nested JSON, flattened to `"section.key"` at runtime)
 - `__tests__/scorer.test.js` — compiled Jest tests

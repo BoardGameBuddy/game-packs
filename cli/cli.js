@@ -115,12 +115,12 @@ program
     gameJson = gameJson.replace(/"My Game"/g, `"${displayName}"`);
     fs.writeFileSync(gameJsonPath, gameJson);
 
-    // Patch embeddings.json
-    const embeddingsPath = path.join(targetDir, 'embeddings.json');
-    if (fs.existsSync(embeddingsPath)) {
-      let embeddings = fs.readFileSync(embeddingsPath, 'utf8');
-      embeddings = embeddings.replace(/"mygame:/g, `"${gameId}:`);
-      fs.writeFileSync(embeddingsPath, embeddings);
+    // Patch labels.txt (replace mygame: prefix with the actual game ID)
+    const labelsPath = path.join(targetDir, 'labels.txt');
+    if (fs.existsSync(labelsPath)) {
+      let labels = fs.readFileSync(labelsPath, 'utf8');
+      labels = labels.replace(/^mygame:/gm, `${gameId}:`);
+      fs.writeFileSync(labelsPath, labels);
     }
 
     // Patch package.json name
@@ -282,7 +282,7 @@ program
 
 program
   .command('receive-embeddings [pack-dir]')
-  .description('Start a server to receive embeddings.json from the app via QR code')
+  .description('Start a server to receive embeddings.bin + labels.txt from the app via QR code')
   .action((packDirArg) => {
     const packDir = packDirArg ? path.resolve(packDirArg) : process.cwd();
     const gameJsonPath = path.join(packDir, 'game.json');
@@ -302,6 +302,10 @@ program
     }
     const packId = gameJson.id;
 
+    // Track received files so we can report completion when both arrive.
+    let receivedLabels = false;
+    let receivedBin = false;
+
     const server = http.createServer((req, res) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -317,33 +321,42 @@ program
         return;
       }
 
-      if (req.method === 'POST' && urlPath === '/upload') {
+      // POST /upload/labels — receives labels.txt content (text/plain)
+      if (req.method === 'POST' && urlPath === '/upload/labels') {
         const chunks = [];
         req.on('data', chunk => chunks.push(chunk));
         req.on('end', () => {
           const body = Buffer.concat(chunks).toString('utf8');
-
-          // Validate JSON
-          try {
-            const parsed = JSON.parse(body);
-            if (!parsed.labels || !parsed.embeddings) {
-              res.writeHead(400, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({ error: 'Missing labels or embeddings' }));
-              return;
-            }
-
-            const outputPath = path.join(packDir, 'embeddings.json');
-            fs.writeFileSync(outputPath, JSON.stringify(parsed, null, 2));
-
-            console.log(`\nReceived embeddings: ${parsed.labels.length} labels`);
-            console.log(`Saved to: ${outputPath}`);
-
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, labels: parsed.labels.length }));
-          } catch (err) {
+          const lines = body.split('\n').filter(l => l.trim());
+          if (lines.length === 0) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Invalid JSON: ' + err.message }));
+            res.end(JSON.stringify({ error: 'Empty labels' }));
+            return;
           }
+          const outputPath = path.join(packDir, 'labels.txt');
+          fs.writeFileSync(outputPath, body);
+          receivedLabels = true;
+          console.log(`Received labels.txt: ${lines.length} labels`);
+          if (receivedLabels && receivedBin) console.log('\nAll embeddings files received. Ready to use.\n');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, labels: lines.length }));
+        });
+        return;
+      }
+
+      // POST /upload/bin — receives embeddings.bin content (application/octet-stream)
+      if (req.method === 'POST' && urlPath === '/upload/bin') {
+        const chunks = [];
+        req.on('data', chunk => chunks.push(chunk));
+        req.on('end', () => {
+          const body = Buffer.concat(chunks);
+          const outputPath = path.join(packDir, 'embeddings.bin');
+          fs.writeFileSync(outputPath, body);
+          receivedBin = true;
+          console.log(`Received embeddings.bin: ${body.length} bytes`);
+          if (receivedLabels && receivedBin) console.log('\nAll embeddings files received. Ready to use.\n');
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, bytes: body.length }));
         });
         return;
       }
@@ -354,7 +367,7 @@ program
 
     server.listen(PORT, '0.0.0.0', () => {
       const ip = getLocalIp();
-      const url = `http://${ip}:${PORT}/?type=receive-embeddings&packId=${packId}`;
+      const url = `http://${ip}:${PORT}/upload?type=receive-embeddings&packId=${packId}`;
 
       console.log(`\nWaiting for embeddings upload for pack: ${packId}`);
       console.log(`URL: ${url}\n`);
