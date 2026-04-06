@@ -132,13 +132,13 @@ describe('Mischwald scorer – unit tests', () => {
   });
 
   it('a lone tree card with no score rule returns 0', () => {
-    // brown_bear has no score rule
     const results = processCards(
-      [boxToCard([0.1, 0.4, 0.2, 0.6, 'oak:oak'])],
+      [boxToCard([0.1, 0.4, 0.2, 0.6, 'tree:oak'])],
       { players: ['Alice'], similarityThreshold: 0.85 },
     );
     // oak scores based on having ≥8 unique trees; alone it scores 0
-    expect(results[0].cardDetails[0].cardId).toBe('oak:oak');
+    expect(results[0].cardDetails[0].cardId).toBe('tree:oak');
+    expect(results[0].cardDetails[0].points).toBe(0);
   });
 
   it('groups cards under the correct tree label', () => {
@@ -147,20 +147,20 @@ describe('Mischwald scorer – unit tests', () => {
     const results = processCards(
       [
         // tree 1 (left)
-        boxToCard([0.1, 0.4, 0.3, 0.7, 'oak:oak']),
+        boxToCard([0.1, 0.4, 0.3, 0.7, 'tree:oak']),
         // attached to tree 1 on the right
-        boxToCard([0.31, 0.4, 0.5, 0.7, 'wolf:oak']),
+        boxToCard([0.31, 0.4, 0.5, 0.7, 'horizontal:wolf-oak']),
         // tree 2 (far right)
-        boxToCard([0.6, 0.4, 0.8, 0.7, 'birch:birch']),
+        boxToCard([0.6, 0.4, 0.8, 0.7, 'tree:birch']),
         // attached to tree 2 on the right
-        boxToCard([0.81, 0.4, 0.99, 0.7, 'wolf:birch']),
+        boxToCard([0.81, 0.4, 0.99, 0.7, 'horizontal:wolf-birch']),
       ],
       { players: ['Alice'], similarityThreshold: 0.85 },
     );
 
     const details = results[0].cardDetails;
     // Both wolf cards should have a group
-    const wolves = details.filter((d) => d.cardId.startsWith('wolf:'));
+    const wolves = details.filter((d) => d.cardId.startsWith('horizontal:wolf'));
     wolves.forEach((w) => expect(w.group).toMatch(/Baum \d+/));
   });
 });

@@ -128,11 +128,40 @@ const CARDS_JSON: CardsJson = require('./cards.json');
 // Card instance parsing
 // ---------------------------------------------------------------------------
 
+/**
+ * Parses a mischwald label into { id, treeSymbol }.
+ *
+ * Labels use the format "<orientation>:<name>" where orientation is one of
+ * "horizontal", "vertical", or "tree":
+ *   - "tree:beech"                            → id="beech",            treeSymbol="beech"
+ *   - "horizontal:barbastelle_bat-oak"        → id="barbastelle_bat",  treeSymbol="oak"
+ *   - "vertical:bullfinch-silver_fir"         → id="bullfinch",        treeSymbol="silver_fir"
+ *
+ * The animal/tree parts of horizontal and vertical cards are separated by the
+ * first '-' in the remainder (both parts internally use '_' for spaces).
+ */
+function parseMischwaldLabel(clsName: string): { id: string; treeSymbol: string } | null {
+  const colonIdx = clsName.indexOf(':');
+  if (colonIdx < 0) return null;
+  const orientation = clsName.slice(0, colonIdx);
+  const rest = clsName.slice(colonIdx + 1);
+
+  if (orientation === 'tree') {
+    return { id: rest, treeSymbol: rest };
+  }
+
+  // horizontal / vertical: rest = "<animal>-<tree>"
+  const dashIdx = rest.indexOf('-');
+  if (dashIdx < 0) return null;
+  const id = rest.slice(0, dashIdx);
+  const treeSymbol = rest.slice(dashIdx + 1);
+  return { id, treeSymbol };
+}
+
 function parseCardInstance(box: Box, defById: Map<string, CardDef>): CardInstance | null {
-  const parsed = parseCardId(box.clsName);
+  const parsed = parseMischwaldLabel(box.clsName);
   if (!parsed) return null;
-  const id = parsed.prefix;
-  const treeSymbol = parsed.suffix;
+  const { id, treeSymbol } = parsed;
   return { box, id, treeSymbol, definition: defById.get(id) ?? null };
 }
 
@@ -297,12 +326,12 @@ function buildForest(boxes: Box[], cards: CardsJson): Forest {
   );
 
   const treeBoxes = boxes.filter((b) => {
-    const parsed = parseCardId(b.clsName);
-    return parsed && treeIds.has(parsed.prefix);
+    const parsed = parseMischwaldLabel(b.clsName);
+    return parsed && treeIds.has(parsed.id);
   });
   const otherBoxes = boxes.filter((b) => {
-    const parsed = parseCardId(b.clsName);
-    return !parsed || !treeIds.has(parsed.prefix);
+    const parsed = parseMischwaldLabel(b.clsName);
+    return !parsed || !treeIds.has(parsed.id);
   });
 
   const treeCards: CardInstance[] = treeBoxes.map((b) => parseCardInstance(b, defById)).filter(Boolean) as CardInstance[];
