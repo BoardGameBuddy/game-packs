@@ -1,0 +1,9 @@
+card_types:
+  region:
+    target_size:
+    - 587
+    - 597
+  sanctuary:
+    target_size:
+    - 399
+    - 595

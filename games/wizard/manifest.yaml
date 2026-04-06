@@ -1,0 +1,5 @@
+card_types:
+  card:
+    target_size:
+    - 388
+    - 600

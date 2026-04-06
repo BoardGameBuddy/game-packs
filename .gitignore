@@ -3,3 +3,4 @@ dist/
 scorer.js
 api/*.js
 api/*.d.ts
+**/ref/**

@@ -5,78 +5,158 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BoardGameBuddy Playground</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: #1a1a2e; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: #1a1a2e; color: #e0e0e0;
+  height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+}
 
-  /* Toolbar */
-  .toolbar { display: flex; gap: 12px; align-items: center; padding: 8px 16px; background: #16213e; border-bottom: 1px solid #0f3460; flex-shrink: 0; }
-  .toolbar label { font-size: 13px; color: #a0a0c0; }
-  .toolbar select, .toolbar input { background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; padding: 4px 8px; font-size: 13px; }
-  .toolbar select:focus, .toolbar input:focus { outline: none; border-color: #e94560; }
+/* ── Toolbar ── */
+.toolbar {
+  display: flex; gap: 10px; align-items: center; padding: 8px 14px;
+  background: #16213e; border-bottom: 1px solid #0f3460; flex-shrink: 0; flex-wrap: wrap;
+}
+.toolbar label { font-size: 13px; color: #a0a0c0; }
+.toolbar select { background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; padding: 4px 8px; font-size: 13px; }
+.toolbar select:focus { outline: none; border-color: #e94560; }
 
-  /* Main layout */
-  .main { display: flex; flex: 1; overflow: hidden; }
+.player-list { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.player-chip {
+  display: flex; align-items: center; gap: 2px;
+  background: #1a1a2e; border: 1px solid #0f3460; border-radius: 4px; padding: 2px 4px;
+}
+.player-chip input {
+  background: transparent; color: #e0e0e0; border: none; width: 80px;
+  font-size: 12px; padding: 2px 4px; outline: none;
+}
+.player-chip input:focus { border-bottom: 1px solid #e94560; }
+.player-chip .remove-player {
+  background: none; border: none; color: #666; cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1;
+}
+.player-chip .remove-player:hover { color: #e94560; }
+.add-player-btn {
+  background: #1a1a2e; border: 1px solid #0f3460; border-radius: 4px;
+  color: #a0a0c0; cursor: pointer; font-size: 16px; padding: 2px 8px; line-height: 1;
+}
+.add-player-btn:hover { border-color: #e94560; color: #e94560; }
 
-  /* Drawer */
-  .drawer { width: 220px; background: #16213e; border-right: 1px solid #0f3460; display: flex; flex-direction: column; flex-shrink: 0; }
-  .drawer-header { padding: 8px 12px; font-size: 12px; font-weight: 600; color: #a0a0c0; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #0f3460; }
-  .drawer-filter { padding: 6px 8px; border-bottom: 1px solid #0f3460; }
-  .drawer-filter input { width: 100%; background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; padding: 4px 8px; font-size: 12px; }
-  .drawer-cards { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 3px; }
-  .drawer-card { padding: 6px 10px; background: #1a1a2e; border: 1px solid #2a2a4a; border-radius: 4px; cursor: grab; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; transition: background 0.15s; }
-  .drawer-card:hover { background: #2a2a4a; border-color: #e94560; }
-  .drawer-card.on-table { opacity: 0.35; }
-  .drawer-card[draggable="false"] { cursor: default; }
+/* ── Main layout ── */
+.main { display: flex; flex: 1; overflow: hidden; }
 
-  /* Table */
-  .table-area { flex: 1; position: relative; overflow: hidden; background: #1a1a2e; }
-  .table-surface { width: 100%; height: 100%; position: relative; }
-  .player-zone-line { position: absolute; pointer-events: none; border: none; border-top: 1px dashed #2a2a4a; transform-origin: 0 0; }
-  .player-zone-label { position: absolute; color: #3a3a5a; font-size: 11px; pointer-events: none; }
-  .table-card { position: absolute; width: 80px; height: 112px; background: #16213e; border: 2px solid #0f3460; border-radius: 6px; cursor: grab; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; padding: 4px; user-select: none; z-index: 1; transition: box-shadow 0.15s; word-break: break-word; line-height: 1.3; }
-  .table-card:hover { box-shadow: 0 0 12px rgba(233, 69, 96, 0.4); }
-  .table-card.dragging { opacity: 0.6; z-index: 100; }
-  .table-empty-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #3a3a5a; font-size: 14px; pointer-events: none; }
+/* ── Card Drawer ── */
+.drawer {
+  width: 230px; background: #16213e; border-right: 1px solid #0f3460;
+  display: flex; flex-direction: column; flex-shrink: 0;
+}
+.drawer-header {
+  padding: 8px 10px; font-size: 11px; font-weight: 600; color: #a0a0c0;
+  text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #0f3460;
+}
+.drawer-filter { padding: 6px 8px; border-bottom: 1px solid #0f3460; }
+.drawer-filter input {
+  width: 100%; background: #1a1a2e; color: #e0e0e0;
+  border: 1px solid #0f3460; border-radius: 4px; padding: 4px 8px; font-size: 12px;
+}
+.drawer-cards { flex: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column; gap: 2px; }
 
-  /* Results */
-  .results { width: 320px; background: #16213e; border-left: 1px solid #0f3460; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; }
-  .results-header { padding: 8px 12px; font-size: 12px; font-weight: 600; color: #a0a0c0; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #0f3460; }
-  .results-content { flex: 1; overflow-y: auto; padding: 8px 12px; font-size: 12px; }
+.drawer-card {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 6px; background: #1a1a2e; border: 1px solid #2a2a4a;
+  border-radius: 4px; cursor: grab; font-size: 11px;
+  user-select: none; transition: background .15s; flex-shrink: 0;
+}
+.drawer-card:hover { background: #2a2a4a; border-color: #e94560; }
+.drawer-card.on-table { opacity: .35; }
+.drawer-card-thumb {
+  width: 36px; height: 50px; border-radius: 3px; object-fit: cover; flex-shrink: 0;
+  background: #2a2a4a; display: block; border: 1px solid #3a3a5a;
+}
+.drawer-card-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 
-  /* Score sections */
-  .player-score { margin-bottom: 12px; }
-  .player-score-header { display: flex; justify-content: space-between; padding: 4px 0; font-weight: 600; border-bottom: 1px solid #0f3460; margin-bottom: 4px; }
-  .player-score-header .total { color: #e94560; }
-  .card-group-name { font-size: 11px; color: #a0a0c0; margin-top: 6px; margin-bottom: 2px; font-weight: 600; }
-  .card-detail { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px solid #1a1a2e; }
-  .card-detail .title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .card-detail .points { font-weight: 600; min-width: 30px; text-align: right; }
-  .card-detail .points.positive { color: #4ecca3; }
-  .card-detail .points.negative { color: #e94560; }
-  .card-detail .reason { font-size: 10px; color: #888; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ── Table ── */
+.table-area { flex: 1; position: relative; overflow: hidden; background: #1a1a2e; }
+.table-surface { width: 100%; height: 100%; position: relative; }
+.table-empty-hint {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  color: #3a3a5a; font-size: 14px; pointer-events: none;
+}
 
-  /* HUD + Actions (live tracking) */
-  .hud-section, .actions-section { margin-top: 12px; padding-top: 8px; border-top: 1px solid #0f3460; }
-  .hud-section h3, .actions-section h3 { font-size: 11px; color: #a0a0c0; text-transform: uppercase; margin-bottom: 4px; }
-  .hud-item { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
-  .hud-item .label { color: #a0a0c0; }
-  .action-item { font-size: 11px; color: #888; padding: 1px 0; }
-  .action-item .action-type { color: #e94560; font-weight: 600; }
+.table-card {
+  position: absolute;
+  background: #16213e; border: 2px solid #0f3460; border-radius: 6px;
+  cursor: grab; text-align: center;
+  font-size: 10px; user-select: none; z-index: 1;
+  transition: box-shadow .15s; word-break: break-word; line-height: 1.2;
+  overflow: hidden;
+}
+.table-card.has-image { background: transparent; border: none; }
+.table-card:hover { box-shadow: 0 0 12px rgba(233,69,96,.4); }
+.table-card.dragging { opacity: .5; z-index: 100; }
+.table-card img {
+  display: block; width: 100%; height: auto;
+  border-radius: 4px; pointer-events: none;
+}
+.table-card .card-text-label {
+  width: 100%; height: 100%;
+  padding: 4px; display: flex; align-items: center; justify-content: center;
+}
+.rotation-badge {
+  position: absolute; top: 2px; right: 2px; font-size: 9px;
+  background: rgba(0,0,0,.6); color: #aaa; padding: 1px 3px; border-radius: 3px;
+  pointer-events: none; display: none;
+}
+.table-card[data-rotated="true"] .rotation-badge { display: block; }
 
-  /* Live tracking controls */
-  .live-controls { padding: 8px 12px; border-top: 1px solid #0f3460; flex-shrink: 0; }
-  .live-controls h3 { font-size: 11px; color: #a0a0c0; text-transform: uppercase; margin-bottom: 6px; }
-  .live-controls .btn-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
-  .live-btn { padding: 4px 8px; font-size: 11px; background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; cursor: pointer; }
-  .live-btn:hover { border-color: #e94560; background: #2a2a4a; }
-  .live-btn:disabled { opacity: 0.3; cursor: default; }
-  .bid-input { width: 40px; text-align: center; }
+/* ── Results ── */
+.results {
+  width: 300px; background: #16213e; border-left: 1px solid #0f3460;
+  display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
+}
+.results-header {
+  padding: 8px 12px; font-size: 11px; font-weight: 600; color: #a0a0c0;
+  text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #0f3460;
+}
+.results-content { flex: 1; overflow-y: auto; padding: 8px 12px; font-size: 12px; }
 
-  /* Summary overlay */
-  .summary-overlay { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #16213e; border: 2px solid #e94560; border-radius: 8px; padding: 16px; z-index: 200; min-width: 250px; }
-  .summary-overlay.visible { display: block; }
-  .summary-overlay h3 { color: #e94560; margin-bottom: 8px; font-size: 14px; }
-  .summary-close { margin-top: 8px; }
+.player-score { margin-bottom: 12px; }
+.player-score-header {
+  display: flex; justify-content: space-between; padding: 4px 0;
+  font-weight: 600; border-bottom: 1px solid #0f3460; margin-bottom: 4px;
+}
+.player-score-header .total { color: #e94560; }
+.card-group-name { font-size: 10px; color: #a0a0c0; margin-top: 6px; margin-bottom: 2px; font-weight: 600; }
+.card-detail {
+  display: flex; justify-content: space-between; gap: 6px;
+  padding: 2px 0; border-bottom: 1px solid #1a1a2e;
+}
+.card-detail .title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-detail .points { font-weight: 600; min-width: 30px; text-align: right; }
+.card-detail .points.pos { color: #4ecca3; }
+.card-detail .points.neg { color: #e94560; }
+.card-detail .reason { font-size: 10px; color: #888; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.hud-section, .actions-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid #0f3460; }
+.hud-section h3, .actions-section h3 { font-size: 10px; color: #a0a0c0; text-transform: uppercase; margin-bottom: 4px; }
+.hud-item { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
+.hud-item .label { color: #a0a0c0; }
+.action-item { font-size: 11px; color: #888; padding: 1px 0; }
+.action-item .atype { color: #e94560; font-weight: 600; }
+
+.error-box { color: #e94560; background: #2a1525; border: 1px solid #e94560; border-radius: 4px; padding: 8px; margin: 8px 0; font-size: 11px; white-space: pre-wrap; word-break: break-all; }
+
+/* ── Live controls ── */
+.live-controls { padding: 8px 12px; border-top: 1px solid #0f3460; flex-shrink: 0; }
+.live-controls h3 { font-size: 10px; color: #a0a0c0; text-transform: uppercase; margin-bottom: 6px; }
+.live-controls .btn-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+.live-btn {
+  padding: 4px 8px; font-size: 11px; background: #1a1a2e; color: #e0e0e0;
+  border: 1px solid #0f3460; border-radius: 4px; cursor: pointer;
+}
+.live-btn:hover { border-color: #e94560; background: #2a2a4a; }
+.bid-input { width: 40px; text-align: center; background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; font-size: 12px; }
+
+.placeholder { color: #3a3a5a; padding: 20px 0; text-align: center; }
 </style>
 </head>
 <body>
@@ -85,12 +165,8 @@
   <label>Game:</label>
   <select id="gameSelect"></select>
   <label>Players:</label>
-  <select id="playerCount">
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-    <option value="4">4</option>
-  </select>
+  <div class="player-list" id="playerList"></div>
+  <button class="add-player-btn" id="addPlayerBtn" title="Add player">+</button>
   <label>Lang:</label>
   <select id="langSelect">
     <option value="de">DE</option>
@@ -109,29 +185,24 @@
     <div class="table-surface" id="tableSurface">
       <div class="table-empty-hint" id="tableHint">Drag cards here</div>
     </div>
-    <div class="summary-overlay" id="summaryOverlay">
-      <h3>Summary</h3>
-      <div id="summaryContent"></div>
-      <button class="live-btn summary-close" onclick="document.getElementById('summaryOverlay').classList.remove('visible')">Close</button>
-    </div>
   </div>
 
   <div class="results">
     <div class="results-header">Results</div>
     <div class="results-content" id="resultsContent">
-      <div style="color: #3a3a5a; padding: 20px 0; text-align: center;">Select a game and place cards</div>
+      <div class="placeholder">Select a game and place cards</div>
     </div>
-    <div class="live-controls" id="liveControls" style="display: none;">
+    <div class="live-controls" id="liveControls" style="display:none;">
       <h3>Live Tracking</h3>
       <div class="btn-row">
-        <button class="live-btn" id="btnGameStart" onclick="fireEvent('gameStarted')">Start Game</button>
-        <button class="live-btn" id="btnRoundEnd" onclick="fireEvent('roundEnded')">Round End</button>
+        <button class="live-btn" onclick="fireEvent('gameStarted')">Start Game</button>
+        <button class="live-btn" onclick="fireEvent('roundEnded')">Round End</button>
       </div>
-      <div class="btn-row" id="bidRow" style="display: none;">
-        <label style="font-size: 11px; color: #a0a0c0;">Bid:</label>
-        <input type="number" class="toolbar bid-input" id="bidValue" value="0" min="0">
-        <button class="live-btn" id="btnBid" onclick="placeBid()">Place Bid</button>
-        <span id="bidPlayerLabel" style="font-size: 11px; color: #888;"></span>
+      <div class="btn-row" id="bidRow" style="display:none;">
+        <label style="font-size:11px;color:#a0a0c0;">Bid:</label>
+        <input type="number" class="bid-input" id="bidValue" value="0" min="0">
+        <button class="live-btn" onclick="placeBid()">Place Bid</button>
+        <span id="bidPlayerLabel" style="font-size:11px;color:#888;"></span>
       </div>
     </div>
   </div>
@@ -140,15 +211,17 @@
 <script>
 // ── State ──
 let games = [];
-let currentGame = null;       // game.json metadata
-let cardIds = [];             // all card IDs for this game
-let texts = null;             // texts.json content
-let scorer = null;            // loaded scorer module
-let gameInstance = null;       // Game class instance (persistent for live tracking)
-let tableCards = new Map();   // cardId → { el, x, y } (pixel coords on table)
-let isLiveTracking = false;
+let currentGame = null;
+let cardIds = [];
+let imageMap = {};            // cardId → image filename (built server-side)
+let cardDisplaySizes = {};   // kind → { w, h } in px (normalized from manifest)
+let scorer = null;
+let gameInstance = null;
+let tableCards = new Map();   // instanceId → { cardId, el, x, y, angle, w, h }
+let instanceCounter = 0;
+let playerNames = ['Player 1', 'Player 2'];
 let bidPlayerIndex = 0;
-let playerNames = [];
+let dragState = null;         // { instanceId, offsetX, offsetY } during pointer drag
 
 // ── Init ──
 async function init() {
@@ -161,10 +234,49 @@ async function init() {
     sel.appendChild(opt);
   }
   sel.addEventListener('change', () => loadGame(sel.value));
-  document.getElementById('playerCount').addEventListener('change', resetGame);
   document.getElementById('langSelect').addEventListener('change', () => loadGame(document.getElementById('gameSelect').value));
   document.getElementById('drawerFilter').addEventListener('input', filterDrawer);
+  document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
+  renderPlayerList();
   if (games.length > 0) loadGame(games[0].id);
+}
+
+// ── Players ──
+function renderPlayerList() {
+  const container = document.getElementById('playerList');
+  container.innerHTML = '';
+  playerNames.forEach((name, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'player-chip';
+    const input = document.createElement('input');
+    input.value = name;
+    input.addEventListener('change', () => {
+      playerNames[i] = input.value || `Player ${i + 1}`;
+      onPlayersChanged();
+    });
+    chip.appendChild(input);
+    if (playerNames.length > 1) {
+      const btn = document.createElement('button');
+      btn.className = 'remove-player';
+      btn.textContent = '\u00d7';
+      btn.addEventListener('click', () => { playerNames.splice(i, 1); renderPlayerList(); onPlayersChanged(); });
+      chip.appendChild(btn);
+    }
+    container.appendChild(chip);
+  });
+}
+
+function addPlayer() {
+  playerNames.push(`Player ${playerNames.length + 1}`);
+  renderPlayerList();
+  onPlayersChanged();
+}
+
+function onPlayersChanged() {
+  if (scorer && scorer.Game) {
+    gameInstance = new scorer.Game(playerNames);
+  }
+  runScorer();
 }
 
 // ── Load game ──
@@ -172,115 +284,158 @@ async function loadGame(gameId) {
   currentGame = games.find(g => g.id === gameId);
   if (!currentGame) return;
 
-  // Load card IDs, texts, scorer in parallel
-  const [ids, textsData, scorerCode] = await Promise.all([
+  const [ids, textsData, scorerCode, imgMapData, rawSizes] = await Promise.all([
     fetch(`/api/games/${gameId}/card-ids`).then(r => r.json()),
-    fetch(`/api/games/${gameId}/texts.json`).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch(`/api/games/${gameId}/scorer.js`).then(r => r.text()),
+    fetch(`/api/games/${gameId}/file/texts.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+    fetch(`/api/games/${gameId}/file/scorer.js`).then(r => r.text()),
+    fetch(`/api/games/${gameId}/image-map`).then(r => r.json()).catch(() => ({})),
+    fetch(`/api/games/${gameId}/card-sizes`).then(r => r.json()).catch(() => null),
   ]);
 
   cardIds = ids;
-  texts = textsData;
+  imageMap = imgMapData;
+  cardDisplaySizes = computeDisplaySizes(rawSizes);
 
-  // Load scorer in browser via CommonJS shim
-  const module = { exports: {} };
+  // Inject texts for createTranslator
+  if (textsData) {
+    const lang = document.getElementById('langSelect').value;
+    const langTexts = textsData[lang] || textsData['de'] || {};
+    globalThis.__texts = flattenObj(langTexts);
+  } else {
+    globalThis.__texts = undefined;
+  }
+
+  // Load scorer via CommonJS shim
+  const mod = { exports: {} };
   try {
     const fn = new Function('module', 'exports', 'require', scorerCode);
-    fn(module, module.exports, () => ({}));
-    scorer = module.exports;
+    fn(mod, mod.exports, (p) => {
+      // esbuild bundles cards.json inline; texts.json require falls back to __texts
+      return {};
+    });
+    scorer = mod.exports;
   } catch (e) {
     console.error('Failed to load scorer:', e);
     scorer = null;
   }
 
-  isLiveTracking = !!(currentGame.supportsLiveTracking);
-
-  // Show/hide live controls
-  document.getElementById('liveControls').style.display = isLiveTracking ? '' : 'none';
-
-  clearTable();
-  buildDrawer();
-  resetGame();
-}
-
-// ── Reset game instance ──
-function resetGame() {
-  const count = parseInt(document.getElementById('playerCount').value);
-  playerNames = Array.from({ length: count }, (_, i) => `Player ${i + 1}`);
-
+  // Init game instance for live tracking
   if (scorer && scorer.Game) {
     gameInstance = new scorer.Game(playerNames);
   } else {
     gameInstance = null;
   }
 
-  bidPlayerIndex = 0;
+  document.getElementById('liveControls').style.display = currentGame.supportsLiveTracking ? '' : 'none';
   document.getElementById('bidRow').style.display = 'none';
-  drawPlayerZones();
+
+  clearTable();
+  buildDrawer();
   runScorer();
 }
 
-// ── Build drawer ──
+function flattenObj(obj, prefix, out) {
+  out = out || {};
+  for (const k of Object.keys(obj)) {
+    const key = prefix ? `${prefix}.${k}` : k;
+    if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+      flattenObj(obj[k], key, out);
+    } else {
+      out[key] = String(obj[k]);
+    }
+  }
+  return out;
+}
+
+// ── Card sizing ──
+const BASE_CARD_H = 120; // px — tallest card type will be this height
+
+function computeDisplaySizes(rawSizes) {
+  if (!rawSizes || Object.keys(rawSizes).length === 0) return {};
+  const maxH = Math.max(...Object.values(rawSizes).map(([, h]) => h));
+  const scale = BASE_CARD_H / maxH;
+  const result = {};
+  for (const [kind, [w, h]] of Object.entries(rawSizes)) {
+    result[kind] = { w: Math.round(w * scale), h: Math.round(h * scale) };
+  }
+  return result;
+}
+
+function getCardKind(cardId) {
+  const prefix = currentGame?.liveTracking?.gamePrefix;
+  let label = cardId;
+  if (prefix && cardId.startsWith(prefix + ':')) label = cardId.slice(prefix.length + 1);
+  const idx = label.indexOf(':');
+  return idx === -1 ? label : label.slice(0, idx);
+}
+
+function getDisplaySize(cardId) {
+  const kind = getCardKind(cardId);
+  return cardDisplaySizes[kind] || { w: 80, h: 112 };
+}
+
+// ── Image helpers ──
+function cardIdToImageFile(cardId) {
+  return imageMap[cardId] || null;
+}
+
+function imageUrl(fname) {
+  return `/api/games/${currentGame.id}/images/${encodeURIComponent(fname)}`;
+}
+
+// ── Card label ──
+function resolveLabel(cardId) {
+  // Simple: show the cardId, stripping game prefix
+  const prefix = currentGame?.liveTracking?.gamePrefix;
+  let label = cardId;
+  if (prefix && cardId.startsWith(prefix + ':')) {
+    label = cardId.slice(prefix.length + 1);
+  }
+  // Capitalize and clean up
+  return label.split(':').map(p => {
+    const n = parseInt(p, 10);
+    if (!isNaN(n)) return String(n);
+    return p.charAt(0).toUpperCase() + p.slice(1);
+  }).join(' ');
+}
+
+// ── Drawer ──
 function buildDrawer() {
   const container = document.getElementById('drawerCards');
   container.innerHTML = '';
-  const lang = document.getElementById('langSelect').value;
-
   for (const cardId of cardIds) {
     const el = document.createElement('div');
     el.className = 'drawer-card';
     el.draggable = true;
     el.dataset.cardId = cardId;
-    el.textContent = resolveCardLabel(cardId, lang);
     el.title = cardId;
 
+    const imgFile = cardIdToImageFile(cardId);
+    if (imgFile) {
+      const img = document.createElement('img');
+      img.className = 'drawer-card-thumb';
+      img.src = imageUrl(imgFile);
+      img.draggable = false;
+      const { w, h } = getDisplaySize(cardId);
+      const thumbH = 50;
+      img.style.width = Math.round(w / h * thumbH) + 'px';
+      img.style.height = thumbH + 'px';
+      el.appendChild(img);
+    }
+    const span = document.createElement('span');
+    span.className = 'drawer-card-label';
+    span.textContent = resolveLabel(cardId);
+    el.appendChild(span);
+
     el.addEventListener('dragstart', (e) => {
-      if (tableCards.has(cardId) && currentGame?.uniqueCards) return e.preventDefault();
+      if (currentGame?.uniqueCards && countOnTable(cardId) > 0) { e.preventDefault(); return; }
       e.dataTransfer.setData('text/plain', cardId);
       e.dataTransfer.setData('application/x-source', 'drawer');
     });
 
     container.appendChild(el);
   }
-
   document.getElementById('drawerFilter').value = '';
-}
-
-function resolveCardLabel(cardId, lang) {
-  if (!texts) return cardId;
-  const langTexts = texts[lang] || texts['de'] || {};
-  const cardsTexts = langTexts.cards || {};
-  const suitsTexts = langTexts.suits || {};
-
-  // Try common patterns
-  const parts = cardId.split(':');
-
-  // Faraway: region:03 → "Region 3"
-  if (parts[0] === 'region' || parts[0] === 'sanctuary') {
-    const prefix = cardsTexts[`${parts[0]}_prefix`] || parts[0];
-    const num = parseInt(parts[1], 10);
-    return `${prefix} ${isNaN(num) ? parts[1] : num}`;
-  }
-
-  // Wizard: wizard:blue:05 → "Blau 5", Doppelkopf: doppelkopf:kreuz:dame → "Kreuz Dame"
-  if (parts.length === 3) {
-    const suit = suitsTexts[parts[1]] || parts[1];
-    const num = parseInt(parts[2], 10);
-    const val = isNaN(num) ? (cardsTexts[parts[2]] || parts[2]) : num;
-    return `${suit} ${val}`;
-  }
-
-  // Mischwald: wolf:oak → "Wolf (Eiche)"
-  if (parts.length === 2) {
-    const name = cardsTexts[parts[0]] || parts[0];
-    const tree = cardsTexts[parts[1]] || parts[1];
-    if (parts[1] && parts[0] !== parts[1]) {
-      return `${name} (${tree})`;
-    }
-    return name;
-  }
-
-  return cardsTexts[cardId] || cardId;
 }
 
 function filterDrawer() {
@@ -291,147 +446,143 @@ function filterDrawer() {
   }
 }
 
-function updateDrawerState() {
+function countOnTable(cardId) {
+  let n = 0;
+  for (const [, c] of tableCards) if (c.cardId === cardId) n++;
+  return n;
+}
+
+function updateDrawerDim() {
+  if (!currentGame?.uniqueCards) {
+    document.querySelectorAll('.drawer-card.on-table').forEach(el => el.classList.remove('on-table'));
+    return;
+  }
   for (const el of document.querySelectorAll('.drawer-card')) {
-    const onTable = tableCards.has(el.dataset.cardId);
-    el.classList.toggle('on-table', onTable && currentGame?.uniqueCards);
+    el.classList.toggle('on-table', countOnTable(el.dataset.cardId) > 0);
   }
 }
 
-// ── Player zones ──
-function drawPlayerZones() {
-  const surface = document.getElementById('tableSurface');
-  surface.querySelectorAll('.player-zone-line, .player-zone-label').forEach(el => el.remove());
-
-  // No zones for live-tracking games (cards represent shared state).
-  if (currentGame?.supportsLiveTracking) return;
-
-  const count = parseInt(document.getElementById('playerCount').value);
-  if (count <= 1) return;
-
-  const rect = surface.getBoundingClientRect();
-  const cx = rect.width / 2;
-  const cy = rect.height / 2;
-  const radius = Math.max(rect.width, rect.height);
-
-  // Draw radial dividing lines from center outward.
-  // Angle 0 = bottom (6 o'clock), increasing clockwise — matching groupByPlayer.
-  const sliceAngle = (2 * Math.PI) / count;
-  for (let i = 0; i < count; i++) {
-    // Boundary angle between player i and i+1.
-    const angle = i * sliceAngle + sliceAngle / 2;
-
-    const line = document.createElement('div');
-    line.className = 'player-zone-line';
-    line.style.left = `${cx}px`;
-    line.style.top = `${cy}px`;
-    line.style.width = `${radius}px`;
-    // CSS rotate: 0deg = right. atan2(dx,dy) 0 = bottom.
-    // Convert: visual angle (from top, CW) = angle (from bottom, CW) + 180°.
-    // CSS rotate 0° = right, so rotate = -(90° - visualAngle) = visualAngle - 90°.
-    const cssDeg = (angle * 180 / Math.PI) + 90;
-    line.style.transform = `rotate(${cssDeg}deg)`;
-    surface.appendChild(line);
-  }
-
-  // Label each zone.
-  for (let i = 0; i < count; i++) {
-    const angle = i * sliceAngle;
-    // Place label at ~30% from center.
-    const lx = cx + Math.sin(angle) * radius * 0.3;
-    const ly = cy + Math.cos(angle) * radius * 0.3;
-
-    const label = document.createElement('div');
-    label.className = 'player-zone-label';
-    label.style.left = `${lx}px`;
-    label.style.top = `${ly}px`;
-    label.style.transform = 'translate(-50%, -50%)';
-    label.textContent = `Player ${i + 1}`;
-    surface.appendChild(label);
-  }
-}
-
-// ── Table drag & drop ──
-const tableArea = document.getElementById('tableArea');
+// ── Table: place / move / remove ──
 const tableSurface = document.getElementById('tableSurface');
 
-tableSurface.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-});
+tableSurface.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
 
 tableSurface.addEventListener('drop', (e) => {
   e.preventDefault();
   const cardId = e.dataTransfer.getData('text/plain');
   if (!cardId) return;
-
   const rect = tableSurface.getBoundingClientRect();
-  const x = e.clientX - rect.left - 40;
-  const y = e.clientY - rect.top - 56;
+  const { w: cw, h: ch } = getDisplaySize(cardId);
+  const x = e.clientX - rect.left - cw / 2;
+  const y = e.clientY - rect.top - ch / 2;
+  const clampedX = Math.max(0, Math.min(x, rect.width - cw));
+  const clampedY = Math.max(0, Math.min(y, rect.height - ch));
 
   const source = e.dataTransfer.getData('application/x-source');
-
-  if (source === 'table' && tableCards.has(cardId)) {
-    // Move existing card
-    const card = tableCards.get(cardId);
-    card.x = Math.max(0, Math.min(x, rect.width - 80));
-    card.y = Math.max(0, Math.min(y, rect.height - 112));
-    card.el.style.left = card.x + 'px';
-    card.el.style.top = card.y + 'px';
-  } else {
-    // New card from drawer (or duplicate for non-unique games)
-    if (tableCards.has(cardId) && currentGame?.uniqueCards) return;
-    placeCard(cardId, Math.max(0, Math.min(x, rect.width - 80)), Math.max(0, Math.min(y, rect.height - 112)));
+  if (source === 'table') {
+    // Move existing — find by cardId (legacy, pointer-based drag is primary)
+    return;
   }
 
-  updateDrawerState();
+  if (currentGame?.uniqueCards && countOnTable(cardId) > 0) return;
+  placeCard(cardId, clampedX, clampedY);
+  updateDrawerDim();
   updateHint();
   runScorer();
 });
 
 function placeCard(cardId, x, y) {
-  const lang = document.getElementById('langSelect').value;
+  const id = cardId + '#' + (instanceCounter++);
+  const { w: cw, h: ch } = getDisplaySize(cardId);
   const el = document.createElement('div');
   el.className = 'table-card';
-  el.draggable = true;
+  el.dataset.instanceId = id;
   el.style.left = x + 'px';
   el.style.top = y + 'px';
-  el.textContent = resolveCardLabel(cardId, lang);
-  el.title = cardId;
+  el.style.width = cw + 'px';
+  el.style.height = ch + 'px';
 
-  el.addEventListener('dragstart', (e) => {
-    e.dataTransfer.setData('text/plain', cardId);
-    e.dataTransfer.setData('application/x-source', 'table');
+  const imgFile = cardIdToImageFile(cardId);
+  if (imgFile) {
+    const img = document.createElement('img');
+    img.src = imageUrl(imgFile);
+    img.draggable = false;
+    el.appendChild(img);
+    el.classList.add('has-image');
+  } else {
+    const lbl = document.createElement('div');
+    lbl.className = 'card-text-label';
+    lbl.style.height = ch + 'px';
+    lbl.textContent = resolveLabel(cardId);
+    el.appendChild(lbl);
+  }
+
+  // Rotation badge
+  const badge = document.createElement('div');
+  badge.className = 'rotation-badge';
+  el.appendChild(badge);
+
+  // Pointer-based drag (more reliable than HTML drag for repositioning)
+  el.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    const rect2 = el.getBoundingClientRect();
+    dragState = { instanceId: id, offsetX: e.clientX - rect2.left, offsetY: e.clientY - rect2.top };
     el.classList.add('dragging');
+    el.setPointerCapture(e.pointerId);
   });
-  el.addEventListener('dragend', (e) => {
+  el.addEventListener('pointermove', (e) => {
+    if (!dragState || dragState.instanceId !== id) return;
+    const rect = tableSurface.getBoundingClientRect();
+    const entry = tableCards.get(id);
+    if (!entry) return;
+    entry.x = Math.max(0, Math.min(e.clientX - rect.left - dragState.offsetX, rect.width - entry.w));
+    entry.y = Math.max(0, Math.min(e.clientY - rect.top - dragState.offsetY, rect.height - entry.h));
+    el.style.left = entry.x + 'px';
+    el.style.top = entry.y + 'px';
+  });
+  el.addEventListener('pointerup', (e) => {
+    if (!dragState || dragState.instanceId !== id) return;
     el.classList.remove('dragging');
+    dragState = null;
+    runScorer();
+  });
+
+  // Scroll wheel to rotate
+  el.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const entry = tableCards.get(id);
+    if (!entry) return;
+    entry.angle += e.deltaY > 0 ? 15 : -15;
+    entry.angle = ((entry.angle % 360) + 360) % 360;
+    el.style.transform = `rotate(${entry.angle}deg)`;
+    el.dataset.rotated = entry.angle !== 0 ? 'true' : 'false';
+    badge.textContent = entry.angle + '\u00b0';
+    runScorer();
   });
 
   // Double-click to remove
-  el.addEventListener('dblclick', () => {
-    removeCard(cardId);
-  });
+  el.addEventListener('dblclick', () => removeCard(id));
 
   tableSurface.appendChild(el);
-  tableCards.set(cardId, { el, x, y });
+  tableCards.set(id, { cardId, el, x, y, w: cw, h: ch, angle: 0 });
 }
 
-function removeCard(cardId) {
-  const card = tableCards.get(cardId);
-  if (card) {
-    card.el.remove();
-    tableCards.delete(cardId);
-    updateDrawerState();
-    updateHint();
-    runScorer();
-  }
+function removeCard(instanceId) {
+  const entry = tableCards.get(instanceId);
+  if (!entry) return;
+  entry.el.remove();
+  tableCards.delete(instanceId);
+  updateDrawerDim();
+  updateHint();
+  runScorer();
 }
 
 function clearTable() {
-  for (const [, card] of tableCards) card.el.remove();
+  for (const [, c] of tableCards) c.el.remove();
   tableCards.clear();
-  updateDrawerState();
+  instanceCounter = 0;
+  updateDrawerDim();
   updateHint();
 }
 
@@ -439,38 +590,24 @@ function updateHint() {
   document.getElementById('tableHint').style.display = tableCards.size === 0 ? '' : 'none';
 }
 
-// ── Drawer drop zone (remove cards) ──
-const drawerEl = document.querySelector('.drawer-cards');
-drawerEl.addEventListener('dragover', (e) => {
-  if (e.dataTransfer.types.includes('application/x-source')) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  }
-});
-drawerEl.addEventListener('drop', (e) => {
-  const source = e.dataTransfer.getData('application/x-source');
-  if (source === 'table') {
-    const cardId = e.dataTransfer.getData('text/plain');
-    removeCard(cardId);
-  }
-});
+// Drop on drawer to remove
+const drawerCards = document.getElementById('drawerCards');
+drawerCards.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
 
-// ── Scorer execution ──
+// ── Scorer ──
 function runScorer() {
   if (!scorer) return;
-
   const rect = tableSurface.getBoundingClientRect();
   const boxes = [];
 
-  for (const [cardId, card] of tableCards) {
-    const cardW = 80, cardH = 112;
+  for (const [, card] of tableCards) {
+    const cw = card.w, ch = card.h;
     const x1 = card.x / rect.width;
     const y1 = card.y / rect.height;
-    const w = cardW / rect.width;
-    const h = cardH / rect.height;
-
+    const w = cw / rect.width;
+    const h = ch / rect.height;
     boxes.push({
-      cardId,
+      cardId: card.cardId,
       similarity: 1,
       confidence: 1,
       x1, y1,
@@ -479,7 +616,7 @@ function runScorer() {
       cx: x1 + w / 2,
       cy: y1 + h / 2,
       w, h,
-      angle: 0,
+      angle: card.angle * Math.PI / 180,
       keypoints: null,
     });
   }
@@ -489,39 +626,32 @@ function runScorer() {
     if (gameInstance) {
       result = gameInstance.processCards(boxes);
     } else if (scorer.processCards) {
-      const count = parseInt(document.getElementById('playerCount').value);
-      const context = {
+      const players = scorer.processCards(boxes, {
         players: playerNames,
         similarityThreshold: 0.5,
-      };
-      const players = scorer.processCards(boxes, context);
+      });
       result = { players };
     } else {
       return;
     }
   } catch (e) {
     console.error('Scorer error:', e);
-    document.getElementById('resultsContent').innerHTML = `<div style="color: #e94560; padding: 8px;">Error: ${e.message}</div>`;
+    document.getElementById('resultsContent').innerHTML = `<div class="error-box">${esc(e.message)}\n${esc(e.stack || '')}</div>`;
     return;
   }
 
   renderResults(result);
 }
 
-// ── Live tracking events ──
+// ── Live tracking ──
 function fireEvent(type) {
   if (!gameInstance || !gameInstance.processEvent) return;
-
   let data = {};
-
   if (type === 'gameStarted') {
-    const count = parseInt(document.getElementById('playerCount').value);
-    playerNames = Array.from({ length: count }, (_, i) => `Player ${i + 1}`);
     gameInstance = new scorer.Game(playerNames);
     data = { players: playerNames };
     bidPlayerIndex = 0;
   }
-
   let result;
   try {
     result = gameInstance.processEvent({ type, data });
@@ -529,24 +659,8 @@ function fireEvent(type) {
     console.error('processEvent error:', e);
     return;
   }
-
   renderResults(result);
-
-  // Check for bid phase
-  if (result.actions) {
-    for (const action of result.actions) {
-      if (action.type === 'listenForBid') {
-        bidPlayerIndex = action.playerIndex;
-        document.getElementById('bidRow').style.display = '';
-        document.getElementById('bidPlayerLabel').textContent = playerNames[bidPlayerIndex] || '';
-        document.getElementById('bidValue').value = '0';
-        document.getElementById('bidValue').focus();
-      }
-      if (action.type === 'showSummary' && result.display?.summary) {
-        showSummary(result.display.summary);
-      }
-    }
-  }
+  handleActions(result);
 }
 
 function placeBid() {
@@ -554,77 +668,56 @@ function placeBid() {
   const bid = parseInt(document.getElementById('bidValue').value) || 0;
   let result;
   try {
-    result = gameInstance.processEvent({
-      type: 'bidPlaced',
-      data: { playerIndex: bidPlayerIndex, bid },
-    });
+    result = gameInstance.processEvent({ type: 'bidPlaced', data: { playerIndex: bidPlayerIndex, bid } });
   } catch (e) {
     console.error('placeBid error:', e);
     return;
   }
-
   renderResults(result);
-
-  // Check if more bids needed
-  let moreBids = false;
-  if (result.actions) {
-    for (const action of result.actions) {
-      if (action.type === 'listenForBid') {
-        bidPlayerIndex = action.playerIndex;
-        document.getElementById('bidPlayerLabel').textContent = playerNames[bidPlayerIndex] || '';
-        document.getElementById('bidValue').value = '0';
-        document.getElementById('bidValue').focus();
-        moreBids = true;
-      }
-      if (action.type === 'showSummary' && result.display?.summary) {
-        showSummary(result.display.summary);
-      }
-    }
-  }
-  if (!moreBids) {
-    document.getElementById('bidRow').style.display = 'none';
-  }
+  handleActions(result);
 }
 
-function showSummary(items) {
-  const overlay = document.getElementById('summaryOverlay');
-  const content = document.getElementById('summaryContent');
-  content.innerHTML = items.map(item =>
-    `<div class="hud-item"><span class="label">${esc(item.label)}</span><span>${esc(item.value)}</span></div>`
-  ).join('');
-  overlay.classList.add('visible');
+function handleActions(result) {
+  if (!result.actions) return;
+  let moreBids = false;
+  for (const action of result.actions) {
+    if (action.type === 'listenForBid') {
+      bidPlayerIndex = action.playerIndex;
+      document.getElementById('bidRow').style.display = '';
+      document.getElementById('bidPlayerLabel').textContent = playerNames[bidPlayerIndex] || '';
+      document.getElementById('bidValue').value = '0';
+      document.getElementById('bidValue').focus();
+      moreBids = true;
+    }
+  }
+  if (!moreBids) document.getElementById('bidRow').style.display = 'none';
 }
 
 // ── Render results ──
 function renderResults(result) {
   const container = document.getElementById('resultsContent');
-  if (!result || !result.players) {
-    container.innerHTML = '<div style="color: #3a3a5a; padding: 20px 0; text-align: center;">No results</div>';
+  if (!result || !result.players || result.players.length === 0) {
+    container.innerHTML = '<div class="placeholder">Place cards to see results</div>';
     return;
   }
 
   let html = '';
-
   for (const player of result.players) {
     html += `<div class="player-score">`;
     html += `<div class="player-score-header"><span>${esc(player.name)}</span><span class="total">${player.totalScore}</span></div>`;
 
     if (player.cardDetails && player.cardDetails.length > 0) {
-      // Group by group field
       const groups = new Map();
       for (const cd of player.cardDetails) {
         const g = cd.group || '';
         if (!groups.has(g)) groups.set(g, []);
         groups.get(g).push(cd);
       }
-
       for (const [groupName, cards] of groups) {
-        if (groupName) {
-          html += `<div class="card-group-name">${esc(groupName)}</div>`;
-        }
+        if (groupName) html += `<div class="card-group-name">${esc(groupName)}</div>`;
         for (const cd of cards) {
           const pts = cd.points;
-          const cls = pts > 0 ? 'positive' : pts < 0 ? 'negative' : '';
+          const cls = pts > 0 ? 'pos' : pts < 0 ? 'neg' : '';
           html += `<div class="card-detail">`;
           html += `<div><span class="title">${esc(cd.title || cd.cardId)}</span><span class="reason">${esc(cd.reason || '')}</span></div>`;
           html += `<span class="points ${cls}">${pts > 0 ? '+' : ''}${pts}</span>`;
@@ -632,11 +725,9 @@ function renderResults(result) {
         }
       }
     }
-
     html += `</div>`;
   }
 
-  // HUD
   if (result.display?.hud?.length > 0) {
     html += `<div class="hud-section"><h3>HUD</h3>`;
     for (const item of result.display.hud) {
@@ -645,13 +736,12 @@ function renderResults(result) {
     html += `</div>`;
   }
 
-  // Actions
   if (result.actions?.length > 0) {
     html += `<div class="actions-section"><h3>Actions</h3>`;
     for (const action of result.actions) {
-      html += `<div class="action-item"><span class="action-type">${esc(action.type)}</span>`;
+      html += `<div class="action-item"><span class="atype">${esc(action.type)}</span>`;
       if (action.text) html += ` ${esc(action.text)}`;
-      if (action.mode) html += ` → ${esc(action.mode)}`;
+      if (action.mode) html += ` \u2192 ${esc(action.mode)}`;
       if (action.prompt) html += ` "${esc(action.prompt)}"`;
       if (action.playerIndex !== undefined) html += ` [player ${action.playerIndex}]`;
       html += `</div>`;
@@ -659,12 +749,13 @@ function renderResults(result) {
     html += `</div>`;
   }
 
-  container.innerHTML = html || '<div style="color: #3a3a5a; padding: 20px 0; text-align: center;">Place cards to see results</div>';
+  container.innerHTML = html || '<div class="placeholder">No results</div>';
 }
 
 function esc(s) {
+  if (s == null) return '';
   const d = document.createElement('div');
-  d.textContent = s;
+  d.textContent = String(s);
   return d.innerHTML;
 }
 

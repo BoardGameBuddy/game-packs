@@ -1,0 +1,13 @@
+card_types:
+  horizontal:
+    target_size:
+    - 150
+    - 466
+  tree:
+    target_size:
+    - 300
+    - 466
+  vertical:
+    target_size:
+    - 300
+    - 234
