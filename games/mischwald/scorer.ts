@@ -739,13 +739,17 @@ export class MischwaldGame implements GamePack {
 
   processCards(boxes: DetectedBox[], context?: ScorerContext): GameState {
     const cards = CARDS_JSON;
-    const playerGroups = groupByPlayer(rectifyBoxes(boxes), this.players.length);
+    // Group on original coordinates (matching the Dart-side clustering),
+    // then rectify per-player group for accurate forest building.
+    const playerGroups = groupByPlayer(boxes, this.players.length);
 
     // Phase 1: build forests
     const prepared: PreparedPlayer[] = playerGroups.map((playerBoxes) => {
       if (playerBoxes.length === 0) return { forest: null, all: [] };
+      // Rectify within each player group for spatial accuracy.
+      const rectified = rectifyBoxes(playerBoxes);
       // Convert DetectedBox → internal Box
-      const internalBoxes: Box[] = playerBoxes.map((dc) => ({
+      const internalBoxes: Box[] = rectified.map((dc) => ({
         x1: dc.x1, y1: dc.y1, x2: dc.x2, y2: dc.y2,
         cx: dc.cx, cy: dc.cy, w: dc.w, h: dc.h,
         clsName: dc.cardId,
