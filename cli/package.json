@@ -9,8 +9,12 @@
     "url": "git+https://github.com/BoardGameBuddy/game-packs.git",
     "directory": "cli"
   },
+  "scripts": {
+    "prepack": "node scripts/bundle-playground.js"
+  },
   "files": [
-    "cli.js"
+    "cli.js",
+    "playground/"
   ],
   "engines": {
     "node": ">=18"
