@@ -166,32 +166,79 @@ program
 
     const packName = path.basename(packDir);
 
-    let gameId;
+    let gameJson;
     try {
-      gameId = JSON.parse(fs.readFileSync(gameJsonPath, 'utf8')).id;
+      gameJson = JSON.parse(fs.readFileSync(gameJsonPath, 'utf8'));
     } catch (err) {
       console.error(`Error: could not parse game.json — ${err.message}`);
       process.exit(1);
     }
+    const gameId = gameJson.id;
 
-    const PLAYGROUND_PORT = parseInt(process.env.PLAYGROUND_PORT || '3333', 10);
-    const playgroundServerPath = path.join(__dirname, '..', 'playground', 'server.js');
-    let playgroundProc = null;
-    if (fs.existsSync(playgroundServerPath)) {
-      playgroundProc = spawn('node', [playgroundServerPath], {
-        env: { ...process.env, PORT: String(PLAYGROUND_PORT) },
-        stdio: 'inherit',
-      });
-      playgroundProc.on('error', (err) => {
-        console.warn(`Warning: could not start playground — ${err.message}`);
-      });
+    const playgroundHtmlPath = path.join(__dirname, '..', 'playground', 'index.html');
+    const hasPlayground = fs.existsSync(playgroundHtmlPath);
 
-      function shutdownPlayground() {
-        if (playgroundProc) { playgroundProc.kill(); playgroundProc = null; }
+    // ── Playground helpers (scoped to the current pack) ──────────────────────
+
+    function pgGetCardIds() {
+      const labelsPath = path.join(packDir, 'labels.txt');
+      if (!fs.existsSync(labelsPath)) return [];
+      const lines = fs.readFileSync(labelsPath, 'utf8').split('\n').map(l => l.trim()).filter(Boolean);
+      const gamePrefix = gameJson.liveTracking?.gamePrefix;
+      return gamePrefix ? lines.map(l => `${gamePrefix}:${l}`) : lines;
+    }
+
+    function pgResolveRefImage(label) {
+      const colonIdx = label.indexOf(':');
+      if (colonIdx === -1) return null;
+      const kind = label.slice(0, colonIdx);
+      const name = label.slice(colonIdx + 1);
+      const refDir = path.join(packDir, 'ref', kind);
+      for (const ext of ['.png', '.jpg', '.jpeg', '.webp']) {
+        if (fs.existsSync(path.join(refDir, name + ext))) return `${kind}/${name}${ext}`;
       }
-      process.once('SIGINT', shutdownPlayground);
-      process.once('SIGTERM', shutdownPlayground);
-      process.once('exit', shutdownPlayground);
+      return null;
+    }
+
+    function pgGetCardImageMapping() {
+      const labelsPath = path.join(packDir, 'labels.txt');
+      if (!fs.existsSync(labelsPath)) return {};
+      const lines = fs.readFileSync(labelsPath, 'utf8').split('\n').map(l => l.trim()).filter(Boolean);
+      const gamePrefix = gameJson.liveTracking?.gamePrefix;
+      const result = {};
+      for (const label of lines) {
+        const cardId = gamePrefix ? `${gamePrefix}:${label}` : label;
+        const rel = pgResolveRefImage(label);
+        if (rel) result[cardId] = rel;
+      }
+      return result;
+    }
+
+    function pgParseManifestYaml(text) {
+      const result = {};
+      let currentType = null, inSize = false, dims = [];
+      for (const raw of text.split('\n')) {
+        const line = raw.trimEnd();
+        const indent = line.search(/\S/);
+        if (indent === -1) continue;
+        const content = line.trim();
+        if (indent === 2 && content.endsWith(':')) {
+          if (currentType && dims.length === 2) result[currentType] = dims;
+          currentType = content.slice(0, -1); inSize = false; dims = [];
+        } else if (indent === 4 && content === 'target_size:') {
+          inSize = true;
+        } else if (inSize && content.startsWith('- ')) {
+          dims.push(parseInt(content.slice(2), 10));
+        }
+      }
+      if (currentType && dims.length === 2) result[currentType] = dims;
+      return result;
+    }
+
+    function pgGetCardSizes() {
+      const manifestPath = path.join(packDir, 'manifest.yaml');
+      if (!fs.existsSync(manifestPath)) return null;
+      try { return pgParseManifestYaml(fs.readFileSync(manifestPath, 'utf8')); } catch { return null; }
     }
 
     const MIME = {
@@ -199,6 +246,11 @@ program
       '.js': 'application/javascript',
       '.html': 'text/html',
       '.txt': 'text/plain',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.webp': 'image/webp',
+      '.svg': 'image/svg+xml',
     };
 
     const sseClients = new Set();
@@ -231,6 +283,74 @@ program
         return;
       }
 
+      // ── Playground routes (same port, current game only) ──────────────────
+
+      if (hasPlayground && (urlPath === '/playground' || urlPath === '/playground/')) {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        fs.createReadStream(playgroundHtmlPath).pipe(res);
+        return;
+      }
+
+      if (urlPath === '/api/games') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify([gameJson]));
+        return;
+      }
+
+      let m;
+
+      if ((m = urlPath.match(/^\/api\/games\/([^/]+)\/card-ids$/))) {
+        if (m[1] !== gameId) { res.writeHead(404); res.end('Not found'); return; }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(pgGetCardIds()));
+        return;
+      }
+
+      if ((m = urlPath.match(/^\/api\/games\/([^/]+)\/card-sizes$/))) {
+        if (m[1] !== gameId) { res.writeHead(404); res.end('Not found'); return; }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(pgGetCardSizes()));
+        return;
+      }
+
+      if ((m = urlPath.match(/^\/api\/games\/([^/]+)\/image-map$/))) {
+        if (m[1] !== gameId) { res.writeHead(404); res.end('Not found'); return; }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(pgGetCardImageMapping()));
+        return;
+      }
+
+      if ((m = urlPath.match(/^\/api\/games\/([^/]+)\/images\/(.+)$/))) {
+        if (m[1] !== gameId) { res.writeHead(404); res.end('Not found'); return; }
+        const requested = decodeURIComponent(m[2]);
+        const refPath = path.join(packDir, 'ref', requested);
+        if (refPath.startsWith(path.join(packDir, 'ref')) && fs.existsSync(refPath) && fs.statSync(refPath).isFile()) {
+          const ext = path.extname(refPath).toLowerCase();
+          res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+          fs.createReadStream(refPath).pipe(res);
+          return;
+        }
+        res.writeHead(404); res.end('Not found'); return;
+      }
+
+      if ((m = urlPath.match(/^\/api\/games\/([^/]+)\/file\/(.+)$/))) {
+        if (m[1] !== gameId) { res.writeHead(404); res.end('Not found'); return; }
+        const reqFile = path.join(packDir, decodeURIComponent(m[2]));
+        if (!reqFile.startsWith(packDir + path.sep)) {
+          res.writeHead(403); res.end('Forbidden'); return;
+        }
+        if (fs.existsSync(reqFile) && fs.statSync(reqFile).isFile()) {
+          const ext = path.extname(reqFile).toLowerCase();
+          res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
+          fs.createReadStream(reqFile).pipe(res);
+        } else {
+          res.writeHead(404); res.end('Not found');
+        }
+        return;
+      }
+
+      // ── Pack file serving ─────────────────────────────────────────────────
+
       const filePath = path.join(packDir, urlPath === '/' ? '' : urlPath);
 
       if (!filePath.startsWith(packDir)) {
@@ -255,8 +375,8 @@ program
 
       console.log(`\nServing pack: ${packName}`);
       console.log(`URL: ${httpUrl}`);
-      if (fs.existsSync(playgroundServerPath)) {
-        console.log(`Playground: http://localhost:${PLAYGROUND_PORT}/?game=${encodeURIComponent(gameId)}`);
+      if (hasPlayground) {
+        console.log(`Playground: http://localhost:${PORT}/playground/?game=${encodeURIComponent(gameId)}`);
       }
       console.log('');
 
