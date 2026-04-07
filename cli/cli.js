@@ -175,7 +175,11 @@ program
     }
     const gameId = gameJson.id;
 
-    const playgroundHtmlPath = path.join(__dirname, '..', 'playground', 'index.html');
+    const playgroundHtmlPath = (() => {
+      const bundled = path.join(__dirname, 'playground', 'index.html');
+      if (fs.existsSync(bundled)) return bundled;
+      return path.join(__dirname, '..', 'playground', 'index.html');
+    })();
     const hasPlayground = fs.existsSync(playgroundHtmlPath);
 
     // ── Playground helpers (scoped to the current pack) ──────────────────────

@@ -38,9 +38,7 @@ bgb new mygame --name "My Game"
 bgb serve mygame
 ```
 
-The dev server starts on port 3000, prints a QR code, and automatically recompiles `scorer.ts` whenever you save.  Scan the QR code in the BoardGameBuddy app to load your pack.
-
-> **Note:** the browser-based [Playground](#playground) is only available when working inside a fork of this repo (Option B).
+The dev server starts on port 3000, prints a QR code, and automatically recompiles `scorer.ts` whenever you save.  Scan the QR code in the BoardGameBuddy app to load your pack.  The Playground is also available at `http://localhost:3000/playground/`.
 
 When you're ready to contribute, open a pull request by copying your finished pack directory into a fork of this repository (see [Contributing](#contributing)).
 
@@ -111,17 +109,16 @@ npm test -- --testPathPattern=games/mygame
 
 The Playground is a browser-based UI for testing and debugging scorer logic interactively without the app.  It lets you arrange cards on a virtual table, call the scorer, and inspect the score breakdown in real time.
 
-It is available when working **inside a fork of this repo** (Option B).  Two ways to launch it:
+The Playground is bundled with the `bgb` CLI and available in both workflows.
 
-**Via `bgb serve`** (recommended — pre-loaded with the pack you are working on):
+**Via `bgb serve`** (available in both Option A and Option B, pre-loaded with the pack you are working on):
 
 ```bash
-# from the repo root
-bgb serve games/mygame
-# playground is then at http://localhost:3000/playground/
+bgb serve mygame
+# playground at http://localhost:3000/playground/
 ```
 
-**Standalone** (lists all packs in the repo):
+**Standalone server** (Option B only — lists all packs in the repo):
 
 ```bash
 cd playground
