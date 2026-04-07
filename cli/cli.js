@@ -376,7 +376,7 @@ program
       console.log(`\nServing pack: ${packName}`);
       console.log(`URL: ${httpUrl}`);
       if (hasPlayground) {
-        console.log(`Playground: http://localhost:${PORT}/playground/?game=${encodeURIComponent(gameId)}`);
+        console.log(`Playground: http://localhost:${PORT}/playground/`);
       }
       console.log('');
 

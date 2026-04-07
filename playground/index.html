@@ -238,12 +238,7 @@ async function init() {
   document.getElementById('drawerFilter').addEventListener('input', filterDrawer);
   document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
   renderPlayerList();
-  const requestedGame = new URLSearchParams(window.location.search).get('game');
-  let initialGame = games.length > 0 ? games[0].id : null;
-  if (requestedGame && games.some(g => g.id === requestedGame)) {
-    initialGame = requestedGame;
-    sel.value = requestedGame;
-  }
+  const initialGame = games.length > 0 ? games[0].id : null;
   if (games.length <= 1) {
     document.getElementById('gameLabel').style.display = 'none';
     sel.style.display = 'none';
