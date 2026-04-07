@@ -19,6 +19,27 @@ A game pack is a self-contained directory that adds support for a new board game
 
 ## Quick start
 
+### Option A — without cloning this repo (recommended for new packs)
+
+Install the `bgb` CLI once:
+
+```bash
+npm install -g @boardgamebuddy/game-pack-cli
+```
+
+Then scaffold and develop your pack entirely in your own directory:
+
+```bash
+bgb new mygame               # creates mygame/ from the upstream template
+cd mygame
+# edit scorer.ts …
+bgb serve                    # live-reload dev server + QR code for the app
+```
+
+When your pack is ready, open a pull request by copying the finished directory into a fork of this repo under `games/mygame/`.
+
+### Option B — working inside this repo
+
 1. Copy `games/_template/` to `games/mygame/` (or run `bgb new mygame`).
 2. Fill in `game.json` with your game's metadata.
 3. Implement the `processCards` method in `scorer.ts`.
