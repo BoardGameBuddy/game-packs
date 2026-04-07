@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "esbuild scorer.ts --bundle --platform=node --target=es2017 --outfile=scorer.js",
+    "test": "jest",
     "serve": "bgb serve ."
   },
   "dependencies": {
