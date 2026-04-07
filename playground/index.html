@@ -162,7 +162,7 @@ body {
 <body>
 
 <div class="toolbar">
-  <label>Game:</label>
+  <label id="gameLabel">Game:</label>
   <select id="gameSelect"></select>
   <label>Players:</label>
   <div class="player-list" id="playerList"></div>
@@ -238,7 +238,12 @@ async function init() {
   document.getElementById('drawerFilter').addEventListener('input', filterDrawer);
   document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
   renderPlayerList();
-  if (games.length > 0) loadGame(games[0].id);
+  const initialGame = games.length > 0 ? games[0].id : null;
+  if (games.length <= 1) {
+    document.getElementById('gameLabel').style.display = 'none';
+    sel.style.display = 'none';
+  }
+  if (initialGame) loadGame(initialGame);
 }
 
 // ── Players ──
