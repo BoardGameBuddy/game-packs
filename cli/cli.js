@@ -166,6 +166,34 @@ program
 
     const packName = path.basename(packDir);
 
+    let gameId;
+    try {
+      gameId = JSON.parse(fs.readFileSync(gameJsonPath, 'utf8')).id;
+    } catch (err) {
+      console.error(`Error: could not parse game.json — ${err.message}`);
+      process.exit(1);
+    }
+
+    const PLAYGROUND_PORT = parseInt(process.env.PLAYGROUND_PORT || '3333', 10);
+    const playgroundServerPath = path.join(__dirname, '..', 'playground', 'server.js');
+    let playgroundProc = null;
+    if (fs.existsSync(playgroundServerPath)) {
+      playgroundProc = spawn('node', [playgroundServerPath], {
+        env: { ...process.env, PORT: String(PLAYGROUND_PORT) },
+        stdio: 'inherit',
+      });
+      playgroundProc.on('error', (err) => {
+        console.warn(`Warning: could not start playground — ${err.message}`);
+      });
+
+      function shutdownPlayground() {
+        if (playgroundProc) { playgroundProc.kill(); playgroundProc = null; }
+      }
+      process.once('SIGINT', shutdownPlayground);
+      process.once('SIGTERM', shutdownPlayground);
+      process.once('exit', shutdownPlayground);
+    }
+
     const MIME = {
       '.json': 'application/json',
       '.js': 'application/javascript',
@@ -226,7 +254,11 @@ program
       const deeplink = `bgb://install?url=${encodeURIComponent(httpUrl)}`;
 
       console.log(`\nServing pack: ${packName}`);
-      console.log(`URL: ${httpUrl}\n`);
+      console.log(`URL: ${httpUrl}`);
+      if (fs.existsSync(playgroundServerPath)) {
+        console.log(`Playground: http://localhost:${PLAYGROUND_PORT}/?game=${encodeURIComponent(gameId)}`);
+      }
+      console.log('');
 
       try {
         const qrcode = require('qrcode-terminal');

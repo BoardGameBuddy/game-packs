@@ -238,7 +238,13 @@ async function init() {
   document.getElementById('drawerFilter').addEventListener('input', filterDrawer);
   document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
   renderPlayerList();
-  if (games.length > 0) loadGame(games[0].id);
+  const requestedGame = new URLSearchParams(window.location.search).get('game');
+  let initialGame = games.length > 0 ? games[0].id : null;
+  if (requestedGame && games.some(g => g.id === requestedGame)) {
+    initialGame = requestedGame;
+    sel.value = requestedGame;
+  }
+  if (initialGame) loadGame(initialGame);
 }
 
 // ── Players ──

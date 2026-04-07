@@ -57,6 +57,8 @@ bgb serve games/ticket-to-ride
 
 The server starts on port `3000` (override with the `PORT` environment variable) and prints a QR code you can scan in the BoardGameBuddy app to load the pack directly.
 
+When running from the game-packs repository, the playground UI is also launched automatically on port `3333` (override with `PLAYGROUND_PORT`) and opened at `http://localhost:3333/?game=<game-id>` so you can test scoring logic in the browser.
+
 When `scorer.ts` changes, the CLI automatically recompiles it with `tsc` and pushes a reload event to the app via Server-Sent Events.
 
 ## Developing a game pack
