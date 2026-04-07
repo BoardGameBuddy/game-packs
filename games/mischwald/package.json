@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "build": "esbuild scorer.ts --bundle --platform=node --target=es2017 --outfile=scorer.js",
     "serve": "node ../serve.js"
   }
 }

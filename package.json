@@ -11,7 +11,8 @@
     "test": "jest",
     "serve": "node ./serve.js",
     "build": "node -e \"const fs=require('fs'),{execSync}=require('child_process');fs.readdirSync('games').forEach(g=>{const t='games/'+g+'/scorer.ts';if(fs.existsSync(t))execSync('npx esbuild '+t+' --bundle --platform=node --target=es2017 --format=cjs --outfile=games/'+g+'/scorer.js',{stdio:'inherit'})})\"",
-    "watch": "npx tsc --watch --project tsconfig.json"
+    "typecheck": "tsc --project tsconfig.json",
+    "watch": "tsc --watch --project tsconfig.json"
   },
   "devDependencies": {
     "@boardgamebuddy/game-pack-api": "*",

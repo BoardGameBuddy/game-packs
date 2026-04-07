@@ -11,18 +11,19 @@ Community game pack repository for **BoardGameBuddy**, an app for on-device boar
 ```bash
 npm test                    # Run all Jest tests (from root)
 npm run build               # Compile all TypeScript scorers to JS
+npm run typecheck           # Type-check all scorers (no output)
 npm run serve               # Start local dev server (run from a pack directory)
 npm run watch               # Watch and recompile TypeScript on change
 
 # Run tests for a single pack
-npx jest --testPathPattern=games/wizard
-npx jest --testPathPattern=games/faraway
+npm test -- --testPathPattern=games/wizard
+npm test -- --testPathPattern=games/faraway
 
-# Compile a single scorer manually (run from the pack directory)
-npx esbuild scorer.ts --bundle --platform=node --target=es2017 --format=cjs --outfile=scorer.js
+# Compile a single scorer manually (from the pack directory)
+npm run build
 
 # Test with app: serve a pack and scan QR code
-cd games/wizard && node ../../serve.js
+cd games/wizard && npm run serve
 # Or with the bgb CLI (from game-pack-cli repo): bgb serve games/wizard
 ```
 

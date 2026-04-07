@@ -22,8 +22,8 @@ A game pack is a self-contained directory that adds support for a new board game
 1. Copy `games/_template/` to `games/mygame/` (or run `bgb new mygame`).
 2. Fill in `game.json` with your game's metadata.
 3. Implement the `processCards` method in `scorer.ts`.
-4. Compile: `npx esbuild scorer.ts --bundle --platform=node --target=es2017 --format=cjs --outfile=scorer.js`
-5. Write tests in `__tests__/scorer.test.js` and verify: `npx jest`.
+4. Compile: `cd games/mygame && npm run build`
+5. Write tests in `__tests__/scorer.test.js` and verify: `npm test`.
 
 ## Scorer contract
 
@@ -75,7 +75,7 @@ npm test
 Individual pack:
 
 ```bash
-npx jest --testPathPattern=games/mygame
+npm test -- --testPathPattern=games/mygame
 ```
 
 ## Contributing
