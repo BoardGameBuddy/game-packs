@@ -11,30 +11,38 @@ A game pack is a self-contained directory that adds support for a new board game
 | `game.json` | ✅ | Game metadata (id, display name, flags) |
 | `embeddings.bin` | ✅ | Card reference embeddings for on-device identification (raw float32 LE) |
 | `labels.txt` | ✅ | Card label list for on-device identification (one label per line) |
-| `scorer.ts` | ✅ | TypeScript scorer source (compiled to `scorer.js`) |
-| `scorer.js` | ✅ | Compiled JavaScript loaded by the app at runtime |
+| `scorer.ts` | ✅ | TypeScript scorer source |
+| `scorer.js` | ✅ | Compiled JavaScript loaded by the app at runtime (generated — do not edit by hand) |
 | `cards.json` | ☑️ optional | Card definitions with scoring rules, used by the scorer |
-| `__tests__/scorer.test.ts` | ☑️ recommended | Unit tests for the scorer |
+| `texts.json` | ☑️ optional | Localisation strings (nested JSON, flattened to `"section.key"` at runtime) |
+| `__tests__/scorer.test.js` | ☑️ recommended | Unit tests for the scorer |
 
 ## Quick start
 
 1. Copy `games/_template/` to `games/mygame/` (or run `bgb new mygame`).
 2. Fill in `game.json` with your game's metadata.
-3. Implement the `score` function in `scorer.ts`.
-4. Compile: `npx tsc scorer.ts --outDir . --target ES2017 --module commonjs`
-5. Write tests in `__tests__/scorer.test.ts` and verify: `npx jest`.
+3. Implement the `processCards` method in `scorer.ts`.
+4. Compile: `npx esbuild scorer.ts --bundle --platform=node --target=es2017 --format=cjs --outfile=scorer.js`
+5. Write tests in `__tests__/scorer.test.js` and verify: `npx jest`.
 
 ## Scorer contract
 
-The `scorer.ts` file must export a single `score` function:
+Every game pack exports a class that implements the `GamePack` interface:
 
 ```typescript
-import type { PlayerInput, PlayerScoreResult } from '@boardgamebuddy/scorer-api';
+import type { GamePack, GameState, DetectedBox, ScorerContext } from '@boardgamebuddy/game-pack-api';
+import { groupByPlayer } from '@boardgamebuddy/game-pack-api';
 
-export function score(players: PlayerInput[]): PlayerScoreResult[] { ... }
+export class MyGame implements GamePack {
+  processCards(boxes: DetectedBox[], context?: ScorerContext): GameState {
+    // your scoring logic here
+  }
+}
+
+export { MyGame as Game };
 ```
 
-See [`../scorer-api/README.md`](../scorer-api/README.md) for full type documentation.
+Types are defined in the [`api/`](api/) package (`@boardgamebuddy/game-pack-api`).
 
 ## game.json schema
 
@@ -48,11 +56,13 @@ See [`../scorer-api/README.md`](../scorer-api/README.md) for full type documenta
 
 ## Available packs
 
-| Directory | Game | Status |
+| Directory | Game | Notes |
 |---|---|---|
 | `games/_template/` | Starter template | template only |
-
-> **Note:** The built-in scorers for **Faraway**, **Mischwald**, and **Wizard** currently run as native Kotlin modules inside the app.  TypeScript rewrites for these games will be contributed here as separate follow-up work.
+| `games/faraway/` | Faraway | |
+| `games/mischwald/` | Mischwald | |
+| `games/wizard/` | Wizard | live tracking |
+| `games/doppelkopf/` | Doppelkopf | live tracking |
 
 ## Testing
 
@@ -65,7 +75,7 @@ npm test
 Individual pack:
 
 ```bash
-cd mygame && npx jest
+npx jest --testPathPattern=games/mygame
 ```
 
 ## Contributing

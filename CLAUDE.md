@@ -19,26 +19,31 @@ npx jest --testPathPattern=games/wizard
 npx jest --testPathPattern=games/faraway
 
 # Compile a single scorer manually (run from the pack directory)
-npx tsc scorer.ts --outDir . --target ES2017 --module commonjs --skipLibCheck
+npx esbuild scorer.ts --bundle --platform=node --target=es2017 --format=cjs --outfile=scorer.js
 
 # Test with app: serve a pack and scan QR code
 cd games/wizard && node ../../serve.js
 # Or with the bgb CLI (from game-pack-cli repo): bgb serve games/wizard
 ```
 
-**Important**: Jest only runs compiled `.js` files. After modifying `scorer.ts` or `__tests__/scorer.test.ts`, compile before testing. The `npm test` command does NOT auto-compile.
+**Important**: Jest only runs compiled `.js` files. After modifying `scorer.ts` or `__tests__/scorer.test.js`, compile before testing. The `npm test` command does NOT auto-compile.
 
 ## Architecture
 
 ### Scorer Contract
 
-Every game pack exposes a single function:
+Every game pack exports a class that implements the `GamePack` interface:
 
 ```typescript
-export function processCards(players: PlayerInput[]): PlayerScoreResult[]
+import type { GamePack, GameState, DetectedBox, ScorerContext } from '@boardgamebuddy/game-pack-api';
+
+export class MyGame implements GamePack {
+  processCards(boxes: DetectedBox[], context?: ScorerContext): GameState { ... }
+}
+export { MyGame as Game };
 ```
 
-Types are defined in `scorer-api/types.ts`. Input provides detected card positions (bounding box + center coordinates). Output includes `totalScore` and `cardDetails` (per-card breakdown with `points`, `reason`, `title`, `group`).
+Types are defined in `api/types.ts`. Input provides detected card positions (bounding box + centre coordinates) plus optional session metadata. Output includes per-player `totalScore` and `cardDetails` (per-card breakdown with `points`, `reason`, `title`, `group`).
 
 ### Game Pack Structure
 
@@ -73,4 +78,4 @@ For games where card play order matters, use a row-based sort: group cards by Y 
 
 ## TypeScript Configuration
 
-`tsconfig.json` at root uses `"noEmit": true` — it only type-checks, never produces output. Actual compilation uses direct `tsc` invocations with `--outDir .` to place `.js` files alongside `.ts` files. Target is `ES2017`, module format is `commonjs`.
+`tsconfig.json` at root uses `"noEmit": true` — it only type-checks, never produces output. Actual compilation uses **esbuild** with `--bundle` to produce a single `scorer.js` alongside each `scorer.ts`. Target is `ES2017`, format is `commonjs`.
