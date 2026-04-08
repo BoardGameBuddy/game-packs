@@ -14,6 +14,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -25,26 +27,61 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Compile TypeScript scorers
-        run: npm run build
-
-      - name: Run tests
-        run: npm test
-
-      - name: Package packs into ZIPs
+      - name: Detect changed packs
+        id: detect-changes
         run: |
-          mkdir -p dist
+          # If only one commit exists (initial push), treat all packs as changed
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            changed_files=$(git diff --name-only HEAD~1 HEAD)
+          else
+            changed_files=$(git ls-files games/)
+          fi
+
+          echo "Changed files:"
+          echo "$changed_files"
+
+          changed_packs=""
           for dir in games/*/; do
-            dir="${dir%/}"
-            id=$(basename "$dir")
-            if [ -f "$dir/game.json" ]; then
-              echo "Packaging $id..."
-              (cd "$dir" && zip -r "../../dist/${id}.zip" .)
-              echo "Created dist/${id}.zip"
+            id=$(basename "${dir%/}")
+            if [ "$id" = "_template" ]; then continue; fi
+            if [ ! -f "games/$id/game.json" ]; then continue; fi
+            if echo "$changed_files" | grep -q "^games/$id/"; then
+              changed_packs="$changed_packs $id"
+              echo "Pack changed: $id"
             fi
           done
 
+          changed_packs=$(echo "$changed_packs" | xargs)
+          echo "changed_packs=$changed_packs" >> $GITHUB_OUTPUT
+
+          if [ -n "$changed_packs" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No game packs changed in this push, skipping release."
+          fi
+
+      - name: Compile TypeScript scorers
+        if: steps.detect-changes.outputs.has_changes == 'true'
+        run: npm run build
+
+      - name: Run tests
+        if: steps.detect-changes.outputs.has_changes == 'true'
+        run: npm test
+
+      - name: Package changed packs into ZIPs
+        if: steps.detect-changes.outputs.has_changes == 'true'
+        run: |
+          mkdir -p dist
+          for id in ${{ steps.detect-changes.outputs.changed_packs }}; do
+            dir="games/$id"
+            echo "Packaging $id..."
+            (cd "$dir" && zip -r "../../dist/${id}.zip" .)
+            echo "Created dist/${id}.zip"
+          done
+
       - name: Compute checksums and sizes
+        if: steps.detect-changes.outputs.has_changes == 'true'
         run: |
           node -e "
             const fs = require('fs');
@@ -53,8 +90,13 @@ jobs:
             const tag = 'v' + process.env.GITHUB_RUN_NUMBER;
             const repo = process.env.GITHUB_REPOSITORY;
             const baseUrl = \`https://github.com/\${repo}/releases/download/\${tag}\`;
+            const changedPacks = (process.env.CHANGED_PACKS || '').trim().split(/\s+/).filter(Boolean);
 
             for (const pack of index.packs) {
+              if (!changedPacks.includes(pack.id)) {
+                console.log('Skipping unchanged pack:', pack.id);
+                continue;
+              }
               const zipPath = \`dist/\${pack.id}.zip\`;
               if (!fs.existsSync(zipPath)) continue;
               const bytes = fs.readFileSync(zipPath);
@@ -62,6 +104,7 @@ jobs:
               pack.sizeBytes = bytes.length;
               pack.downloadUrl = \`\${baseUrl}/\${pack.id}.zip\`;
               pack.version = parseInt(process.env.GITHUB_RUN_NUMBER, 10);
+              console.log('Updated pack:', pack.id, 'to version', pack.version);
             }
 
             fs.writeFileSync('pack-index.json', JSON.stringify(index, null, 2) + '\n');
@@ -70,8 +113,10 @@ jobs:
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          CHANGED_PACKS: ${{ steps.detect-changes.outputs.changed_packs }}
 
       - name: Create GitHub Release
+        if: steps.detect-changes.outputs.has_changes == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}
@@ -80,6 +125,7 @@ jobs:
           body: "Automated release from commit ${{ github.sha }}"
 
       - name: Commit updated pack-index.json
+        if: steps.detect-changes.outputs.has_changes == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
