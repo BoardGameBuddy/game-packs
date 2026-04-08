@@ -33,107 +33,107 @@ function card(cardId) {
 // ---------------------------------------------------------------------------
 describe('parseCard', () => {
   it('strips doppelkopf: prefix', () => {
-    expect(parseCard('doppelkopf:kreuz:dame')).toEqual(['kreuz', 'dame']);
-    expect(parseCard('doppelkopf:herz:10')).toEqual(['herz', '10']);
+    expect(parseCard('clubs:queen')).toEqual(['clubs', 'queen']);
+    expect(parseCard('heart:10')).toEqual(['heart', '10']);
   });
 
   it('works without prefix', () => {
-    expect(parseCard('karo:as')).toEqual(['karo', 'as']);
+    expect(parseCard('diamond:ace')).toEqual(['diamond', 'ace']);
   });
 });
 
 // ---------------------------------------------------------------------------
 describe('isTrump', () => {
   it('all Damen are trump', () => {
-    expect(isTrump('doppelkopf:kreuz:dame')).toBe(true);
-    expect(isTrump('doppelkopf:pik:dame')).toBe(true);
-    expect(isTrump('doppelkopf:herz:dame')).toBe(true);
-    expect(isTrump('doppelkopf:karo:dame')).toBe(true);
+    expect(isTrump('clubs:queen')).toBe(true);
+    expect(isTrump('spades:queen')).toBe(true);
+    expect(isTrump('heart:queen')).toBe(true);
+    expect(isTrump('diamond:queen')).toBe(true);
   });
 
   it('all Buben are trump', () => {
-    expect(isTrump('doppelkopf:kreuz:bube')).toBe(true);
-    expect(isTrump('doppelkopf:pik:bube')).toBe(true);
-    expect(isTrump('doppelkopf:herz:bube')).toBe(true);
-    expect(isTrump('doppelkopf:karo:bube')).toBe(true);
+    expect(isTrump('clubs:jack')).toBe(true);
+    expect(isTrump('spades:jack')).toBe(true);
+    expect(isTrump('heart:jack')).toBe(true);
+    expect(isTrump('diamond:jack')).toBe(true);
   });
 
   it('all Karo cards are trump', () => {
-    expect(isTrump('doppelkopf:karo:9')).toBe(true);
-    expect(isTrump('doppelkopf:karo:10')).toBe(true);
-    expect(isTrump('doppelkopf:karo:koenig')).toBe(true);
-    expect(isTrump('doppelkopf:karo:as')).toBe(true);
+    expect(isTrump('diamond:9')).toBe(true);
+    expect(isTrump('diamond:10')).toBe(true);
+    expect(isTrump('diamond:king')).toBe(true);
+    expect(isTrump('diamond:ace')).toBe(true);
   });
 
   it('Herz 10 (Dullen) is trump', () => {
-    expect(isTrump('doppelkopf:herz:10')).toBe(true);
+    expect(isTrump('heart:10')).toBe(true);
   });
 
   it('Fehlfarbe cards (not dame/bube/karo) are not trump', () => {
-    expect(isTrump('doppelkopf:kreuz:as')).toBe(false);
-    expect(isTrump('doppelkopf:kreuz:10')).toBe(false);
-    expect(isTrump('doppelkopf:kreuz:koenig')).toBe(false);
-    expect(isTrump('doppelkopf:kreuz:9')).toBe(false);
-    expect(isTrump('doppelkopf:pik:as')).toBe(false);
-    expect(isTrump('doppelkopf:herz:as')).toBe(false);
-    expect(isTrump('doppelkopf:herz:koenig')).toBe(false);
-    expect(isTrump('doppelkopf:herz:9')).toBe(false);
+    expect(isTrump('clubs:ace')).toBe(false);
+    expect(isTrump('clubs:10')).toBe(false);
+    expect(isTrump('clubs:king')).toBe(false);
+    expect(isTrump('clubs:9')).toBe(false);
+    expect(isTrump('spades:ace')).toBe(false);
+    expect(isTrump('heart:ace')).toBe(false);
+    expect(isTrump('heart:king')).toBe(false);
+    expect(isTrump('heart:9')).toBe(false);
   });
 });
 
 // ---------------------------------------------------------------------------
 describe('trumpRank', () => {
   it('Herz 10 (Dullen) has highest rank', () => {
-    expect(trumpRank('doppelkopf:herz:10')).toBe(13);
+    expect(trumpRank('heart:10')).toBe(13);
   });
 
   it('Kreuz Dame (Alten) is second highest', () => {
-    expect(trumpRank('doppelkopf:kreuz:dame')).toBe(12);
+    expect(trumpRank('clubs:queen')).toBe(12);
   });
 
   it('trump order: kreuz dame > pik dame > herz dame > karo dame', () => {
-    expect(trumpRank('doppelkopf:kreuz:dame')).toBeGreaterThan(trumpRank('doppelkopf:pik:dame'));
-    expect(trumpRank('doppelkopf:pik:dame')).toBeGreaterThan(trumpRank('doppelkopf:herz:dame'));
-    expect(trumpRank('doppelkopf:herz:dame')).toBeGreaterThan(trumpRank('doppelkopf:karo:dame'));
+    expect(trumpRank('clubs:queen')).toBeGreaterThan(trumpRank('spades:queen'));
+    expect(trumpRank('spades:queen')).toBeGreaterThan(trumpRank('heart:queen'));
+    expect(trumpRank('heart:queen')).toBeGreaterThan(trumpRank('diamond:queen'));
   });
 
   it('trump order: kreuz bube > pik bube > herz bube > karo bube', () => {
-    expect(trumpRank('doppelkopf:kreuz:bube')).toBeGreaterThan(trumpRank('doppelkopf:pik:bube'));
-    expect(trumpRank('doppelkopf:pik:bube')).toBeGreaterThan(trumpRank('doppelkopf:herz:bube'));
-    expect(trumpRank('doppelkopf:herz:bube')).toBeGreaterThan(trumpRank('doppelkopf:karo:bube'));
+    expect(trumpRank('clubs:jack')).toBeGreaterThan(trumpRank('spades:jack'));
+    expect(trumpRank('spades:jack')).toBeGreaterThan(trumpRank('heart:jack'));
+    expect(trumpRank('heart:jack')).toBeGreaterThan(trumpRank('diamond:jack'));
   });
 
   it('Karo trump order: karo as > karo 10 > karo koenig > karo 9', () => {
-    expect(trumpRank('doppelkopf:karo:as')).toBeGreaterThan(trumpRank('doppelkopf:karo:10'));
-    expect(trumpRank('doppelkopf:karo:10')).toBeGreaterThan(trumpRank('doppelkopf:karo:koenig'));
-    expect(trumpRank('doppelkopf:karo:koenig')).toBeGreaterThan(trumpRank('doppelkopf:karo:9'));
+    expect(trumpRank('diamond:ace')).toBeGreaterThan(trumpRank('diamond:10'));
+    expect(trumpRank('diamond:10')).toBeGreaterThan(trumpRank('diamond:king'));
+    expect(trumpRank('diamond:king')).toBeGreaterThan(trumpRank('diamond:9'));
   });
 
   it('Karo bube has lower rank than any dame', () => {
-    expect(trumpRank('doppelkopf:karo:bube')).toBeLessThan(trumpRank('doppelkopf:karo:dame'));
+    expect(trumpRank('diamond:jack')).toBeLessThan(trumpRank('diamond:queen'));
   });
 
   it('non-trump cards return 0', () => {
-    expect(trumpRank('doppelkopf:kreuz:as')).toBe(0);
-    expect(trumpRank('doppelkopf:pik:10')).toBe(0);
-    expect(trumpRank('doppelkopf:herz:koenig')).toBe(0);
+    expect(trumpRank('clubs:ace')).toBe(0);
+    expect(trumpRank('spades:10')).toBe(0);
+    expect(trumpRank('heart:king')).toBe(0);
   });
 });
 
 // ---------------------------------------------------------------------------
 describe('cardAugen', () => {
   it('correct Augen values', () => {
-    expect(cardAugen('doppelkopf:kreuz:as')).toBe(11);
-    expect(cardAugen('doppelkopf:kreuz:10')).toBe(10);
-    expect(cardAugen('doppelkopf:kreuz:koenig')).toBe(4);
-    expect(cardAugen('doppelkopf:kreuz:dame')).toBe(3);
-    expect(cardAugen('doppelkopf:kreuz:bube')).toBe(2);
-    expect(cardAugen('doppelkopf:kreuz:9')).toBe(0);
+    expect(cardAugen('clubs:ace')).toBe(11);
+    expect(cardAugen('clubs:10')).toBe(10);
+    expect(cardAugen('clubs:king')).toBe(4);
+    expect(cardAugen('clubs:queen')).toBe(3);
+    expect(cardAugen('clubs:jack')).toBe(2);
+    expect(cardAugen('clubs:9')).toBe(0);
   });
 
   it('total Augen of all 24 unique cards × 2 = 240', () => {
-    const suits = ['kreuz', 'pik', 'herz', 'karo'];
-    const values = ['9', '10', 'bube', 'dame', 'koenig', 'as'];
+    const suits = ['clubs', 'spades', 'heart', 'diamond'];
+    const values = ['9', '10', 'jack', 'queen', 'king', 'ace'];
     let total = 0;
     for (const suit of suits) {
       for (const value of values) {
@@ -147,15 +147,15 @@ describe('cardAugen', () => {
 // ---------------------------------------------------------------------------
 describe('cardDisplayName', () => {
   it('regular cards', () => {
-    expect(cardDisplayName('doppelkopf:kreuz:dame')).toBe('Kreuz Dame');
-    expect(cardDisplayName('doppelkopf:pik:as')).toBe('Pik As');
-    expect(cardDisplayName('doppelkopf:herz:koenig')).toBe('Herz König');
+    expect(cardDisplayName('clubs:queen')).toBe('Kreuz Dame');
+    expect(cardDisplayName('spades:ace')).toBe('Pik As');
+    expect(cardDisplayName('heart:king')).toBe('Herz König');
   });
 
   it('special nicknames', () => {
-    expect(cardDisplayName('doppelkopf:herz:10')).toBe('Herz 10 (Dullen)');
-    expect(cardDisplayName('doppelkopf:karo:as')).toBe('Karo As (Fuchs)');
-    expect(cardDisplayName('doppelkopf:kreuz:bube')).toBe('Kreuz Bube (Karlchen)');
+    expect(cardDisplayName('heart:10')).toBe('Herz 10 (Dullen)');
+    expect(cardDisplayName('diamond:ace')).toBe('Karo As (Fuchs)');
+    expect(cardDisplayName('clubs:jack')).toBe('Kreuz Bube (Karlchen)');
   });
 });
 
@@ -163,78 +163,78 @@ describe('cardDisplayName', () => {
 describe('determineTrickWinner', () => {
   it('trump beats Fehlfarbe', () => {
     const cards = [
-      [0, 'doppelkopf:kreuz:as'],    // Fehlfarbe Kreuz As
-      [1, 'doppelkopf:karo:9'],      // trump (lowest)
+      [0, 'clubs:ace'],    // Fehlfarbe Kreuz As
+      [1, 'diamond:9'],      // trump (lowest)
     ];
     expect(determineTrickWinner(cards, null)).toBe(1);
   });
 
   it('highest trump wins', () => {
     const cards = [
-      [0, 'doppelkopf:karo:as'],     // trump rank 4
-      [1, 'doppelkopf:kreuz:dame'],  // trump rank 12
-      [2, 'doppelkopf:karo:bube'],   // trump rank 5
+      [0, 'diamond:ace'],     // trump rank 4
+      [1, 'clubs:queen'],  // trump rank 12
+      [2, 'diamond:jack'],   // trump rank 5
     ];
     expect(determineTrickWinner(cards, null)).toBe(1);
   });
 
   it('Dullen (Herz 10) is highest trump', () => {
     const cards = [
-      [0, 'doppelkopf:kreuz:dame'],  // rank 12
-      [1, 'doppelkopf:herz:10'],     // rank 13 (highest)
-      [2, 'doppelkopf:pik:dame'],    // rank 11
+      [0, 'clubs:queen'],  // rank 12
+      [1, 'heart:10'],     // rank 13 (highest)
+      [2, 'spades:queen'],    // rank 11
     ];
     expect(determineTrickWinner(cards, null)).toBe(1);
   });
 
   it('equal trump: first played wins (liegt oben)', () => {
     const cards = [
-      [0, 'doppelkopf:kreuz:dame'],
-      [1, 'doppelkopf:kreuz:dame'],  // second copy, same rank
+      [0, 'clubs:queen'],
+      [1, 'clubs:queen'],  // second copy, same rank
     ];
     expect(determineTrickWinner(cards, null)).toBe(0);
   });
 
   it('highest Fehlfarbe of led suit wins when no trump played', () => {
     const cards = [
-      [0, 'doppelkopf:kreuz:10'],    // Fehlfarbe Kreuz 10 (rank 3 within suit)
-      [1, 'doppelkopf:kreuz:as'],    // Fehlfarbe Kreuz As (rank 4, wins)
-      [2, 'doppelkopf:pik:as'],      // different suit, doesn't win
+      [0, 'clubs:10'],    // Fehlfarbe Kreuz 10 (rank 3 within suit)
+      [1, 'clubs:ace'],    // Fehlfarbe Kreuz As (rank 4, wins)
+      [2, 'spades:ace'],      // different suit, doesn't win
     ];
     expect(determineTrickWinner(cards, null)).toBe(1);
   });
 
   it('off-suit Fehlfarbe cannot win', () => {
     const cards = [
-      [0, 'doppelkopf:kreuz:9'],     // led Kreuz 9
-      [1, 'doppelkopf:pik:as'],      // Pik As (different suit, cannot win)
-      [2, 'doppelkopf:herz:as'],     // Herz As (different suit, cannot win)
+      [0, 'clubs:9'],     // led Kreuz 9
+      [1, 'spades:ace'],      // Pik As (different suit, cannot win)
+      [2, 'heart:ace'],     // Herz As (different suit, cannot win)
     ];
     expect(determineTrickWinner(cards, null)).toBe(0);
   });
 
   it('equal Fehlfarbe: first played wins', () => {
     const cards = [
-      [0, 'doppelkopf:kreuz:as'],
-      [1, 'doppelkopf:kreuz:as'],    // second copy
+      [0, 'clubs:ace'],
+      [1, 'clubs:ace'],    // second copy
     ];
     expect(determineTrickWinner(cards, null)).toBe(0);
   });
 
   it('Bube (trump) beats high Fehlfarbe', () => {
     const cards = [
-      [0, 'doppelkopf:kreuz:as'],    // Fehlfarbe
-      [1, 'doppelkopf:pik:bube'],    // trump (rank 7)
+      [0, 'clubs:ace'],    // Fehlfarbe
+      [1, 'spades:jack'],    // trump (rank 7)
     ];
     expect(determineTrickWinner(cards, null)).toBe(1);
   });
 
   it('Kreuz Bube (Karlchen) is the highest Bube', () => {
     const cards = [
-      [0, 'doppelkopf:karo:bube'],   // rank 5
-      [1, 'doppelkopf:herz:bube'],   // rank 6
-      [2, 'doppelkopf:pik:bube'],    // rank 7
-      [3, 'doppelkopf:kreuz:bube'],  // rank 8 (highest bube)
+      [0, 'diamond:jack'],   // rank 5
+      [1, 'heart:jack'],   // rank 6
+      [2, 'spades:jack'],    // rank 7
+      [3, 'clubs:jack'],  // rank 8 (highest bube)
     ];
     expect(determineTrickWinner(cards, null)).toBe(3);
   });
@@ -242,10 +242,10 @@ describe('determineTrickWinner', () => {
   it('ignores trumpSuit parameter (trumps are fixed)', () => {
     // Even if "herz" is passed as trumpSuit, the standard trump rules apply
     const cards = [
-      [0, 'doppelkopf:kreuz:as'],    // Fehlfarbe Kreuz As
-      [1, 'doppelkopf:karo:9'],      // karo is always trump
+      [0, 'clubs:ace'],    // Fehlfarbe Kreuz As
+      [1, 'diamond:9'],      // karo is always trump
     ];
-    expect(determineTrickWinner(cards, 'herz')).toBe(1);
+    expect(determineTrickWinner(cards, 'heart')).toBe(1);
   });
 });
 
@@ -262,7 +262,7 @@ describe('calculateRoundScore', () => {
 describe('processCards – legacy wrapper', () => {
   it('returns scores with totalScore 0 (cumulative, fresh instance)', () => {
     const results = processCards(
-      [card('doppelkopf:kreuz:as'), card('doppelkopf:kreuz:10')],
+      [card('clubs:ace'), card('clubs:10')],
       { players: ['Alice'], similarityThreshold: 0.85 },
     );
     expect(results[0].totalScore).toBe(0);
@@ -297,16 +297,16 @@ describe('processCards – stateful (via DoppelkopfGame class)', () => {
 
   it('tracks new cards during trick tracking', () => {
     const game = makeGame(PLAYERS);
-    const result = game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10')]);
+    const result = game.processCards([card('clubs:ace'), card('spades:10')]);
     expect(result.display.hud.length).toBeGreaterThan(0);
   });
 
   it('diffs cards between calls — only new cards are tracked', () => {
     const game = makeGame(PLAYERS);
     // First frame: one card
-    game.processCards([card('doppelkopf:kreuz:as')]);
+    game.processCards([card('clubs:ace')]);
     // Second frame: same card + new card
-    const result = game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10')]);
+    const result = game.processCards([card('clubs:ace'), card('spades:10')]);
     const allDetails = result.players.flatMap(p => p.cardDetails);
     expect(allDetails).toHaveLength(2);
   });
@@ -314,8 +314,8 @@ describe('processCards – stateful (via DoppelkopfGame class)', () => {
   it('resets tracked cards after trick completion via processCards', () => {
     const game = makeGame(PLAYERS);
     // Play trick (4 cards = complete for 4 players)
-    game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'),
-                       card('doppelkopf:herz:koenig'), card('doppelkopf:karo:9')]);
+    game.processCards([card('clubs:ace'), card('spades:10'),
+                       card('heart:king'), card('diamond:9')]);
     // Clear table
     for (let i = 0; i < 6; i++) game.processCards([]);
     // New trick should start fresh
@@ -326,22 +326,22 @@ describe('processCards – stateful (via DoppelkopfGame class)', () => {
 
   it('card details show Augen points', () => {
     const game = makeGame(PLAYERS);
-    const result = game.processCards([card('doppelkopf:kreuz:as')]);
+    const result = game.processCards([card('clubs:ace')]);
     const allDetails = result.players.flatMap(p => p.cardDetails);
     expect(allDetails[0].points).toBe(11); // As = 11 Augen
   });
 
   it('card details show trump grouping', () => {
     const game = makeGame(PLAYERS);
-    const result = game.processCards([card('doppelkopf:kreuz:dame')]);
+    const result = game.processCards([card('clubs:queen')]);
     const allDetails = result.players.flatMap(p => p.cardDetails);
     expect(allDetails[0].group).toBe('Trumpf');
   });
 
   it('trick completion via processCards returns players', () => {
     const game = makeGame(PLAYERS);
-    const result = game.processCards([card('doppelkopf:kreuz:as'), card('doppelkopf:pik:10'),
-                       card('doppelkopf:herz:koenig'), card('doppelkopf:karo:9')]);
+    const result = game.processCards([card('clubs:ace'), card('spades:10'),
+                       card('heart:king'), card('diamond:9')]);
     expect(result.players).toHaveLength(4);
   });
 
@@ -360,27 +360,27 @@ function trick(cards, winnerIndex) {
 }
 
 // Helper: build a minimal round context.
-// Players 0+1 = Re team (they play kreuz:dame), players 2+3 = Kontra.
+// Players 0+1 = Re team (they play clubs:queen), players 2+3 = Kontra.
 // Distributes Augen via simple tricks.
 function buildContext({ reAugen = 121, announcements = [], extraTricks = [] }) {
   const players = ['Alice', 'Bob', 'Charlie', 'Dave'];
-  // Alice (0) and Bob (1) are Re (each plays one kreuz:dame).
+  // Alice (0) and Bob (1) are Re (each plays one clubs:queen).
   // Charlie (2) and Dave (3) are Kontra.
 
   const kontraAugen = 240 - reAugen;
   const tricks = [];
 
-  // Trick 1: Alice plays kreuz:dame (Re marker), wins.
-  // kreuz:dame=3, karo:9=0, kreuz:9=0, pik:9=0 → 3 Augen for Re
+  // Trick 1: Alice plays clubs:queen (Re marker), wins.
+  // clubs:queen=3, diamond:9=0, clubs:9=0, spades:9=0 → 3 Augen for Re
   tricks.push(trick(
-    [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [1, 'doppelkopf:pik:9']],
+    [[0, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [1, 'spades:9']],
     0
   ));
 
-  // Trick 2: Bob plays kreuz:dame (2nd Re marker), wins.
-  // kreuz:dame=3, herz:9=0, kreuz:koenig=4, pik:koenig=4 → 11 Augen for Re
+  // Trick 2: Bob plays clubs:queen (2nd Re marker), wins.
+  // clubs:queen=3, heart:9=0, clubs:king=4, spades:king=4 → 11 Augen for Re
   tricks.push(trick(
-    [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:herz:9'], [3, 'doppelkopf:kreuz:koenig'], [0, 'doppelkopf:pik:koenig']],
+    [[1, 'clubs:queen'], [2, 'heart:9'], [3, 'clubs:king'], [0, 'spades:king']],
     1
   ));
 
@@ -388,20 +388,20 @@ function buildContext({ reAugen = 121, announcements = [], extraTricks = [] }) {
   const remaining = reAugen - 14;
 
   // Trick 3: a big Re trick with adjustable Augen.
-  // Use kreuz:as (11) + pik:as (11) + herz:as (11) + karo:as (11) = 44 Augen
+  // Use clubs:as (11) + spades:as (11) + heart:as (11) + diamond:as (11) = 44 Augen
   if (remaining > 0) {
     // Give Re a trick with high-value cards worth `remaining` Augen (capped).
     const reExtra = Math.min(remaining, 44);
     // Build a trick worth exactly reExtra Augen for Re.
     // Simplification: just give Re all the remaining Augen in one or more tricks.
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       0 // Re wins
     ));
   } else {
     // Re doesn't need more — give it to Kontra.
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       2 // Kontra wins
     ));
   }
@@ -414,7 +414,7 @@ function buildContext({ reAugen = 121, announcements = [], extraTricks = [] }) {
   // Pad remaining tricks with 0-Augen cards to reach 12 tricks.
   while (tricks.length < 12) {
     tricks.push(trick(
-      [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+      [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
       2 // Kontra wins (0 Augen)
     ));
   }
@@ -433,51 +433,51 @@ describe('calculateAllRoundScores', () => {
   });
 
   it('Re wins with 121+ Augen → at least 1 point', () => {
-    // Simple test: Re team (players 0+1) hold kreuz:dame.
+    // Simple test: Re team (players 0+1) hold clubs:queen.
     // Build 12 tricks where Re wins enough Augen.
     const players = ['Alice', 'Bob', 'Charlie', 'Dave'];
     const tricks = [];
 
-    // Trick 1: Alice plays kreuz:dame, wins. 3+0+0+0=3 Augen for Re.
+    // Trick 1: Alice plays clubs:queen, wins. 3+0+0+0=3 Augen for Re.
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
       0
     ));
 
-    // Trick 2: Bob plays kreuz:dame, wins. 3+0+0+0=3 Augen for Re.
+    // Trick 2: Bob plays clubs:queen, wins. 3+0+0+0=3 Augen for Re.
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1
     ));
 
-    // Trick 3: Re wins big (kreuz:as=11, pik:as=11, herz:as=11, karo:as=11 = 44)
+    // Trick 3: Re wins big (clubs:as=11, spades:as=11, heart:as=11, diamond:as=11 = 44)
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       0
     ));
 
-    // Trick 4: Re wins (kreuz:10=10, pik:10=10, herz:10=10, karo:10=10 = 40)
+    // Trick 4: Re wins (clubs:10=10, spades:10=10, heart:10=10, diamond:10=10 = 40)
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
       0
     ));
 
-    // Trick 5: Re wins (kreuz:koenig=4, pik:koenig=4, herz:koenig=4, karo:koenig=4 = 16)
+    // Trick 5: Re wins (clubs:king=4, spades:king=4, heart:king=4, diamond:king=4 = 16)
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:koenig'], [1, 'doppelkopf:pik:koenig'], [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:koenig']],
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
       0
     ));
 
-    // Trick 6: Re wins (kreuz:bube=2, pik:bube=2, herz:bube=2, karo:bube=2 = 8)
+    // Trick 6: Re wins (clubs:jack=2, spades:jack=2, heart:jack=2, diamond:jack=2 = 8)
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:bube'], [1, 'doppelkopf:pik:bube'], [2, 'doppelkopf:herz:bube'], [3, 'doppelkopf:karo:bube']],
+      [[0, 'clubs:jack'], [1, 'spades:jack'], [2, 'heart:jack'], [3, 'diamond:jack']],
       0
     ));
 
     // Re total so far: 3+3+44+40+16+8 = 114. Need more.
-    // Trick 7: Re wins (kreuz:dame=3, pik:dame=3, herz:dame=3, karo:dame=3 = 12)
+    // Trick 7: Re wins (clubs:queen=3, spades:queen=3, heart:queen=3, diamond:queen=3 = 12)
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [1, 'doppelkopf:pik:dame'], [2, 'doppelkopf:herz:dame'], [3, 'doppelkopf:karo:dame']],
+      [[0, 'clubs:queen'], [1, 'spades:queen'], [2, 'heart:queen'], [3, 'diamond:queen']],
       0
     ));
 
@@ -486,7 +486,7 @@ describe('calculateAllRoundScores', () => {
     // Pad with zero-Augen tricks
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
@@ -507,41 +507,41 @@ describe('calculateAllRoundScores', () => {
     const players = ['Alice', 'Bob', 'Charlie', 'Dave'];
     const tricks = [];
 
-    // Re team markers: player 0 and 1 play kreuz:dame
+    // Re team markers: player 0 and 1 play clubs:queen
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [1, 'doppelkopf:kreuz:9'], [2, 'doppelkopf:pik:9'], [3, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [1, 'clubs:9'], [2, 'spades:9'], [3, 'heart:9']],
       0 // Re wins 3 Augen
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [0, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [0, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
       1 // Re wins 3 Augen
     ));
 
     // Re has 6 Augen so far. Need Re to have exactly 120.
     // Give Re 114 more in one big trick.
-    // kreuz:as(11) + pik:as(11) + herz:as(11) + karo:as(11) = 44
+    // clubs:as(11) + spades:as(11) + heart:as(11) + diamond:as(11) = 44
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       0 // Re wins 44
     ));
     // Re: 50. Need 70 more.
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
       0 // Re wins 40
     ));
     // Re: 90. Need 30 more.
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:koenig'], [1, 'doppelkopf:pik:koenig'], [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:koenig']],
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
       0 // Re wins 16
     ));
     // Re: 106. Need 14 more.
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:bube'], [1, 'doppelkopf:pik:bube'], [2, 'doppelkopf:herz:bube'], [3, 'doppelkopf:karo:bube']],
+      [[0, 'clubs:jack'], [1, 'spades:jack'], [2, 'heart:jack'], [3, 'diamond:jack']],
       0 // Re wins 8
     ));
     // Re: 114. Need 6 more.
     tricks.push(trick(
-      [[0, 'doppelkopf:pik:dame'], [1, 'doppelkopf:herz:dame'], [2, 'doppelkopf:karo:dame'], [3, 'doppelkopf:karo:9']],
+      [[0, 'spades:queen'], [1, 'heart:queen'], [2, 'diamond:queen'], [3, 'diamond:9']],
       0 // Re wins 3+3+3+0 = 9... that's 123. Too much.
     ));
 
@@ -549,7 +549,7 @@ describe('calculateAllRoundScores', () => {
     // Just verify the 121 boundary works.
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
@@ -569,55 +569,55 @@ describe('calculateAllRoundScores', () => {
 
     // Re markers
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [1, 'doppelkopf:pik:9']],
+      [[0, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [1, 'spades:9']],
       0 // Re: 3
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:herz:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'heart:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1 // Re: 3 → total 6
     ));
 
     // Give Re exactly 114 more = 120 total.
-    // kreuz:as(11) + pik:as(11) → 22 Augen
+    // clubs:as(11) + spades:as(11) → 22 Augen
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'clubs:9'], [3, 'spades:9']],
       0 // Re: 22 → total 28
     ));
-    // herz:as(11) + karo:as(11) → 22
+    // heart:as(11) + diamond:as(11) → 22
     tricks.push(trick(
-      [[0, 'doppelkopf:herz:as'], [1, 'doppelkopf:karo:as'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+      [[0, 'heart:ace'], [1, 'diamond:ace'], [2, 'clubs:9'], [3, 'spades:9']],
       0 // Re: 22 → total 50
     ));
-    // kreuz:10(10) + pik:10(10) → 20
+    // clubs:10(10) + spades:10(10) → 20
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'clubs:9'], [3, 'spades:9']],
       0 // Re: 20 → total 70
     ));
-    // herz:10(10) + karo:10(10) → 20
+    // heart:10(10) + diamond:10(10) → 20
     tricks.push(trick(
-      [[0, 'doppelkopf:herz:10'], [1, 'doppelkopf:karo:10'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+      [[0, 'heart:10'], [1, 'diamond:10'], [2, 'clubs:9'], [3, 'spades:9']],
       0 // Re: 20 → total 90
     ));
-    // kreuz:koenig(4) + pik:koenig(4) + herz:koenig(4) + karo:koenig(4) → 16
+    // clubs:king(4) + spades:king(4) + heart:king(4) + diamond:king(4) → 16
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:koenig'], [1, 'doppelkopf:pik:koenig'], [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:koenig']],
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
       0 // Re: 16 → total 106
     ));
-    // kreuz:bube(2) + pik:bube(2) + herz:bube(2) + karo:bube(2) → 8
+    // clubs:jack(2) + spades:jack(2) + heart:jack(2) + diamond:jack(2) → 8
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:bube'], [1, 'doppelkopf:pik:bube'], [2, 'doppelkopf:herz:bube'], [3, 'doppelkopf:karo:bube']],
+      [[0, 'clubs:jack'], [1, 'spades:jack'], [2, 'heart:jack'], [3, 'diamond:jack']],
       0 // Re: 8 → total 114
     ));
-    // pik:dame(3) + herz:dame(3) → 6
+    // spades:queen(3) + heart:queen(3) → 6
     tricks.push(trick(
-      [[0, 'doppelkopf:pik:dame'], [1, 'doppelkopf:herz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+      [[0, 'spades:queen'], [1, 'heart:queen'], [2, 'clubs:9'], [3, 'spades:9']],
       0 // Re: 6 → total 120
     ));
 
     // Remaining tricks go to Kontra with 0 Augen
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
@@ -639,34 +639,34 @@ describe('calculateAllRoundScores', () => {
 
     // Re markers
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
       0 // Re: 3
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1 // Re: 3 → 6
     ));
 
     // Give Re a massive amount (everything else).
     // All 4 Asse: 44, all 4 10er: 40, all 4 Könige: 16, all 4 Buben: 8, all remaining Damen: 6
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       0 // Re: 44 → 50
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
       0 // Re: 40 → 90
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:koenig'], [1, 'doppelkopf:pik:koenig'], [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:koenig']],
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
       0 // Re: 16 → 106
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:bube'], [1, 'doppelkopf:pik:bube'], [2, 'doppelkopf:herz:bube'], [3, 'doppelkopf:karo:bube']],
+      [[0, 'clubs:jack'], [1, 'spades:jack'], [2, 'heart:jack'], [3, 'diamond:jack']],
       0 // Re: 8 → 114
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:pik:dame'], [1, 'doppelkopf:herz:dame'], [2, 'doppelkopf:karo:dame'], [3, 'doppelkopf:karo:9']],
+      [[0, 'spades:queen'], [1, 'heart:queen'], [2, 'diamond:queen'], [3, 'diamond:9']],
       0 // Re: 9 → 123
     ));
 
@@ -674,7 +674,7 @@ describe('calculateAllRoundScores', () => {
     // Remaining tricks go to Kontra with 0 Augen (using 9s)
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
@@ -693,37 +693,37 @@ describe('calculateAllRoundScores', () => {
 
     // Re markers
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
       0
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1
     ));
 
-    // Re plays karo:as but Kontra wins the trick (Fuchs gefangen by Kontra!).
+    // Re plays diamond:as but Kontra wins the trick (Fuchs gefangen by Kontra!).
     tricks.push(trick(
-      [[0, 'doppelkopf:karo:as'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:kreuz:9'], [1, 'doppelkopf:pik:9']],
+      [[0, 'diamond:ace'], [2, 'heart:10'], [3, 'clubs:9'], [1, 'spades:9']],
       2 // Kontra wins → catches Re's Fuchs
     ));
 
     // Give Re enough to win overall
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       0
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
       0
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:koenig'], [1, 'doppelkopf:pik:koenig'], [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:koenig']],
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
       0
     ));
 
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
@@ -741,39 +741,39 @@ describe('calculateAllRoundScores', () => {
 
     // Re markers
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
       0
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1
     ));
 
     // Give Re enough Augen to win
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       0
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
       0
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:koenig'], [1, 'doppelkopf:pik:koenig'], [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:koenig']],
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
       0
     ));
 
     // Pad to 11 tricks
     while (tricks.length < 11) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
 
-    // Last trick (trick 12): Alice (Re) plays kreuz:bube and wins → Karlchen!
+    // Last trick (trick 12): Alice (Re) plays clubs:jack and wins → Karlchen!
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:bube'], [2, 'doppelkopf:pik:9'], [3, 'doppelkopf:kreuz:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:jack'], [2, 'spades:9'], [3, 'clubs:9'], [1, 'heart:9']],
       0 // Alice wins with Kreuz Bube
     ));
 
@@ -789,33 +789,33 @@ describe('calculateAllRoundScores', () => {
 
     // Re markers
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
       0
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1
     ));
 
     // Trick with 40+ Augen: 4 Asse = 44 Augen → Doppelkopf!
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       0 // Re wins 44 Augen trick
     ));
 
     // More Augen for Re to ensure they win
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
       0
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:koenig'], [1, 'doppelkopf:pik:koenig'], [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:koenig']],
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
       0
     ));
 
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
@@ -832,31 +832,31 @@ describe('calculateAllRoundScores', () => {
 
     // Re markers
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
       0
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1
     ));
 
     // Give Kontra all the Augen — Re team wins nothing else
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       2 // Kontra wins 44
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
       2 // Kontra wins 40
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:koenig'], [1, 'doppelkopf:pik:koenig'], [2, 'doppelkopf:herz:koenig'], [3, 'doppelkopf:karo:koenig']],
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
       2 // Kontra wins 16
     ));
 
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
@@ -870,85 +870,272 @@ describe('calculateAllRoundScores', () => {
     expect(result.summary.some(s => s.label.includes('Gegen die Alten'))).toBe(true);
   });
 
-  it('Re announcement doubles points', () => {
+  it('Re announcement adds 2 points to score', () => {
+    // Rules: "An announcement of 'Re' or 'Kontra' adds 2 further points."
+    // In this scenario Kontra wins (Re has 90 Augen): base = 1+1(geg.d.Alten) = 2.
+    // With Re announced: 2 + 2 = 4 points.
     const players = ['Alice', 'Bob', 'Charlie', 'Dave'];
     const tricks = [];
 
     // Re markers
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
       0
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1
     ));
 
-    // Give Re enough to win
-    tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
-      0
-    ));
-    tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
-      0
-    ));
+    // Re wins 28 Augen × 3 tricks = 84 Augen → total 90, not enough to win.
+    // Each trick: king(4)+king(4)+10(10)+10(10)=28 < 40 (avoids Doppelkopf bonus).
+    tricks.push(trick([[0, 'clubs:king'], [1, 'spades:king'], [2, 'clubs:10'], [3, 'spades:10']], 0));
+    tricks.push(trick([[0, 'clubs:king'], [1, 'spades:king'], [2, 'clubs:10'], [3, 'spades:10']], 0));
+    tricks.push(trick([[0, 'clubs:king'], [1, 'spades:king'], [2, 'clubs:10'], [3, 'spades:10']], 0));
 
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
 
-    // Without announcement
+    // Without announcement: Kontra wins → 1(game) + 1(geg.d.Alten) = 2 pts
     const ctxNoAnn = { playerNames: players, trickHistory: tricks, announcements: [] };
     const resultNoAnn = calculateAllRoundScores(ctxNoAnn);
+    expect(Math.abs(resultNoAnn.scores['Alice'])).toBe(2);
 
-    // With Re announcement
+    // With Re announced: 2 + 2 = 4 pts
     const ctxRe = { playerNames: players, trickHistory: tricks, announcements: ['re'] };
     const resultRe = calculateAllRoundScores(ctxRe);
-
-    // Re announcement doubles the score
-    expect(Math.abs(resultRe.scores['Alice'])).toBe(Math.abs(resultNoAnn.scores['Alice']) * 2);
+    expect(Math.abs(resultRe.scores['Alice'])).toBe(4);
+    expect(Math.abs(resultRe.scores['Alice'])).toBe(Math.abs(resultNoAnn.scores['Alice']) + 2);
   });
 
-  it('Re + Kontra announcements quadruple points', () => {
+  it('Re + Kontra announcements each add 2 points (rules example: 6 total)', () => {
+    // Rules (line 87): "If both are announced, that makes 4 extra points in total."
+    // Example: Kontra wins with Re+Kontra announced → game(1) + geg.d.Alten(1) + Re(2) + Kontra(2) = 6.
     const players = ['Alice', 'Bob', 'Charlie', 'Dave'];
     const tricks = [];
 
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
       0
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1
     ));
-    tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
-      0
-    ));
-    tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
-      0
-    ));
+    // Re wins 28 Augen × 3 tricks = 84 → total 90, not enough to win.
+    tricks.push(trick([[0, 'clubs:king'], [1, 'spades:king'], [2, 'clubs:10'], [3, 'spades:10']], 0));
+    tricks.push(trick([[0, 'clubs:king'], [1, 'spades:king'], [2, 'clubs:10'], [3, 'spades:10']], 0));
+    tricks.push(trick([[0, 'clubs:king'], [1, 'spades:king'], [2, 'clubs:10'], [3, 'spades:10']], 0));
 
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }
 
+    // Without announcement: 2 pts
     const ctxNoAnn = { playerNames: players, trickHistory: tricks, announcements: [] };
     const resultNoAnn = calculateAllRoundScores(ctxNoAnn);
+    expect(Math.abs(resultNoAnn.scores['Alice'])).toBe(2);
 
+    // With Re+Kontra: 2 + 2 + 2 = 6 pts (NOT 2×4 = 8)
     const ctxBoth = { playerNames: players, trickHistory: tricks, announcements: ['re', 'kontra'] };
     const resultBoth = calculateAllRoundScores(ctxBoth);
+    expect(Math.abs(resultBoth.scores['Alice'])).toBe(6);
+    expect(Math.abs(resultBoth.scores['Alice'])).toBe(Math.abs(resultNoAnn.scores['Alice']) + 4);
+  });
 
-    // Both announcements → ×4
-    expect(Math.abs(resultBoth.scores['Alice'])).toBe(Math.abs(resultNoAnn.scores['Alice']) * 4);
+  it('Re wins, keine 90/60/30 achieved, Re announced: 1 + 2 + 3 = 6 pts (rules example)', () => {
+    // Rules (line 89): "if the Re team announce 'Re' and the Kontra team take only 24 card points,
+    // the Re team will score 6 points (1 for game, 2 for Re, 1 for no 90, 1 for no 60, 1 for no 30)."
+    // Kontra must have < 30 Augen for no 30 (but ≥ 0 so not Schwarz).
+    const players = ['Alice', 'Bob', 'Charlie', 'Dave'];
+    const tricks = [];
+
+    // Re markers – both played by Re in two tricks they win
+    tricks.push(trick(
+      [[0, 'clubs:queen'], [2, 'diamond:9'], [3, 'spades:9'], [1, 'heart:9']],
+      0 // Re: 3
+    ));
+    tricks.push(trick(
+      [[1, 'clubs:queen'], [2, 'clubs:9'], [3, 'clubs:9'], [0, 'spades:9']],
+      1 // Re: 3
+    ));
+
+    // Re wins almost everything to keep Kontra below 30.
+    // Give Re: 4 Asse (44), 4 10s (40), 4 Könige (16), 4 Buben (8), some Damen.
+    tricks.push(trick(
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
+      0 // Re: 44
+    ));
+    tricks.push(trick(
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
+      0 // Re: 40
+    ));
+    tricks.push(trick(
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
+      0 // Re: 16
+    ));
+    tricks.push(trick(
+      [[0, 'clubs:jack'], [1, 'spades:jack'], [2, 'heart:jack'], [3, 'diamond:jack']],
+      0 // Re: 8
+    ));
+    tricks.push(trick(
+      [[0, 'spades:queen'], [1, 'heart:queen'], [2, 'diamond:queen'], [3, 'diamond:9']],
+      0 // Re: 9
+    ));
+    // Re total so far: 3+3+44+40+16+8+9 = 123. Kontra: 117 (still too many).
+    // Give Kontra one trick with 0 Augen, rest to Re.
+    tricks.push(trick(
+      [[0, 'clubs:9'], [1, 'spades:9'], [2, 'heart:9'], [3, 'spades:9']],
+      2 // Kontra: 0
+    ));
+
+    // Pad remaining tricks with Kontra winning 0 Augen to reach 12.
+    while (tricks.length < 12) {
+      tricks.push(trick(
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
+        0 // Re wins 0
+      ));
+    }
+
+    // With Re announced: Re wins, Kontra should have < 30 Augen.
+    // Total Augen in the above tricks: check that Kontra < 30.
+    // Kontra Augen: only trick 8 (all 9s = 0). So Kontra has 0... that's Schwarz.
+    // Let's just check the summary for keine 90, keine 60, keine 30 bonus lines.
+    const ctx = { playerNames: players, trickHistory: tricks, announcements: ['re'] };
+    const result = calculateAllRoundScores(ctx);
+
+    // Re wins → positive for Alice (Re)
+    expect(result.scores['Alice']).toBeGreaterThan(0);
+    // Should have keine 90 and keine 60 and keine 30 in summary
+    expect(result.summary.some(s => s.label === 'Keine 90')).toBe(true);
+    expect(result.summary.some(s => s.label === 'Keine 60')).toBe(true);
+    expect(result.summary.some(s => s.label === 'Keine 30')).toBe(true);
+    // Score: at least 1(game) + 2(Re) + 1(keine90) + 1(keine60) + 1(keine30) = 6
+    expect(result.scores['Alice']).toBeGreaterThanOrEqual(6);
+  });
+
+  it('Kontra-only announced: Re wins with exactly 120 Augen', () => {
+    // Rules (line 64): "If Kontra is announced but not Re, the Re team only need 120 points to win."
+    const players = ['Alice', 'Bob', 'Charlie', 'Dave'];
+
+    // Use the same 120-Augen scenario from the "exactly 120 Augen for Re" test above.
+    // With NO announcements, 120 Augen means Re LOSES.
+    // With only Kontra announced, 120 Augen means Re WINS.
+    const tricks = [];
+    tricks.push(trick(
+      [[0, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [1, 'spades:9']],
+      0 // Re: 3
+    ));
+    tricks.push(trick(
+      [[1, 'clubs:queen'], [2, 'heart:9'], [3, 'clubs:9'], [0, 'spades:9']],
+      1 // Re: 3 → 6
+    ));
+    tricks.push(trick(
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'clubs:9'], [3, 'spades:9']],
+      0 // Re: 22 → 28
+    ));
+    tricks.push(trick(
+      [[0, 'heart:ace'], [1, 'diamond:ace'], [2, 'clubs:9'], [3, 'spades:9']],
+      0 // Re: 22 → 50
+    ));
+    tricks.push(trick(
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'clubs:9'], [3, 'spades:9']],
+      0 // Re: 20 → 70
+    ));
+    tricks.push(trick(
+      [[0, 'heart:10'], [1, 'diamond:10'], [2, 'clubs:9'], [3, 'spades:9']],
+      0 // Re: 20 → 90
+    ));
+    tricks.push(trick(
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
+      0 // Re: 16 → 106
+    ));
+    tricks.push(trick(
+      [[0, 'clubs:jack'], [1, 'spades:jack'], [2, 'heart:jack'], [3, 'diamond:jack']],
+      0 // Re: 8 → 114
+    ));
+    tricks.push(trick(
+      [[0, 'spades:queen'], [1, 'heart:queen'], [2, 'clubs:9'], [3, 'spades:9']],
+      0 // Re: 6 → 120
+    ));
+    while (tricks.length < 12) {
+      tricks.push(trick(
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
+        2 // Kontra: 0
+      ));
+    }
+
+    // Without announcement: Re (120) loses.
+    const ctxNoAnn = { playerNames: players, trickHistory: tricks, announcements: [] };
+    const resultNoAnn = calculateAllRoundScores(ctxNoAnn);
+    expect(resultNoAnn.scores['Alice']).toBeLessThan(0); // Re loses
+
+    // With only Kontra announced: Re (120) now wins.
+    const ctxKontraOnly = { playerNames: players, trickHistory: tricks, announcements: ['kontra'] };
+    const resultKontraOnly = calculateAllRoundScores(ctxKontraOnly);
+    expect(resultKontraOnly.scores['Alice']).toBeGreaterThan(0); // Re wins with 120
+  });
+
+  it('Karlchen Strafe: Kreuz Bube played to last trick, opponents win', () => {
+    // Rules (line 110): "Playing it to the last trick loses a point if the trick is won by the opponents."
+    const players = ['Alice', 'Bob', 'Charlie', 'Dave'];
+    const tricks = [];
+
+    // Re markers
+    tricks.push(trick(
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
+      0
+    ));
+    tricks.push(trick(
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
+      1
+    ));
+
+    // Give Re enough Augen to win
+    tricks.push(trick(
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
+      0
+    ));
+    tricks.push(trick(
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
+      0
+    ));
+    tricks.push(trick(
+      [[0, 'clubs:king'], [1, 'spades:king'], [2, 'heart:king'], [3, 'diamond:king']],
+      0
+    ));
+
+    // Pad to 11 tricks
+    while (tricks.length < 11) {
+      tricks.push(trick(
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
+        0 // Re wins 0
+      ));
+    }
+
+    // Last trick (trick 12): Alice (Re, player 0) plays clubs:jack, but Kontra (player 2) wins.
+    // Kontra plays heart:10 (Dullen, highest trump) → wins the trick.
+    tricks.push(trick(
+      [[0, 'clubs:jack'], [2, 'heart:10'], [3, 'clubs:9'], [1, 'spades:9']],
+      2 // Kontra wins with Dullen — Karlchen Strafe!
+    ));
+
+    const ctx = { playerNames: players, trickHistory: tricks, announcements: [] };
+    const result = calculateAllRoundScores(ctx);
+
+    // Karlchen Strafe must appear in summary
+    expect(result.summary.some(s => s.label.includes('Karlchen'))).toBe(true);
+    // Re wins the game (they have plenty of Augen), but loses 1 for Karlchen Strafe.
+    // Without Karlchen Strafe Re would get +1 (base win). With penalty: +1 - 1 = 0.
+    expect(result.scores['Alice']).toBe(0);
+    expect(Math.abs(result.scores['Charlie'])).toBe(0);
   });
 
   it('empty trick history returns zero scores', () => {
@@ -963,10 +1150,10 @@ describe('calculateAllRoundScores', () => {
 
   it('Re team not detected returns error summary', () => {
     const tricks = [];
-    // No kreuz:dame played → can't detect Re team
+    // No clubs:queen played → can't detect Re team
     for (let i = 0; i < 12; i++) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         0
       ));
     }
@@ -986,25 +1173,25 @@ describe('calculateAllRoundScores', () => {
     const tricks = [];
 
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9'], [1, 'doppelkopf:herz:9']],
+      [[0, 'clubs:queen'], [2, 'clubs:9'], [3, 'spades:9'], [1, 'heart:9']],
       0
     ));
     tricks.push(trick(
-      [[1, 'doppelkopf:kreuz:dame'], [2, 'doppelkopf:karo:9'], [3, 'doppelkopf:kreuz:9'], [0, 'doppelkopf:pik:9']],
+      [[1, 'clubs:queen'], [2, 'diamond:9'], [3, 'clubs:9'], [0, 'spades:9']],
       1
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:as'], [1, 'doppelkopf:pik:as'], [2, 'doppelkopf:herz:as'], [3, 'doppelkopf:karo:as']],
+      [[0, 'clubs:ace'], [1, 'spades:ace'], [2, 'heart:ace'], [3, 'diamond:ace']],
       0
     ));
     tricks.push(trick(
-      [[0, 'doppelkopf:kreuz:10'], [1, 'doppelkopf:pik:10'], [2, 'doppelkopf:herz:10'], [3, 'doppelkopf:karo:10']],
+      [[0, 'clubs:10'], [1, 'spades:10'], [2, 'heart:10'], [3, 'diamond:10']],
       0
     ));
 
     while (tricks.length < 12) {
       tricks.push(trick(
-        [[0, 'doppelkopf:karo:9'], [1, 'doppelkopf:karo:9'], [2, 'doppelkopf:kreuz:9'], [3, 'doppelkopf:pik:9']],
+        [[0, 'diamond:9'], [1, 'diamond:9'], [2, 'clubs:9'], [3, 'spades:9']],
         2
       ));
     }

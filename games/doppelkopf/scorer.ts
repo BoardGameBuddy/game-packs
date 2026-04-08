@@ -3,29 +3,29 @@
  *
  * TypeScript implementation of Doppelkopf card scoring and trick-winner logic.
  *
- * Card IDs follow the pattern `doppelkopf:<suit>:<value>` where:
- *   suit  = kreuz | pik | herz | karo
- *   value = 9 | 10 | bube | dame | koenig | as
+ * Card IDs follow the pattern `<suit>:<value>` where:
+ *   suit  = clubs | spades | heart | diamond
+ *   value = 9 | 10 | jack | queen | king | ace
  *
  * Each card is present twice in the deck (48 cards total).
  *
  * Trump order (highest → lowest, normal game):
- *   1.  herz:10       (Dullen)
- *   2.  kreuz:dame    (Alten)
- *   3.  pik:dame
- *   4.  herz:dame
- *   5.  karo:dame
- *   6.  kreuz:bube    (Karlchen – makes last trick for extra point)
- *   7.  pik:bube
- *   8.  herz:bube
- *   9.  karo:bube
- *   10. karo:as       (Fuchs)
- *   11. karo:10
- *   12. karo:koenig
- *   13. karo:9
+ *   1.  heart:10      (Dullen)
+ *   2.  clubs:queen   (Alten)
+ *   3.  spades:queen
+ *   4.  heart:queen
+ *   5.  diamond:queen
+ *   6.  clubs:jack    (Karlchen – makes last trick for extra point)
+ *   7.  spades:jack
+ *   8.  heart:jack
+ *   9.  diamond:jack
+ *   10. diamond:ace   (Fuchs)
+ *   11. diamond:10
+ *   12. diamond:king
+ *   13. diamond:9
  *
- * Fehlfarben (kreuz, pik, herz) order: as > 10 > koenig > 9
- * Note: Dame and Bube are always trump regardless of suit; Herz 10 is trump.
+ * Fehlfarben (clubs, spades, heart) order: ace > 10 > king > 9
+ * Note: Queens and Jacks are always trump regardless of suit; Heart 10 is trump.
  */
 
 import type { GamePack, GameState, DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail, LiveEvent, LiveGameState, LiveHudItem, FlutterAction } from '@boardgamebuddy/game-pack-api';
@@ -42,11 +42,11 @@ const t = createTranslator('./texts.json');
 // ---------------------------------------------------------------------------
 
 const AUGEN: Record<string, number> = {
-  as: 11,
+  ace: 11,
   '10': 10,
-  koenig: 4,
-  dame: 3,
-  bube: 2,
+  king: 4,
+  queen: 3,
+  jack: 2,
   '9': 0,
 };
 
@@ -55,26 +55,26 @@ const AUGEN: Record<string, number> = {
 // ---------------------------------------------------------------------------
 
 const TRUMP_RANK: Record<string, number> = {
-  'herz:10': 13,
-  'kreuz:dame': 12,
-  'pik:dame': 11,
-  'herz:dame': 10,
-  'karo:dame': 9,
-  'kreuz:bube': 8,
-  'pik:bube': 7,
-  'herz:bube': 6,
-  'karo:bube': 5,
-  'karo:as': 4,
-  'karo:10': 3,
-  'karo:koenig': 2,
-  'karo:9': 1,
+  'heart:10': 13,
+  'clubs:queen': 12,
+  'spades:queen': 11,
+  'heart:queen': 10,
+  'diamond:queen': 9,
+  'clubs:jack': 8,
+  'spades:jack': 7,
+  'heart:jack': 6,
+  'diamond:jack': 5,
+  'diamond:ace': 4,
+  'diamond:10': 3,
+  'diamond:king': 2,
+  'diamond:9': 1,
 };
 
-// Fehlfarbe rank for As, 10, König, 9 (Dame/Bube are trump, not Fehlfarbe)
+// Fehlfarbe rank for ace, 10, king, 9 (queen/jack are trump, not Fehlfarbe)
 const FEHLFARBE_RANK: Record<string, number> = {
-  as: 4,
+  ace: 4,
   '10': 3,
-  koenig: 2,
+  king: 2,
   '9': 1,
 };
 
@@ -87,8 +87,8 @@ const FEHLFARBE_RANK: Record<string, number> = {
  * Strips the "doppelkopf:" prefix if present.
  *
  * @example
- * parseCard('doppelkopf:kreuz:dame') // → ['kreuz', 'dame']
- * parseCard('herz:10')               // → ['herz', '10']
+ * parseCard('clubs:queen') // → ['clubs', 'queen']
+ * parseCard('heart:10')    // → ['heart', '10']
  */
 export function parseCard(cardId: string): [string, string] {
   const stripped = cardId.startsWith('doppelkopf:')
@@ -111,7 +111,7 @@ export function trumpRank(cardId: string): number {
 /**
  * Returns true if the card is a trump card in normal-game rules.
  *
- * Trump cards: all Damen, all Buben, all Karo, and Herz 10.
+ * Trump cards: all queens, all jacks, all diamonds, and heart:10.
  */
 export function isTrump(cardId: string): boolean {
   return trumpRank(cardId) > 0;
@@ -150,10 +150,10 @@ export function cardAugen(cardId: string): number {
  * Returns a human-readable display name for a card.
  *
  * @example
- * cardDisplayName('doppelkopf:kreuz:dame') // → 'Kreuz Dame'
- * cardDisplayName('doppelkopf:karo:as')    // → 'Karo As (Fuchs)'
- * cardDisplayName('doppelkopf:herz:10')    // → 'Herz 10 (Dullen)'
- * cardDisplayName('doppelkopf:kreuz:bube') // → 'Kreuz Bube (Karlchen)'
+ * cardDisplayName('clubs:queen')   // → 'Clubs Queen (Alten)'
+ * cardDisplayName('diamond:ace')   // → 'Diamond Ace (Fuchs)'
+ * cardDisplayName('heart:10')      // → 'Heart 10 (Dullen)'
+ * cardDisplayName('clubs:jack')    // → 'Clubs Jack (Karlchen)'
  */
 export function cardDisplayName(cardId: string): string {
   const [suit, value] = parseCard(cardId);
@@ -163,9 +163,9 @@ export function cardDisplayName(cardId: string): string {
   let name = `${suitName} ${valueName}`;
 
   // Special nicknames
-  if (suit === 'herz' && value === '10') name += ` (${t('cards.dullen', 'Dullen')})`;
-  if (suit === 'karo' && value === 'as') name += ` (${t('cards.fuchs', 'Fuchs')})`;
-  if (suit === 'kreuz' && value === 'bube') name += ` (${t('cards.karlchen', 'Karlchen')})`;
+  if (suit === 'heart' && value === '10') name += ` (${t('cards.dullen', 'Dullen')})`;
+  if (suit === 'diamond' && value === 'ace') name += ` (${t('cards.fuchs', 'Fuchs')})`;
+  if (suit === 'clubs' && value === 'jack') name += ` (${t('cards.karlchen', 'Karlchen')})`;
 
   return name;
 }
@@ -268,7 +268,7 @@ function detectReTeam(trickHistory: TrickRecord[]): Set<number> {
   for (const trick of trickHistory) {
     for (const [playerIdx, cardId] of trick.cards) {
       const [suit, value] = parseCard(cardId);
-      if (suit === 'kreuz' && value === 'dame') {
+      if (suit === 'clubs' && value === 'queen') {
         reMembers.add(playerIdx);
       }
     }
@@ -321,7 +321,7 @@ function detectExtras(
   for (const trick of trickHistory) {
     for (const [playerIdx, cardId] of trick.cards) {
       const [suit, value] = parseCard(cardId);
-      if (suit === 'karo' && value === 'as') {
+      if (suit === 'diamond' && value === 'ace') {
         const playerIsRe = reTeam.has(playerIdx);
         const winnerIsRe = reTeam.has(trick.winnerIndex);
         if (playerIsRe && !winnerIsRe) {
@@ -333,14 +333,25 @@ function detectExtras(
     }
   }
 
-  // Karlchen letzter Stich: Kreuz Bube wins the last trick.
+  // Karlchen letzter Stich: Kreuz Bube in last trick.
+  //   - Karlchen player wins the trick → bonus for their team
+  //   - Partner wins the trick → no score
+  //   - Opponent wins the trick → penalty for the Karlchen player's team
   if (trickHistory.length > 0) {
     const lastTrick = trickHistory[trickHistory.length - 1];
     for (const [playerIdx, cardId] of lastTrick.cards) {
       const [suit, value] = parseCard(cardId);
-      if (suit === 'kreuz' && value === 'bube' && playerIdx === lastTrick.winnerIndex) {
+      if (suit === 'clubs' && value === 'jack') {
+        const playerIsRe = reTeam.has(playerIdx);
         const winnerIsRe = reTeam.has(lastTrick.winnerIndex);
-        extras.push({ label: t('scoring.karlchen_label', 'Karlchen'), forRe: winnerIsRe });
+        if (playerIdx === lastTrick.winnerIndex) {
+          // Karlchen wins the trick: bonus for their team.
+          extras.push({ label: t('scoring.karlchen_label', 'Karlchen'), forRe: playerIsRe });
+        } else if (playerIsRe !== winnerIsRe) {
+          // Opponent wins the trick: penalty against the Karlchen player's team.
+          extras.push({ label: t('scoring.karlchen_penalty', 'Karlchen Strafe'), forRe: !playerIsRe });
+        }
+        // Partner wins: no score — nothing pushed.
         break;
       }
     }
@@ -368,89 +379,92 @@ function detectExtras(
  * Calculates Spielpunkte (game points) for the round.
  *
  * Base game: Re needs 121+ Augen to win; Kontra wins with 120+.
+ *   Exception: if only Kontra is announced (not Re), Re wins with 120+.
  * Graduated thresholds: keine 90 (+1), keine 60 (+1), keine 30 (+1), schwarz (+1).
- * Extras: +1 each.
- * "Gegen die Alten": +1 if Kontra wins (always counted).
- * Announcements: each doubles the final value (Re doubles, Kontra doubles again).
+ * "Gegen die Alten": +1 if Kontra wins.
+ * Announcements: each adds 2 flat points (Re +2, Kontra +2).
+ * Extras (Fuchs, Karlchen, Doppelkopf): independent of game result and announcements.
  *
- * Returns positive value for Re win, negative for Kontra win.
+ * Returns reScore (positive = Re gains, negative = Kontra gains).
  */
 function calculateSpielPunkte(
   reAugen: number,
   kontraAugen: number,
   extras: ExtraPoint[],
   announcements: string[],
-): { points: number; reWins: boolean; breakdown: { label: string; value: string }[] } {
+): { reScore: number; reWins: boolean; breakdown: { label: string; value: string }[] } {
   const breakdown: { label: string; value: string }[] = [];
 
-  // Determine winner.
-  const reWins = reAugen >= 121;
+  const hasRe = announcements.includes('re');
+  const hasKontra = announcements.includes('kontra');
+
+  // Win condition: if only Kontra is announced (not Re), Re wins at 120+.
+  const reThreshold = (hasKontra && !hasRe) ? 120 : 121;
+  const reWins = reAugen >= reThreshold;
+
   breakdown.push({
     label: reWins ? t('scoring.re_wins', 'Re gewinnt') : t('scoring.kontra_wins', 'Kontra gewinnt'),
     value: `${reAugen} : ${kontraAugen} ${t('scoring.augen_unit', 'Augen')}`,
   });
 
-  // Base point: winning.
-  let points = 1;
+  // --- Game points (all additive, sign applied at the end) ---
+  let gamePoints = 1; // base: winning
 
-  // Gegen die Alten: if Kontra wins, +1 extra point.
+  // Gegen die Alten: +1 if Kontra wins.
   if (!reWins) {
-    points++;
+    gamePoints++;
     breakdown.push({ label: t('scoring.gegen_die_alten', 'Gegen die Alten'), value: '+1' });
   }
 
-  // Graduated thresholds — count for the winning team.
+  // Graduated thresholds — based on the loser's Augen.
   const loserAugen = reWins ? kontraAugen : reAugen;
 
   if (loserAugen < 90) {
-    points++;
+    gamePoints++;
     breakdown.push({ label: t('scoring.keine_90', 'Keine 90'), value: '+1' });
   }
   if (loserAugen < 60) {
-    points++;
+    gamePoints++;
     breakdown.push({ label: t('scoring.keine_60', 'Keine 60'), value: '+1' });
   }
   if (loserAugen < 30) {
-    points++;
+    gamePoints++;
     breakdown.push({ label: t('scoring.keine_30', 'Keine 30'), value: '+1' });
   }
   if (loserAugen === 0) {
-    points++;
+    gamePoints++;
     breakdown.push({ label: t('scoring.schwarz', 'Schwarz'), value: '+1' });
   }
 
-  // Extras.
+  // Announcements: each adds +2 flat (not a multiplier).
+  if (hasRe) {
+    gamePoints += 2;
+    breakdown.push({ label: t('scoring.re_announced', 'Re angesagt'), value: '+2' });
+  }
+  if (hasKontra) {
+    gamePoints += 2;
+    breakdown.push({ label: t('scoring.kontra_announced', 'Kontra angesagt'), value: '+2' });
+  }
+
+  // --- Extras (independent of game result and announcement bonuses) ---
+  // Positive = favours Re, negative = favours Kontra.
+  let netExtras = 0;
   for (const extra of extras) {
-    // Extra points count for the team that achieved them,
-    // regardless of who won the game.
     if (extra.forRe) {
-      points++;
+      netExtras++;
       breakdown.push({ label: extra.label + ' (Re)', value: '+1' });
     } else {
-      // Kontra earned this extra — subtract from Re's perspective.
-      points--;
-      breakdown.push({ label: extra.label + ' (Kontra)', value: '-1' });
+      netExtras--;
+      breakdown.push({ label: extra.label + ' (Kontra)', value: '+1' });
     }
   }
 
-  // Announcements multiply the final value.
-  const hasRe = announcements.includes('re');
-  const hasKontra = announcements.includes('kontra');
-  if (hasRe) {
-    points *= 2;
-    breakdown.push({ label: t('scoring.re_announced', 'Re angesagt'), value: '×2' });
-  }
-  if (hasKontra) {
-    points *= 2;
-    breakdown.push({ label: t('scoring.kontra_announced', 'Kontra angesagt'), value: '×2' });
-  }
+  // Final score from Re's perspective:
+  //   game part is sign-flipped when Kontra wins;
+  //   extras are always directional and never flipped.
+  const reScore = (reWins ? gamePoints : -gamePoints) + netExtras;
 
-  // Sign: positive = Re gains, negative = Kontra gains.
-  if (!reWins) {
-    points = -points;
-  }
-
-  return { points, reWins, breakdown };
+  return { reScore, reWins, breakdown };
 }
 
 /**
@@ -482,7 +496,7 @@ export function calculateAllRoundScores(context: RoundContext): RoundScoreResult
   const extras = detectExtras(trickHistory, reTeam);
 
   // Calculate Spielpunkte.
-  const { points, reWins, breakdown } = calculateSpielPunkte(
+  const { reScore, reWins, breakdown } = calculateSpielPunkte(
     reAugen, kontraAugen, extras, announcements,
   );
 
@@ -501,19 +515,16 @@ export function calculateAllRoundScores(context: RoundContext): RoundScoreResult
     { label: t('scoring.re', 'Re'), value: reNames.join(', ') },
     { label: t('scoring.kontra', 'Kontra'), value: kontraNames.join(', ') },
     ...breakdown,
-    { label: t('scoring.spielpunkte', 'Spielpunkte'), value: `${points > 0 ? '+' : ''}${points}` },
+    { label: t('scoring.spielpunkte', 'Spielpunkte'), value: `${reScore > 0 ? '+' : ''}${reScore}` },
   ];
 
-  // Assign scores: winners get +|points|, losers get -|points|.
-  const absPoints = Math.abs(points);
+  // Assign scores: Re players get reScore, Kontra players get -reScore.
+  // reScore is already sign-aware (positive = Re wins, negative = Kontra wins)
+  // with extras applied independently.
   const scores: Record<string, number> = {};
   for (let i = 0; i < playerNames.length; i++) {
     const isRe = reTeam.has(i);
-    if (reWins) {
-      scores[playerNames[i]] = isRe ? absPoints : -absPoints;
-    } else {
-      scores[playerNames[i]] = isRe ? -absPoints : absPoints;
-    }
+    scores[playerNames[i]] = isRe ? reScore : -reScore;
   }
 
   return { scores, summary };
@@ -577,11 +588,10 @@ function buildScoresDkWithCards(s: DoppelkopfInternal): PlayerScoreResult[] {
       group,
     };
   });
-  return s.players.map(name => ({
+  return s.players.map((name, playerIdx) => ({
     name,
     totalScore: s.cumulativeScores[name] ?? 0,
-    cardDetails: cardDetails.filter(d =>
-      s.currentTrickCards.some(([pi, id]) => id === d.cardId && s.players[pi] === name)),
+    cardDetails: cardDetails.filter((_, i) => s.currentTrickCards[i][0] === playerIdx),
   }));
 }
 

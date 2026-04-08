@@ -83,10 +83,10 @@ describe('trick completion via processCards', () => {
     clearTable(game);
     // All 4 cards appear
     const result = game.processCards([
-      card('doppelkopf:kreuz:dame'),
-      card('doppelkopf:karo:9'),
-      card('doppelkopf:kreuz:9'),
-      card('doppelkopf:pik:9'),
+      card('clubs:queen'),
+      card('diamond:9'),
+      card('clubs:9'),
+      card('spades:9'),
     ]);
     expect(result.actions.some(a => a.type === 'speak')).toBe(true);
   });
@@ -98,22 +98,22 @@ describe('trick completion via processCards', () => {
 
     // Play 12 tricks via processCards
     const reTrickCards = [
-      card('doppelkopf:kreuz:dame'),
-      card('doppelkopf:karo:9'),
-      card('doppelkopf:kreuz:9'),
-      card('doppelkopf:pik:9'),
+      card('clubs:queen'),
+      card('diamond:9'),
+      card('clubs:9'),
+      card('spades:9'),
     ];
     const reTrick2Cards = [
-      card('doppelkopf:kreuz:dame'),
-      card('doppelkopf:herz:9'),
-      card('doppelkopf:kreuz:9'),
-      card('doppelkopf:pik:9'),
+      card('clubs:queen'),
+      card('heart:9'),
+      card('clubs:9'),
+      card('spades:9'),
     ];
     const zeroCards = [
-      card('doppelkopf:kreuz:as'),
-      card('doppelkopf:pik:as'),
-      card('doppelkopf:herz:as'),
-      card('doppelkopf:karo:as'),
+      card('clubs:ace'),
+      card('spades:ace'),
+      card('heart:ace'),
+      card('diamond:ace'),
     ];
 
     game.processCards(reTrickCards);
@@ -141,26 +141,26 @@ describe('processEvent – roundEnded', () => {
 
     // Play 12 tricks
     const cards = [
-      card('doppelkopf:kreuz:dame'),
-      card('doppelkopf:karo:9'),
-      card('doppelkopf:kreuz:9'),
-      card('doppelkopf:pik:9'),
+      card('clubs:queen'),
+      card('diamond:9'),
+      card('clubs:9'),
+      card('spades:9'),
     ];
     const cards2 = [
-      card('doppelkopf:kreuz:dame'),
-      card('doppelkopf:herz:9'),
-      card('doppelkopf:kreuz:9'),
-      card('doppelkopf:pik:9'),
+      card('clubs:queen'),
+      card('heart:9'),
+      card('clubs:9'),
+      card('spades:9'),
     ];
     game.processCards(cards);
     clearTable(game);
     game.processCards(cards2);
     clearTable(game);
     const zeroCards = [
-      card('doppelkopf:karo:9'),
-      card('doppelkopf:karo:9'),
-      card('doppelkopf:kreuz:9'),
-      card('doppelkopf:pik:9'),
+      card('diamond:9'),
+      card('diamond:9'),
+      card('clubs:9'),
+      card('spades:9'),
     ];
     for (let i = 0; i < 10; i++) {
       game.processCards(zeroCards);

@@ -167,6 +167,7 @@ body {
   <label>Players:</label>
   <div class="player-list" id="playerList"></div>
   <button class="add-player-btn" id="addPlayerBtn" title="Add player">+</button>
+  <button class="add-player-btn" id="clearTableBtn" title="Clear table" onclick="clearTable()">Clear table</button>
   <label>Lang:</label>
   <select id="langSelect">
     <option value="de">DE</option>
@@ -589,6 +590,8 @@ function clearTable() {
   instanceCounter = 0;
   updateDrawerDim();
   updateHint();
+  // Simulate enough consecutive empty frames to satisfy EMPTY_CALLS_THRESHOLD
+  for (let i = 0; i < 10; i++) runScorer();
 }
 
 function updateHint() {

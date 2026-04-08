@@ -1,19 +1,19 @@
 {
   "de": {
     "suits": {
-      "kreuz": "Kreuz",
-      "pik": "Pik",
-      "herz": "Herz",
-      "karo": "Karo",
+      "clubs": "Kreuz",
+      "spades": "Pik",
+      "heart": "Herz",
+      "diamond": "Karo",
       "no_trump": "Kein Trumpf"
     },
     "cards": {
       "9": "9",
       "10": "10",
-      "bube": "Bube",
-      "dame": "Dame",
-      "koenig": "König",
-      "as": "As",
+      "jack": "Bube",
+      "queen": "Dame",
+      "king": "König",
+      "ace": "Ass",
       "dullen": "Dullen",
       "fuchs": "Fuchs",
       "karlchen": "Karlchen"
@@ -92,19 +92,19 @@
   },
   "en": {
     "suits": {
-      "kreuz": "Clubs",
-      "pik": "Spades",
-      "herz": "Hearts",
-      "karo": "Diamonds",
+      "clubs": "Clubs",
+      "spades": "Spades",
+      "heart": "Hearts",
+      "diamond": "Diamonds",
       "no_trump": "No Trump"
     },
     "cards": {
       "9": "9",
       "10": "10",
-      "bube": "Jack",
-      "dame": "Queen",
-      "koenig": "King",
-      "as": "Ace",
+      "jack": "Jack",
+      "queen": "Queen",
+      "king": "King",
+      "ace": "Ace",
       "dullen": "Dullen",
       "fuchs": "Fox",
       "karlchen": "Karlchen"
