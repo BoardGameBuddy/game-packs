@@ -145,6 +145,8 @@ body {
 
 .error-box { color: #e94560; background: #2a1525; border: 1px solid #e94560; border-radius: 4px; padding: 8px; margin: 8px 0; font-size: 11px; white-space: pre-wrap; word-break: break-all; }
 
+.live-btn.listening { border-color: #e94560; color: #e94560; }
+
 /* ── Live controls ── */
 .live-controls { padding: 8px 12px; border-top: 1px solid #0f3460; flex-shrink: 0; }
 .live-controls h3 { font-size: 10px; color: #a0a0c0; text-transform: uppercase; margin-bottom: 6px; }
@@ -205,6 +207,7 @@ body {
         <button class="live-btn" onclick="placeBid()">Place Bid</button>
         <span id="bidPlayerLabel" style="font-size:11px;color:#888;"></span>
       </div>
+      <div class="btn-row" id="announcementRow" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -223,6 +226,17 @@ let instanceCounter = 0;
 let playerNames = ['Player 1', 'Player 2'];
 let bidPlayerIndex = 0;
 let dragState = null;         // { instanceId, offsetX, offsetY } during pointer drag
+let activeAnnouncementTriggers = null;
+let announcementRecognizer = null;
+
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+const GERMAN_NUMBERS = {
+  'null': 0, 'eins': 1, 'ein': 1, 'eine': 1, 'zwei': 2, 'drei': 3,
+  'vier': 4, 'fünf': 5, 'sechs': 6, 'sieben': 7, 'acht': 8, 'neun': 9,
+  'zehn': 10, 'elf': 11, 'zwölf': 12, 'dreizehn': 13, 'vierzehn': 14,
+  'fünfzehn': 15, 'sechzehn': 16, 'siebzehn': 17, 'achtzehn': 18, 'neunzehn': 19,
+  'zwanzig': 20,
+};
 
 // ── Init ──
 async function init() {
@@ -238,6 +252,15 @@ async function init() {
   document.getElementById('langSelect').addEventListener('change', () => loadGame(document.getElementById('gameSelect').value));
   document.getElementById('drawerFilter').addEventListener('input', filterDrawer);
   document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
+  if (SpeechRecognitionAPI) {
+    const micBtn = document.createElement('button');
+    micBtn.className = 'live-btn';
+    micBtn.id = 'micBidBtn';
+    micBtn.textContent = '🎤';
+    micBtn.title = 'Speak a number';
+    micBtn.addEventListener('click', startBidListening);
+    document.getElementById('bidRow').appendChild(micBtn);
+  }
   renderPlayerList();
   const initialGame = games.length > 0 ? games[0].id : null;
   if (games.length <= 1) {
@@ -334,6 +357,7 @@ async function loadGame(gameId) {
 
   document.getElementById('liveControls').style.display = currentGame.supportsLiveTracking ? '' : 'none';
   document.getElementById('bidRow').style.display = 'none';
+  stopAnnouncementRow();
 
   clearTable();
   buildDrawer();
@@ -649,6 +673,7 @@ function runScorer() {
   }
 
   renderResults(result);
+  if (gameInstance) handleActions(result);
 }
 
 // ── Live tracking ──
@@ -659,6 +684,7 @@ function fireEvent(type) {
     gameInstance = new scorer.Game(playerNames);
     data = { players: playerNames };
     bidPlayerIndex = 0;
+    stopAnnouncementRow();
   }
   let result;
   try {
@@ -685,6 +711,124 @@ function placeBid() {
   handleActions(result);
 }
 
+function parseGermanNumber(text) {
+  const lower = text.toLowerCase().trim();
+  const m = lower.match(/\d+/);
+  if (m) return parseInt(m[0], 10);
+  for (const [word, val] of Object.entries(GERMAN_NUMBERS)) {
+    if (lower.includes(word)) return val;
+  }
+  return null;
+}
+
+function startBidListening() {
+  if (!SpeechRecognitionAPI) return;
+  const btn = document.getElementById('micBidBtn');
+  btn.disabled = true;
+  btn.textContent = '⏺';
+  const recog = new SpeechRecognitionAPI();
+  recog.lang = 'de-DE';
+  recog.interimResults = false;
+  recog.maxAlternatives = 3;
+  recog.onresult = (e) => {
+    for (let i = 0; i < e.results[0].length; i++) {
+      const n = parseGermanNumber(e.results[0][i].transcript);
+      if (n !== null) {
+        document.getElementById('bidValue').value = n;
+        placeBid();
+        break;
+      }
+    }
+    btn.disabled = false;
+    btn.textContent = '🎤';
+  };
+  recog.onerror = () => { btn.disabled = false; btn.textContent = '🎤'; };
+  recog.onend = () => { btn.disabled = false; btn.textContent = '🎤'; };
+  recog.start();
+}
+
+function fireAnnouncement(key) {
+  if (!gameInstance || !gameInstance.processEvent) return;
+  let result;
+  try {
+    result = gameInstance.processEvent({ type: 'announcementMade', data: { announcement: key } });
+  } catch (e) {
+    console.error('announcementMade error:', e);
+    return;
+  }
+  renderResults(result);
+  handleActions(result);
+}
+
+function renderAnnouncementRow(triggerWords) {
+  const row = document.getElementById('announcementRow');
+  row.innerHTML = '';
+  for (const key of Object.keys(triggerWords)) {
+    const btn = document.createElement('button');
+    btn.className = 'live-btn';
+    btn.textContent = key;
+    btn.addEventListener('click', () => fireAnnouncement(key));
+    row.appendChild(btn);
+  }
+  if (SpeechRecognitionAPI) {
+    const micBtn = document.createElement('button');
+    micBtn.className = 'live-btn';
+    micBtn.id = 'micAnnouncementBtn';
+    micBtn.textContent = '🎤';
+    micBtn.addEventListener('click', () => toggleAnnouncementMic(triggerWords));
+    row.appendChild(micBtn);
+  }
+  row.style.display = '';
+}
+
+function toggleAnnouncementMic(triggerWords) {
+  const btn = document.getElementById('micAnnouncementBtn');
+  if (announcementRecognizer) {
+    announcementRecognizer.stop();
+    announcementRecognizer = null;
+    if (btn) { btn.textContent = '🎤'; btn.classList.remove('listening'); }
+    return;
+  }
+  const recog = new SpeechRecognitionAPI();
+  recog.lang = 'de-DE';
+  recog.continuous = true;
+  recog.interimResults = false;
+  announcementRecognizer = recog;
+  if (btn) { btn.textContent = '⏹'; btn.classList.add('listening'); }
+  recog.onresult = (e) => {
+    const transcript = e.results[e.results.length - 1][0].transcript.toLowerCase().trim();
+    for (const [key, words] of Object.entries(triggerWords)) {
+      if (words.some(w => transcript.includes(w.toLowerCase()))) {
+        fireAnnouncement(key);
+        break;
+      }
+    }
+  };
+  recog.onerror = () => {
+    announcementRecognizer = null;
+    if (btn) { btn.textContent = '🎤'; btn.classList.remove('listening'); }
+  };
+  recog.onend = () => {
+    // Restart if still active (browser stops after silence)
+    if (announcementRecognizer === recog && activeAnnouncementTriggers) {
+      try { recog.start(); } catch (_) {}
+    } else {
+      announcementRecognizer = null;
+      if (btn) { btn.textContent = '🎤'; btn.classList.remove('listening'); }
+    }
+  };
+  recog.start();
+}
+
+function stopAnnouncementRow() {
+  if (announcementRecognizer) {
+    announcementRecognizer.stop();
+    announcementRecognizer = null;
+  }
+  activeAnnouncementTriggers = null;
+  document.getElementById('announcementRow').style.display = 'none';
+}
+
 function handleActions(result) {
   if (!result.actions) return;
   let moreBids = false;
@@ -696,6 +840,13 @@ function handleActions(result) {
       document.getElementById('bidValue').value = '0';
       document.getElementById('bidValue').focus();
       moreBids = true;
+    }
+    if (action.type === 'startAnnouncementListening') {
+      activeAnnouncementTriggers = action.triggerWords || {};
+      renderAnnouncementRow(activeAnnouncementTriggers);
+    }
+    if (action.type === 'stopAnnouncementListening') {
+      stopAnnouncementRow();
     }
   }
   if (!moreBids) document.getElementById('bidRow').style.display = 'none';
