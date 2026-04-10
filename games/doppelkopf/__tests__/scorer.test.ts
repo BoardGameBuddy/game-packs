@@ -59,7 +59,6 @@ describe('isTrump', () => {
   });
 
   it('all Karo cards are trump', () => {
-    expect(isTrump('diamond:9')).toBe(true);
     expect(isTrump('diamond:10')).toBe(true);
     expect(isTrump('diamond:king')).toBe(true);
     expect(isTrump('diamond:ace')).toBe(true);
@@ -73,11 +72,9 @@ describe('isTrump', () => {
     expect(isTrump('clubs:ace')).toBe(false);
     expect(isTrump('clubs:10')).toBe(false);
     expect(isTrump('clubs:king')).toBe(false);
-    expect(isTrump('clubs:9')).toBe(false);
     expect(isTrump('spades:ace')).toBe(false);
     expect(isTrump('heart:ace')).toBe(false);
     expect(isTrump('heart:king')).toBe(false);
-    expect(isTrump('heart:9')).toBe(false);
   });
 });
 
@@ -103,10 +100,9 @@ describe('trumpRank', () => {
     expect(trumpRank('heart:jack')).toBeGreaterThan(trumpRank('diamond:jack'));
   });
 
-  it('Karo trump order: karo as > karo 10 > karo koenig > karo 9', () => {
+  it('Karo trump order: karo as > karo 10 > karo koenig', () => {
     expect(trumpRank('diamond:ace')).toBeGreaterThan(trumpRank('diamond:10'));
     expect(trumpRank('diamond:10')).toBeGreaterThan(trumpRank('diamond:king'));
-    expect(trumpRank('diamond:king')).toBeGreaterThan(trumpRank('diamond:9'));
   });
 
   it('Karo bube has lower rank than any dame', () => {
@@ -148,13 +144,13 @@ describe('cardAugen', () => {
 describe('cardDisplayName', () => {
   it('regular cards', () => {
     expect(cardDisplayName('clubs:queen')).toBe('Kreuz Dame');
-    expect(cardDisplayName('spades:ace')).toBe('Pik As');
+    expect(cardDisplayName('spades:ace')).toBe('Pik Ass');
     expect(cardDisplayName('heart:king')).toBe('Herz König');
   });
 
   it('special nicknames', () => {
     expect(cardDisplayName('heart:10')).toBe('Herz 10 (Dullen)');
-    expect(cardDisplayName('diamond:ace')).toBe('Karo As (Fuchs)');
+    expect(cardDisplayName('diamond:ace')).toBe('Karo Ass (Fuchs)');
     expect(cardDisplayName('clubs:jack')).toBe('Kreuz Bube (Karlchen)');
   });
 });
@@ -164,7 +160,7 @@ describe('determineTrickWinner', () => {
   it('trump beats Fehlfarbe', () => {
     const cards = [
       [0, 'clubs:ace'],    // Fehlfarbe Kreuz As
-      [1, 'diamond:9'],      // trump (lowest)
+      [1, 'diamond:king'],   // trump (lowest)
     ];
     expect(determineTrickWinner(cards, null)).toBe(1);
   });
@@ -198,7 +194,7 @@ describe('determineTrickWinner', () => {
   it('highest Fehlfarbe of led suit wins when no trump played', () => {
     const cards = [
       [0, 'clubs:10'],    // Fehlfarbe Kreuz 10 (rank 3 within suit)
-      [1, 'clubs:ace'],    // Fehlfarbe Kreuz As (rank 4, wins)
+      [1, 'clubs:ace'],    // Fehlfarbe Kreuz Ass (rank 4, wins)
       [2, 'spades:ace'],      // different suit, doesn't win
     ];
     expect(determineTrickWinner(cards, null)).toBe(1);
@@ -206,9 +202,9 @@ describe('determineTrickWinner', () => {
 
   it('off-suit Fehlfarbe cannot win', () => {
     const cards = [
-      [0, 'clubs:9'],     // led Kreuz 9
-      [1, 'spades:ace'],      // Pik As (different suit, cannot win)
-      [2, 'heart:ace'],     // Herz As (different suit, cannot win)
+      [0, 'clubs:king'],   // led Kreuz König
+      [1, 'spades:ace'],   // Pik Ass (different suit, cannot win)
+      [2, 'heart:ace'],    // Herz Ass (different suit, cannot win)
     ];
     expect(determineTrickWinner(cards, null)).toBe(0);
   });
@@ -243,7 +239,7 @@ describe('determineTrickWinner', () => {
     // Even if "herz" is passed as trumpSuit, the standard trump rules apply
     const cards = [
       [0, 'clubs:ace'],    // Fehlfarbe Kreuz As
-      [1, 'diamond:9'],      // karo is always trump
+      [1, 'diamond:king'],   // karo is always trump
     ];
     expect(determineTrickWinner(cards, 'heart')).toBe(1);
   });
@@ -315,7 +311,7 @@ describe('processCards – stateful (via DoppelkopfGame class)', () => {
     const game = makeGame(PLAYERS);
     // Play trick (4 cards = complete for 4 players)
     game.processCards([card('clubs:ace'), card('spades:10'),
-                       card('heart:king'), card('diamond:9')]);
+    card('heart:king'), card('diamond:9')]);
     // Clear table
     for (let i = 0; i < 6; i++) game.processCards([]);
     // New trick should start fresh
@@ -328,7 +324,7 @@ describe('processCards – stateful (via DoppelkopfGame class)', () => {
     const game = makeGame(PLAYERS);
     const result = game.processCards([card('clubs:ace')]);
     const allDetails = result.players.flatMap(p => p.cardDetails);
-    expect(allDetails[0].points).toBe(11); // As = 11 Augen
+    expect(allDetails[0].points).toBe(11); // Ass = 11 Augen
   });
 
   it('card details show trump grouping', () => {
@@ -341,7 +337,7 @@ describe('processCards – stateful (via DoppelkopfGame class)', () => {
   it('trick completion via processCards returns players', () => {
     const game = makeGame(PLAYERS);
     const result = game.processCards([card('clubs:ace'), card('spades:10'),
-                       card('heart:king'), card('diamond:9')]);
+    card('heart:king'), card('diamond:9')]);
     expect(result.players).toHaveLength(4);
   });
 
@@ -687,7 +683,7 @@ describe('calculateAllRoundScores', () => {
     expect(result.summary.some(s => s.label === 'Keine 90')).toBe(true);
   });
 
-  it('Fuchs gefangen: Kontra catches Re Karo As', () => {
+  it('Fuchs gefangen: Kontra catches Re Karo Ass', () => {
     const players = ['Alice', 'Bob', 'Charlie', 'Dave'];
     const tricks = [];
 
