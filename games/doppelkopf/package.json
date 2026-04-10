@@ -1,7 +1,11 @@
 {
   "scripts": {
     "build": "esbuild scorer.ts --bundle --platform=node --target=es2017 --outfile=scorer.js",
-    "test": "jest",
+    "test": "npx jest --config ../../jest.config.js --testPathPattern=doppelkopf",
     "serve": "node ../serve.js"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.6.0"
   }
 }

@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "strict": false
+  },
+  "include": [
+    "games/*/scorer.ts",
+    "games/*/__tests__/*.test.ts"
+  ]
+}

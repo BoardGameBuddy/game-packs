@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "esbuild scorer.ts --bundle --platform=node --target=es2017 --outfile=scorer.js",
-    "test": "jest",
+    "test": "npx jest --config ../../jest.config.js --testPathPattern=faraway",
     "serve": "node ../serve.js"
   }
 }

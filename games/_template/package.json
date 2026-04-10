@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "esbuild scorer.ts --bundle --platform=node --target=es2017 --outfile=scorer.js",
-    "test": "jest",
+    "test": "npx jest --config ../../jest.config.js --testPathPattern=_template",
     "serve": "bgb serve ."
   },
   "dependencies": {

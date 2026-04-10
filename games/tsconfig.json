@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "module": "commonjs",
+    "strict": false,
+    "noEmit": true,
+    "moduleDetection": "force",
+    "typeRoots": ["../node_modules/@types"],
+    "types": ["jest", "node"],
+    "paths": {
+      "@boardgamebuddy/game-pack-api": ["../api/index.ts"]
+    }
+  },
+  "include": [
+    "*/scorer.ts",
+    "*/__tests__/*.test.ts"
+  ]
+}
