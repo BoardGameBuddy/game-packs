@@ -51,7 +51,7 @@ Types are defined in the [`api/`](api/) package (`@boardgamebuddy/game-pack-api`
 {
   "id": "mygame",                          // unique, lowercase, no spaces
   "displayName": "My Game",                // shown in the game selection screen
-  "uniqueCards": false                     // true = each card appears only once
+  "cardCopies": 2                          // how many copies of each card exist (omit = unlimited)
 }
 ```
 

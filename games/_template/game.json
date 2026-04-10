@@ -1,5 +1,6 @@
 {
   "id": "mygame",
   "displayName": "My Game",
-  "uniqueCards": false
+  "minPlayers": 2,
+  "maxPlayers": 4
 }

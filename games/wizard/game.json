@@ -1,7 +1,9 @@
 {
   "id": "wizard",
   "displayName": "Wizard",
-  "uniqueCards": false,
+  "minPlayers": 3,
+  "maxPlayers": 6,
+  "cardCopies": 1,
   "supportsLiveTracking": true,
   "liveTracking": {
     "trumpDetection": true,

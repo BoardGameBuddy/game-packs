@@ -1,5 +1,7 @@
 {
   "id": "mischwald",
   "displayName": "Mischwald",
-  "uniqueCards": false
+  "minPlayers": 2,
+  "maxPlayers": 5,
+  "cardCopies": 1
 }

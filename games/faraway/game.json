@@ -1,5 +1,7 @@
 {
   "id": "faraway",
   "displayName": "Faraway",
-  "uniqueCards": true
+  "minPlayers": 2,
+  "maxPlayers": 6,
+  "cardCopies": 1
 }
