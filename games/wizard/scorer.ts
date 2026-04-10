@@ -21,7 +21,7 @@ import { createTranslator } from '@boardgamebuddy/game-pack-api';
 // Localisation
 // ---------------------------------------------------------------------------
 
-const t = createTranslator('./texts.json');
+const t = createTranslator(require('path').join(__dirname, 'texts.json'));
 
 // ---------------------------------------------------------------------------
 // Card display parsing (mirrors WizardScorer.parseCardDisplay)
