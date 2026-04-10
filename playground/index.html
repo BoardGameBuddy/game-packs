@@ -1,925 +1,1230 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BoardGameBuddy Playground</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  background: #1a1a2e; color: #e0e0e0;
-  height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BoardGameBuddy Playground</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-/* ── Toolbar ── */
-.toolbar {
-  display: flex; gap: 10px; align-items: center; padding: 8px 14px;
-  background: #16213e; border-bottom: 1px solid #0f3460; flex-shrink: 0; flex-wrap: wrap;
-}
-.toolbar label { font-size: 13px; color: #a0a0c0; }
-.toolbar select { background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; padding: 4px 8px; font-size: 13px; }
-.toolbar select:focus { outline: none; border-color: #e94560; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-.player-list { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
-.player-chip {
-  display: flex; align-items: center; gap: 2px;
-  background: #1a1a2e; border: 1px solid #0f3460; border-radius: 4px; padding: 2px 4px;
-}
-.player-chip input {
-  background: transparent; color: #e0e0e0; border: none; width: 80px;
-  font-size: 12px; padding: 2px 4px; outline: none;
-}
-.player-chip input:focus { border-bottom: 1px solid #e94560; }
-.player-chip .remove-player {
-  background: none; border: none; color: #666; cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1;
-}
-.player-chip .remove-player:hover { color: #e94560; }
-.add-player-btn {
-  background: #1a1a2e; border: 1px solid #0f3460; border-radius: 4px;
-  color: #a0a0c0; cursor: pointer; font-size: 16px; padding: 2px 8px; line-height: 1;
-}
-.add-player-btn:hover { border-color: #e94560; color: #e94560; }
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 14px;
+      background: #16213e;
+      border-bottom: 1px solid #0f3460;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
 
-/* ── Main layout ── */
-.main { display: flex; flex: 1; overflow: hidden; }
+    .toolbar label {
+      font-size: 13px;
+      color: #a0a0c0;
+    }
 
-/* ── Card Drawer ── */
-.drawer {
-  width: 230px; background: #16213e; border-right: 1px solid #0f3460;
-  display: flex; flex-direction: column; flex-shrink: 0;
-}
-.drawer-header {
-  padding: 8px 10px; font-size: 11px; font-weight: 600; color: #a0a0c0;
-  text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #0f3460;
-}
-.drawer-filter { padding: 6px 8px; border-bottom: 1px solid #0f3460; }
-.drawer-filter input {
-  width: 100%; background: #1a1a2e; color: #e0e0e0;
-  border: 1px solid #0f3460; border-radius: 4px; padding: 4px 8px; font-size: 12px;
-}
-.drawer-cards { flex: 1; overflow-y: auto; padding: 4px; display: flex; flex-direction: column; gap: 2px; }
+    .toolbar select {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 13px;
+    }
 
-.drawer-card {
-  display: flex; align-items: center; gap: 6px;
-  padding: 4px 6px; background: #1a1a2e; border: 1px solid #2a2a4a;
-  border-radius: 4px; cursor: grab; font-size: 11px;
-  user-select: none; transition: background .15s; flex-shrink: 0;
-}
-.drawer-card:hover { background: #2a2a4a; border-color: #e94560; }
-.drawer-card.on-table { opacity: .35; }
-.drawer-card-thumb {
-  width: 36px; height: 50px; border-radius: 3px; object-fit: cover; flex-shrink: 0;
-  background: #2a2a4a; display: block; border: 1px solid #3a3a5a;
-}
-.drawer-card-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .toolbar select:focus {
+      outline: none;
+      border-color: #e94560;
+    }
 
-/* ── Table ── */
-.table-area { flex: 1; position: relative; overflow: hidden; background: #1a1a2e; }
-.table-surface { width: 100%; height: 100%; position: relative; }
-.table-empty-hint {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  color: #3a3a5a; font-size: 14px; pointer-events: none;
-}
+    .player-list {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
-.table-card {
-  position: absolute;
-  background: #16213e; border: 2px solid #0f3460; border-radius: 6px;
-  cursor: grab; text-align: center;
-  font-size: 10px; user-select: none; z-index: 1;
-  transition: box-shadow .15s; word-break: break-word; line-height: 1.2;
-  overflow: hidden;
-}
-.table-card.has-image { background: transparent; border: none; }
-.table-card:hover { box-shadow: 0 0 12px rgba(233,69,96,.4); }
-.table-card.dragging { opacity: .5; z-index: 100; }
-.table-card img {
-  display: block; width: 100%; height: auto;
-  border-radius: 4px; pointer-events: none;
-}
-.table-card .card-text-label {
-  width: 100%; height: 100%;
-  padding: 4px; display: flex; align-items: center; justify-content: center;
-}
-.rotation-badge {
-  position: absolute; top: 2px; right: 2px; font-size: 9px;
-  background: rgba(0,0,0,.6); color: #aaa; padding: 1px 3px; border-radius: 3px;
-  pointer-events: none; display: none;
-}
-.table-card[data-rotated="true"] .rotation-badge { display: block; }
+    .player-chip {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: #1a1a2e;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
 
-/* ── Results ── */
-.results {
-  width: 300px; background: #16213e; border-left: 1px solid #0f3460;
-  display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden;
-}
-.results-header {
-  padding: 8px 12px; font-size: 11px; font-weight: 600; color: #a0a0c0;
-  text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #0f3460;
-}
-.results-content { flex: 1; overflow-y: auto; padding: 8px 12px; font-size: 12px; }
+    .player-chip input {
+      background: transparent;
+      color: #e0e0e0;
+      border: none;
+      width: 80px;
+      font-size: 12px;
+      padding: 2px 4px;
+      outline: none;
+    }
 
-.player-score { margin-bottom: 12px; }
-.player-score-header {
-  display: flex; justify-content: space-between; padding: 4px 0;
-  font-weight: 600; border-bottom: 1px solid #0f3460; margin-bottom: 4px;
-}
-.player-score-header .total { color: #e94560; }
-.card-group-name { font-size: 10px; color: #a0a0c0; margin-top: 6px; margin-bottom: 2px; font-weight: 600; }
-.card-detail {
-  display: flex; justify-content: space-between; gap: 6px;
-  padding: 2px 0; border-bottom: 1px solid #1a1a2e;
-}
-.card-detail .title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card-detail .points { font-weight: 600; min-width: 30px; text-align: right; }
-.card-detail .points.pos { color: #4ecca3; }
-.card-detail .points.neg { color: #e94560; }
-.card-detail .reason { font-size: 10px; color: #888; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .player-chip input:focus {
+      border-bottom: 1px solid #e94560;
+    }
 
-.hud-section, .actions-section { margin-top: 10px; padding-top: 8px; border-top: 1px solid #0f3460; }
-.hud-section h3, .actions-section h3 { font-size: 10px; color: #a0a0c0; text-transform: uppercase; margin-bottom: 4px; }
-.hud-item { display: flex; justify-content: space-between; padding: 2px 0; font-size: 12px; }
-.hud-item .label { color: #a0a0c0; }
-.action-item { font-size: 11px; color: #888; padding: 1px 0; }
-.action-item .atype { color: #e94560; font-weight: 600; }
+    .player-chip .remove-player {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 2px;
+      line-height: 1;
+    }
 
-.error-box { color: #e94560; background: #2a1525; border: 1px solid #e94560; border-radius: 4px; padding: 8px; margin: 8px 0; font-size: 11px; white-space: pre-wrap; word-break: break-all; }
+    .player-chip .remove-player:hover {
+      color: #e94560;
+    }
 
-.live-btn.listening { border-color: #e94560; color: #e94560; }
+    .add-player-btn {
+      background: #1a1a2e;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      color: #a0a0c0;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 8px;
+      line-height: 1;
+    }
 
-/* ── Live controls ── */
-.live-controls { padding: 8px 12px; border-top: 1px solid #0f3460; flex-shrink: 0; }
-.live-controls h3 { font-size: 10px; color: #a0a0c0; text-transform: uppercase; margin-bottom: 6px; }
-.live-controls .btn-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
-.live-btn {
-  padding: 4px 8px; font-size: 11px; background: #1a1a2e; color: #e0e0e0;
-  border: 1px solid #0f3460; border-radius: 4px; cursor: pointer;
-}
-.live-btn:hover { border-color: #e94560; background: #2a2a4a; }
-.bid-input { width: 40px; text-align: center; background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; border-radius: 4px; font-size: 12px; }
+    .add-player-btn:hover {
+      border-color: #e94560;
+      color: #e94560;
+    }
 
-.placeholder { color: #3a3a5a; padding: 20px 0; text-align: center; }
-</style>
+    /* ── Main layout ── */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Card Drawer ── */
+    .drawer {
+      width: 230px;
+      background: #16213e;
+      border-right: 1px solid #0f3460;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .drawer-header {
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #a0a0c0;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .drawer-filter {
+      padding: 6px 8px;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .drawer-filter input {
+      width: 100%;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+
+    .drawer-cards {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .drawer-card {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 6px;
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 4px;
+      cursor: grab;
+      font-size: 11px;
+      user-select: none;
+      transition: background .15s;
+      flex-shrink: 0;
+    }
+
+    .drawer-card:hover {
+      background: #2a2a4a;
+      border-color: #e94560;
+    }
+
+    .drawer-card.on-table {
+      opacity: .35;
+    }
+
+    .drawer-card-badge {
+      margin-left: auto;
+      font-size: 11px;
+      color: #a0a0c0;
+      background: #1a1a2e;
+      border: 1px solid #3a3a5a;
+      border-radius: 3px;
+      padding: 1px 5px;
+      flex-shrink: 0;
+    }
+
+    .drawer-card-thumb {
+      width: 36px;
+      height: 50px;
+      border-radius: 3px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #2a2a4a;
+      display: block;
+      border: 1px solid #3a3a5a;
+    }
+
+    .drawer-card-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    /* ── Table ── */
+    .table-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #1a1a2e;
+    }
+
+    .table-surface {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .table-empty-hint {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #3a3a5a;
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .table-card {
+      position: absolute;
+      background: #16213e;
+      border: 2px solid #0f3460;
+      border-radius: 6px;
+      cursor: grab;
+      text-align: center;
+      font-size: 10px;
+      user-select: none;
+      z-index: 1;
+      transition: box-shadow .15s;
+      word-break: break-word;
+      line-height: 1.2;
+      overflow: hidden;
+    }
+
+    .table-card.has-image {
+      background: transparent;
+      border: none;
+    }
+
+    .table-card:hover {
+      box-shadow: 0 0 12px rgba(233, 69, 96, .4);
+    }
+
+    .table-card.dragging {
+      opacity: .5;
+      z-index: 100;
+    }
+
+    .table-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    .table-card .card-text-label {
+      width: 100%;
+      height: 100%;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .rotation-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 9px;
+      background: rgba(0, 0, 0, .6);
+      color: #aaa;
+      padding: 1px 3px;
+      border-radius: 3px;
+      pointer-events: none;
+      display: none;
+    }
+
+    .table-card[data-rotated="true"] .rotation-badge {
+      display: block;
+    }
+
+    /* ── Results ── */
+    .results {
+      width: 300px;
+      background: #16213e;
+      border-left: 1px solid #0f3460;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .results-header {
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #a0a0c0;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .results-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .player-score {
+      margin-bottom: 12px;
+    }
+
+    .player-score-header {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-weight: 600;
+      border-bottom: 1px solid #0f3460;
+      margin-bottom: 4px;
+    }
+
+    .player-score-header .total {
+      color: #e94560;
+    }
+
+    .card-group-name {
+      font-size: 10px;
+      color: #a0a0c0;
+      margin-top: 6px;
+      margin-bottom: 2px;
+      font-weight: 600;
+    }
+
+    .card-detail {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 2px 0;
+      border-bottom: 1px solid #1a1a2e;
+    }
+
+    .card-detail .title {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-detail .points {
+      font-weight: 600;
+      min-width: 30px;
+      text-align: right;
+    }
+
+    .card-detail .points.pos {
+      color: #4ecca3;
+    }
+
+    .card-detail .points.neg {
+      color: #e94560;
+    }
+
+    .card-detail .reason {
+      font-size: 10px;
+      color: #888;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hud-section,
+    .actions-section {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #0f3460;
+    }
+
+    .hud-section h3,
+    .actions-section h3 {
+      font-size: 10px;
+      color: #a0a0c0;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .hud-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+      font-size: 12px;
+    }
+
+    .hud-item .label {
+      color: #a0a0c0;
+    }
+
+    .action-item {
+      font-size: 11px;
+      color: #888;
+      padding: 1px 0;
+    }
+
+    .action-item .atype {
+      color: #e94560;
+      font-weight: 600;
+    }
+
+    .error-box {
+      color: #e94560;
+      background: #2a1525;
+      border: 1px solid #e94560;
+      border-radius: 4px;
+      padding: 8px;
+      margin: 8px 0;
+      font-size: 11px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* ── Live controls ── */
+    .live-controls {
+      padding: 8px 12px;
+      border-top: 1px solid #0f3460;
+      flex-shrink: 0;
+    }
+
+    .live-controls h3 {
+      font-size: 10px;
+      color: #a0a0c0;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .live-controls .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .live-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .live-btn:hover {
+      border-color: #e94560;
+      background: #2a2a4a;
+    }
+
+    .bid-input {
+      width: 40px;
+      text-align: center;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .placeholder {
+      color: #3a3a5a;
+      padding: 20px 0;
+      text-align: center;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="toolbar">
-  <label id="gameLabel">Game:</label>
-  <select id="gameSelect"></select>
-  <label>Players:</label>
-  <div class="player-list" id="playerList"></div>
-  <button class="add-player-btn" id="addPlayerBtn" title="Add player">+</button>
-  <button class="add-player-btn" id="clearTableBtn" title="Clear table" onclick="clearTable()">Clear table</button>
-  <label>Lang:</label>
-  <select id="langSelect">
-    <option value="de">DE</option>
-    <option value="en">EN</option>
-  </select>
-</div>
-
-<div class="main">
-  <div class="drawer">
-    <div class="drawer-header">Cards</div>
-    <div class="drawer-filter"><input type="text" id="drawerFilter" placeholder="Filter cards..."></div>
-    <div class="drawer-cards" id="drawerCards"></div>
+  <div class="toolbar">
+    <label id="gameLabel">Game:</label>
+    <select id="gameSelect"></select>
+    <label>Players:</label>
+    <div class="player-list" id="playerList"></div>
+    <button class="add-player-btn" id="addPlayerBtn" title="Add player">+</button>
+    <span id="playerRangeHint" style="font-size:11px;color:#a0a0c0;"></span>
+    <button class="add-player-btn" id="clearTableBtn" title="Clear table" onclick="clearTable()">Clear table</button>
+    <label>Lang:</label>
+    <select id="langSelect">
+      <option value="de">DE</option>
+      <option value="en">EN</option>
+    </select>
   </div>
 
-  <div class="table-area" id="tableArea">
-    <div class="table-surface" id="tableSurface">
-      <div class="table-empty-hint" id="tableHint">Drag cards here</div>
+  <div class="main">
+    <div class="drawer">
+      <div class="drawer-header">Cards</div>
+      <div class="drawer-filter"><input type="text" id="drawerFilter" placeholder="Filter cards..."></div>
+      <div class="drawer-cards" id="drawerCards"></div>
     </div>
-  </div>
 
-  <div class="results">
-    <div class="results-header">Results</div>
-    <div class="results-content" id="resultsContent">
-      <div class="placeholder">Select a game and place cards</div>
-    </div>
-    <div class="live-controls" id="liveControls" style="display:none;">
-      <h3>Live Tracking</h3>
-      <div class="btn-row">
-        <button class="live-btn" onclick="fireEvent('gameStarted')">Start Game</button>
-        <button class="live-btn" onclick="fireEvent('roundEnded')">Round End</button>
+    <div class="table-area" id="tableArea">
+      <div class="table-surface" id="tableSurface">
+        <div class="table-empty-hint" id="tableHint">Drag cards here</div>
       </div>
-      <div class="btn-row" id="bidRow" style="display:none;">
-        <label style="font-size:11px;color:#a0a0c0;">Bid:</label>
-        <input type="number" class="bid-input" id="bidValue" value="0" min="0">
-        <button class="live-btn" onclick="placeBid()">Place Bid</button>
-        <span id="bidPlayerLabel" style="font-size:11px;color:#888;"></span>
+    </div>
+
+    <div class="results">
+      <div class="results-header">Results</div>
+      <div class="results-content" id="resultsContent">
+        <div class="placeholder">Select a game and place cards</div>
       </div>
-      <div class="btn-row" id="announcementRow" style="display:none;"></div>
+      <div class="live-controls" id="liveControls" style="display:none;">
+        <h3>Live Tracking</h3>
+        <div class="btn-row" id="bidRow" style="display:none;">
+          <label style="font-size:11px;color:#a0a0c0;">Bid:</label>
+          <input type="number" class="bid-input" id="bidValue" value="0" min="0">
+          <button class="live-btn" onclick="placeBid()">Place Bid</button>
+          <span id="bidPlayerLabel" style="font-size:11px;color:#888;"></span>
+        </div>
+        <div class="btn-row" id="announcementRow" style="display:none;"></div>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-// ── State ──
-let games = [];
-let currentGame = null;
-let cardIds = [];
-let imageMap = {};            // cardId → image filename (built server-side)
-let cardDisplaySizes = {};   // kind → { w, h } in px (normalized from manifest)
-let scorer = null;
-let gameInstance = null;
-let tableCards = new Map();   // instanceId → { cardId, el, x, y, angle, w, h }
-let instanceCounter = 0;
-let playerNames = ['Player 1', 'Player 2'];
-let bidPlayerIndex = 0;
-let dragState = null;         // { instanceId, offsetX, offsetY } during pointer drag
-let activeAnnouncementTriggers = null;
-let announcementRecognizer = null;
+  <script>
+    // ── State ──
+    let games = [];
+    let currentGame = null;
+    let cardIds = [];
+    let imageMap = {};            // cardId → image filename (built server-side)
+    let cardDisplaySizes = {};   // kind → { w, h } in px (normalized from manifest)
+    let scorer = null;
+    let gameInstance = null;
+    let tableCards = new Map();   // instanceId → { cardId, el, x, y, angle, w, h }
+    let instanceCounter = 0;
+    let roundUsedCounts = {};     // cardId → cumulative count across tricks
+    let playerNames = ['Player 1', 'Player 2'];
+    let bidPlayerIndex = 0;
+    let dragState = null;         // { instanceId, offsetX, offsetY } during pointer drag
+    let activeAnnouncementTriggers = null;
+    let scorerPaused = false;     // true while awaiting table clear
 
-const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition || null;
-const GERMAN_NUMBERS = {
-  'null': 0, 'eins': 1, 'ein': 1, 'eine': 1, 'zwei': 2, 'drei': 3,
-  'vier': 4, 'fünf': 5, 'sechs': 6, 'sieben': 7, 'acht': 8, 'neun': 9,
-  'zehn': 10, 'elf': 11, 'zwölf': 12, 'dreizehn': 13, 'vierzehn': 14,
-  'fünfzehn': 15, 'sechzehn': 16, 'siebzehn': 17, 'achtzehn': 18, 'neunzehn': 19,
-  'zwanzig': 20,
-};
-
-// ── Init ──
-async function init() {
-  games = await fetch('/api/games').then(r => r.json());
-  const sel = document.getElementById('gameSelect');
-  for (const g of games) {
-    const opt = document.createElement('option');
-    opt.value = g.id;
-    opt.textContent = g.displayName;
-    sel.appendChild(opt);
-  }
-  sel.addEventListener('change', () => loadGame(sel.value));
-  document.getElementById('langSelect').addEventListener('change', () => loadGame(document.getElementById('gameSelect').value));
-  document.getElementById('drawerFilter').addEventListener('input', filterDrawer);
-  document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
-  if (SpeechRecognitionAPI) {
-    const micBtn = document.createElement('button');
-    micBtn.className = 'live-btn';
-    micBtn.id = 'micBidBtn';
-    micBtn.textContent = '🎤';
-    micBtn.title = 'Speak a number';
-    micBtn.addEventListener('click', startBidListening);
-    document.getElementById('bidRow').appendChild(micBtn);
-  }
-  renderPlayerList();
-  const initialGame = games.length > 0 ? games[0].id : null;
-  if (games.length <= 1) {
-    document.getElementById('gameLabel').style.display = 'none';
-    sel.style.display = 'none';
-  }
-  if (initialGame) loadGame(initialGame);
-}
-
-// ── Players ──
-function renderPlayerList() {
-  const container = document.getElementById('playerList');
-  container.innerHTML = '';
-  playerNames.forEach((name, i) => {
-    const chip = document.createElement('div');
-    chip.className = 'player-chip';
-    const input = document.createElement('input');
-    input.value = name;
-    input.addEventListener('change', () => {
-      playerNames[i] = input.value || `Player ${i + 1}`;
-      onPlayersChanged();
-    });
-    chip.appendChild(input);
-    if (playerNames.length > 1) {
-      const btn = document.createElement('button');
-      btn.className = 'remove-player';
-      btn.textContent = '\u00d7';
-      btn.addEventListener('click', () => { playerNames.splice(i, 1); renderPlayerList(); onPlayersChanged(); });
-      chip.appendChild(btn);
+    // ── Init ──
+    async function init() {
+      games = await fetch('/api/games').then(r => r.json());
+      const sel = document.getElementById('gameSelect');
+      for (const g of games) {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = g.displayName;
+        sel.appendChild(opt);
+      }
+      sel.addEventListener('change', () => loadGame(sel.value));
+      document.getElementById('langSelect').addEventListener('change', () => loadGame(document.getElementById('gameSelect').value));
+      document.getElementById('drawerFilter').addEventListener('input', filterDrawer);
+      document.getElementById('addPlayerBtn').addEventListener('click', addPlayer);
+      renderPlayerList();
+      const initialGame = games.length > 0 ? games[0].id : null;
+      if (games.length <= 1) {
+        document.getElementById('gameLabel').style.display = 'none';
+        sel.style.display = 'none';
+      }
+      if (initialGame) loadGame(initialGame);
     }
-    container.appendChild(chip);
-  });
-}
 
-function addPlayer() {
-  playerNames.push(`Player ${playerNames.length + 1}`);
-  renderPlayerList();
-  onPlayersChanged();
-}
+    // ── Players ──
+    function getMinPlayers() { return currentGame?.minPlayers ?? 1; }
+    function getMaxPlayers() { return currentGame?.maxPlayers ?? 99; }
 
-function onPlayersChanged() {
-  if (scorer && scorer.Game) {
-    gameInstance = new scorer.Game(playerNames);
-  }
-  runScorer();
-}
-
-// ── Load game ──
-async function loadGame(gameId) {
-  currentGame = games.find(g => g.id === gameId);
-  if (!currentGame) return;
-
-  const [ids, textsData, scorerCode, imgMapData, rawSizes] = await Promise.all([
-    fetch(`/api/games/${gameId}/card-ids`).then(r => r.json()),
-    fetch(`/api/games/${gameId}/file/texts.json`).then(r => r.ok ? r.json() : null).catch(() => null),
-    fetch(`/api/games/${gameId}/file/scorer.js`).then(r => r.text()),
-    fetch(`/api/games/${gameId}/image-map`).then(r => r.json()).catch(() => ({})),
-    fetch(`/api/games/${gameId}/card-sizes`).then(r => r.json()).catch(() => null),
-  ]);
-
-  cardIds = ids;
-  imageMap = imgMapData;
-  cardDisplaySizes = computeDisplaySizes(rawSizes);
-
-  // Inject texts for createTranslator
-  if (textsData) {
-    const lang = document.getElementById('langSelect').value;
-    const langTexts = textsData[lang] || textsData['de'] || {};
-    globalThis.__texts = flattenObj(langTexts);
-  } else {
-    globalThis.__texts = undefined;
-  }
-
-  // Load scorer via CommonJS shim
-  const mod = { exports: {} };
-  try {
-    const fn = new Function('module', 'exports', 'require', scorerCode);
-    fn(mod, mod.exports, (p) => {
-      // esbuild bundles cards.json inline; texts.json require falls back to __texts
-      return {};
-    });
-    scorer = mod.exports;
-  } catch (e) {
-    console.error('Failed to load scorer:', e);
-    scorer = null;
-  }
-
-  // Init game instance for live tracking
-  if (scorer && scorer.Game) {
-    gameInstance = new scorer.Game(playerNames);
-  } else {
-    gameInstance = null;
-  }
-
-  document.getElementById('liveControls').style.display = currentGame.supportsLiveTracking ? '' : 'none';
-  document.getElementById('bidRow').style.display = 'none';
-  stopAnnouncementRow();
-
-  clearTable();
-  buildDrawer();
-  runScorer();
-}
-
-function flattenObj(obj, prefix, out) {
-  out = out || {};
-  for (const k of Object.keys(obj)) {
-    const key = prefix ? `${prefix}.${k}` : k;
-    if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
-      flattenObj(obj[k], key, out);
-    } else {
-      out[key] = String(obj[k]);
+    function updatePlayerRangeHint() {
+      const hint = document.getElementById('playerRangeHint');
+      const min = getMinPlayers();
+      const max = getMaxPlayers();
+      if (min === max) hint.textContent = `(${min} Spieler)`;
+      else if (max >= 99) hint.textContent = `(ab ${min} Spieler)`;
+      else hint.textContent = `(${min}–${max} Spieler)`;
     }
-  }
-  return out;
-}
 
-// ── Card sizing ──
-const BASE_CARD_H = 120; // px — tallest card type will be this height
-
-function computeDisplaySizes(rawSizes) {
-  if (!rawSizes || Object.keys(rawSizes).length === 0) return {};
-  const maxH = Math.max(...Object.values(rawSizes).map(([, h]) => h));
-  const scale = BASE_CARD_H / maxH;
-  const result = {};
-  for (const [kind, [w, h]] of Object.entries(rawSizes)) {
-    result[kind] = { w: Math.round(w * scale), h: Math.round(h * scale) };
-  }
-  return result;
-}
-
-function getCardKind(cardId) {
-  const prefix = currentGame?.liveTracking?.gamePrefix;
-  let label = cardId;
-  if (prefix && cardId.startsWith(prefix + ':')) label = cardId.slice(prefix.length + 1);
-  const idx = label.indexOf(':');
-  return idx === -1 ? label : label.slice(0, idx);
-}
-
-function getDisplaySize(cardId) {
-  const kind = getCardKind(cardId);
-  return cardDisplaySizes[kind] || { w: 80, h: 112 };
-}
-
-// ── Image helpers ──
-function cardIdToImageFile(cardId) {
-  return imageMap[cardId] || null;
-}
-
-function imageUrl(fname) {
-  return `/api/games/${currentGame.id}/images/${encodeURIComponent(fname)}`;
-}
-
-// ── Card label ──
-function resolveLabel(cardId) {
-  // Simple: show the cardId, stripping game prefix
-  const prefix = currentGame?.liveTracking?.gamePrefix;
-  let label = cardId;
-  if (prefix && cardId.startsWith(prefix + ':')) {
-    label = cardId.slice(prefix.length + 1);
-  }
-  // Capitalize and clean up
-  return label.split(':').map(p => {
-    const n = parseInt(p, 10);
-    if (!isNaN(n)) return String(n);
-    return p.charAt(0).toUpperCase() + p.slice(1);
-  }).join(' ');
-}
-
-// ── Drawer ──
-function buildDrawer() {
-  const container = document.getElementById('drawerCards');
-  container.innerHTML = '';
-  for (const cardId of cardIds) {
-    const el = document.createElement('div');
-    el.className = 'drawer-card';
-    el.draggable = true;
-    el.dataset.cardId = cardId;
-    el.title = cardId;
-
-    const imgFile = cardIdToImageFile(cardId);
-    if (imgFile) {
-      const img = document.createElement('img');
-      img.className = 'drawer-card-thumb';
-      img.src = imageUrl(imgFile);
-      img.draggable = false;
-      const { w, h } = getDisplaySize(cardId);
-      const thumbH = 50;
-      img.style.width = Math.round(w / h * thumbH) + 'px';
-      img.style.height = thumbH + 'px';
-      el.appendChild(img);
-    }
-    const span = document.createElement('span');
-    span.className = 'drawer-card-label';
-    span.textContent = resolveLabel(cardId);
-    el.appendChild(span);
-
-    el.addEventListener('dragstart', (e) => {
-      if (currentGame?.uniqueCards && countOnTable(cardId) > 0) { e.preventDefault(); return; }
-      e.dataTransfer.setData('text/plain', cardId);
-      e.dataTransfer.setData('application/x-source', 'drawer');
-    });
-
-    container.appendChild(el);
-  }
-  document.getElementById('drawerFilter').value = '';
-}
-
-function filterDrawer() {
-  const q = document.getElementById('drawerFilter').value.toLowerCase();
-  for (const el of document.querySelectorAll('.drawer-card')) {
-    const show = !q || el.textContent.toLowerCase().includes(q) || el.dataset.cardId.toLowerCase().includes(q);
-    el.style.display = show ? '' : 'none';
-  }
-}
-
-function countOnTable(cardId) {
-  let n = 0;
-  for (const [, c] of tableCards) if (c.cardId === cardId) n++;
-  return n;
-}
-
-function updateDrawerDim() {
-  if (!currentGame?.uniqueCards) {
-    document.querySelectorAll('.drawer-card.on-table').forEach(el => el.classList.remove('on-table'));
-    return;
-  }
-  for (const el of document.querySelectorAll('.drawer-card')) {
-    el.classList.toggle('on-table', countOnTable(el.dataset.cardId) > 0);
-  }
-}
-
-// ── Table: place / move / remove ──
-const tableSurface = document.getElementById('tableSurface');
-
-tableSurface.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
-
-tableSurface.addEventListener('drop', (e) => {
-  e.preventDefault();
-  const cardId = e.dataTransfer.getData('text/plain');
-  if (!cardId) return;
-  const rect = tableSurface.getBoundingClientRect();
-  const { w: cw, h: ch } = getDisplaySize(cardId);
-  const x = e.clientX - rect.left - cw / 2;
-  const y = e.clientY - rect.top - ch / 2;
-  const clampedX = Math.max(0, Math.min(x, rect.width - cw));
-  const clampedY = Math.max(0, Math.min(y, rect.height - ch));
-
-  const source = e.dataTransfer.getData('application/x-source');
-  if (source === 'table') {
-    // Move existing — find by cardId (legacy, pointer-based drag is primary)
-    return;
-  }
-
-  if (currentGame?.uniqueCards && countOnTable(cardId) > 0) return;
-  placeCard(cardId, clampedX, clampedY);
-  updateDrawerDim();
-  updateHint();
-  runScorer();
-});
-
-function placeCard(cardId, x, y) {
-  const id = cardId + '#' + (instanceCounter++);
-  const { w: cw, h: ch } = getDisplaySize(cardId);
-  const el = document.createElement('div');
-  el.className = 'table-card';
-  el.dataset.instanceId = id;
-  el.style.left = x + 'px';
-  el.style.top = y + 'px';
-  el.style.width = cw + 'px';
-  el.style.height = ch + 'px';
-
-  const imgFile = cardIdToImageFile(cardId);
-  if (imgFile) {
-    const img = document.createElement('img');
-    img.src = imageUrl(imgFile);
-    img.draggable = false;
-    el.appendChild(img);
-    el.classList.add('has-image');
-  } else {
-    const lbl = document.createElement('div');
-    lbl.className = 'card-text-label';
-    lbl.style.height = ch + 'px';
-    lbl.textContent = resolveLabel(cardId);
-    el.appendChild(lbl);
-  }
-
-  // Rotation badge
-  const badge = document.createElement('div');
-  badge.className = 'rotation-badge';
-  el.appendChild(badge);
-
-  // Pointer-based drag (more reliable than HTML drag for repositioning)
-  el.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0) return;
-    e.preventDefault();
-    const rect2 = el.getBoundingClientRect();
-    dragState = { instanceId: id, offsetX: e.clientX - rect2.left, offsetY: e.clientY - rect2.top };
-    el.classList.add('dragging');
-    el.setPointerCapture(e.pointerId);
-  });
-  el.addEventListener('pointermove', (e) => {
-    if (!dragState || dragState.instanceId !== id) return;
-    const rect = tableSurface.getBoundingClientRect();
-    const entry = tableCards.get(id);
-    if (!entry) return;
-    entry.x = Math.max(0, Math.min(e.clientX - rect.left - dragState.offsetX, rect.width - entry.w));
-    entry.y = Math.max(0, Math.min(e.clientY - rect.top - dragState.offsetY, rect.height - entry.h));
-    el.style.left = entry.x + 'px';
-    el.style.top = entry.y + 'px';
-  });
-  el.addEventListener('pointerup', (e) => {
-    if (!dragState || dragState.instanceId !== id) return;
-    el.classList.remove('dragging');
-    dragState = null;
-    runScorer();
-  });
-
-  // Scroll wheel to rotate
-  el.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const entry = tableCards.get(id);
-    if (!entry) return;
-    entry.angle += e.deltaY > 0 ? 15 : -15;
-    entry.angle = ((entry.angle % 360) + 360) % 360;
-    el.style.transform = `rotate(${entry.angle}deg)`;
-    el.dataset.rotated = entry.angle !== 0 ? 'true' : 'false';
-    badge.textContent = entry.angle + '\u00b0';
-    runScorer();
-  });
-
-  // Double-click to remove
-  el.addEventListener('dblclick', () => removeCard(id));
-
-  tableSurface.appendChild(el);
-  tableCards.set(id, { cardId, el, x, y, w: cw, h: ch, angle: 0 });
-}
-
-function removeCard(instanceId) {
-  const entry = tableCards.get(instanceId);
-  if (!entry) return;
-  entry.el.remove();
-  tableCards.delete(instanceId);
-  updateDrawerDim();
-  updateHint();
-  runScorer();
-}
-
-function clearTable() {
-  for (const [, c] of tableCards) c.el.remove();
-  tableCards.clear();
-  instanceCounter = 0;
-  updateDrawerDim();
-  updateHint();
-  // Simulate enough consecutive empty frames to satisfy EMPTY_CALLS_THRESHOLD
-  for (let i = 0; i < 10; i++) runScorer();
-}
-
-function updateHint() {
-  document.getElementById('tableHint').style.display = tableCards.size === 0 ? '' : 'none';
-}
-
-// Drop on drawer to remove
-const drawerCards = document.getElementById('drawerCards');
-drawerCards.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
-
-// ── Scorer ──
-function runScorer() {
-  if (!scorer) return;
-  const rect = tableSurface.getBoundingClientRect();
-  const boxes = [];
-
-  for (const [, card] of tableCards) {
-    const cw = card.w, ch = card.h;
-    const x1 = card.x / rect.width;
-    const y1 = card.y / rect.height;
-    const w = cw / rect.width;
-    const h = ch / rect.height;
-    boxes.push({
-      cardId: card.cardId,
-      similarity: 1,
-      confidence: 1,
-      x1, y1,
-      x2: x1 + w,
-      y2: y1 + h,
-      cx: x1 + w / 2,
-      cy: y1 + h / 2,
-      w, h,
-      angle: card.angle * Math.PI / 180,
-      keypoints: null,
-    });
-  }
-
-  let result;
-  try {
-    if (gameInstance) {
-      result = gameInstance.processCards(boxes);
-    } else if (scorer.processCards) {
-      const players = scorer.processCards(boxes, {
-        players: playerNames,
-        similarityThreshold: 0.5,
+    function renderPlayerList() {
+      const container = document.getElementById('playerList');
+      container.innerHTML = '';
+      const min = getMinPlayers();
+      const max = getMaxPlayers();
+      playerNames.forEach((name, i) => {
+        const chip = document.createElement('div');
+        chip.className = 'player-chip';
+        const input = document.createElement('input');
+        input.value = name;
+        input.addEventListener('change', () => {
+          playerNames[i] = input.value || `Player ${i + 1}`;
+          onPlayersChanged();
+        });
+        chip.appendChild(input);
+        if (playerNames.length > min) {
+          const btn = document.createElement('button');
+          btn.className = 'remove-player';
+          btn.textContent = '\u00d7';
+          btn.addEventListener('click', () => { playerNames.splice(i, 1); renderPlayerList(); onPlayersChanged(); });
+          chip.appendChild(btn);
+        }
+        container.appendChild(chip);
       });
-      result = { players };
-    } else {
-      return;
+      document.getElementById('addPlayerBtn').disabled = playerNames.length >= max;
+      updatePlayerRangeHint();
     }
-  } catch (e) {
-    console.error('Scorer error:', e);
-    document.getElementById('resultsContent').innerHTML = `<div class="error-box">${esc(e.message)}\n${esc(e.stack || '')}</div>`;
-    return;
-  }
 
-  renderResults(result);
-  if (gameInstance) handleActions(result);
-}
+    function addPlayer() {
+      if (playerNames.length >= getMaxPlayers()) return;
+      playerNames.push(`Player ${playerNames.length + 1}`);
+      renderPlayerList();
+      onPlayersChanged();
+    }
 
-// ── Live tracking ──
-function fireEvent(type) {
-  if (!gameInstance || !gameInstance.processEvent) return;
-  let data = {};
-  if (type === 'gameStarted') {
-    gameInstance = new scorer.Game(playerNames);
-    data = { players: playerNames };
-    bidPlayerIndex = 0;
-    stopAnnouncementRow();
-  }
-  let result;
-  try {
-    result = gameInstance.processEvent({ type, data });
-  } catch (e) {
-    console.error('processEvent error:', e);
-    return;
-  }
-  renderResults(result);
-  handleActions(result);
-}
-
-function placeBid() {
-  if (!gameInstance || !gameInstance.processEvent) return;
-  const bid = parseInt(document.getElementById('bidValue').value) || 0;
-  let result;
-  try {
-    result = gameInstance.processEvent({ type: 'bidPlaced', data: { playerIndex: bidPlayerIndex, bid } });
-  } catch (e) {
-    console.error('placeBid error:', e);
-    return;
-  }
-  renderResults(result);
-  handleActions(result);
-}
-
-function parseGermanNumber(text) {
-  const lower = text.toLowerCase().trim();
-  const m = lower.match(/\d+/);
-  if (m) return parseInt(m[0], 10);
-  for (const [word, val] of Object.entries(GERMAN_NUMBERS)) {
-    if (lower.includes(word)) return val;
-  }
-  return null;
-}
-
-function startBidListening() {
-  if (!SpeechRecognitionAPI) return;
-  const btn = document.getElementById('micBidBtn');
-  btn.disabled = true;
-  btn.textContent = '⏺';
-  const recog = new SpeechRecognitionAPI();
-  recog.lang = 'de-DE';
-  recog.interimResults = false;
-  recog.maxAlternatives = 3;
-  recog.onresult = (e) => {
-    for (let i = 0; i < e.results[0].length; i++) {
-      const n = parseGermanNumber(e.results[0][i].transcript);
-      if (n !== null) {
-        document.getElementById('bidValue').value = n;
-        placeBid();
-        break;
+    function onPlayersChanged() {
+      if (scorer && scorer.Game) {
+        gameInstance = new scorer.Game(playerNames);
       }
+      runScorer();
     }
-    btn.disabled = false;
-    btn.textContent = '🎤';
-  };
-  recog.onerror = () => { btn.disabled = false; btn.textContent = '🎤'; };
-  recog.onend = () => { btn.disabled = false; btn.textContent = '🎤'; };
-  recog.start();
-}
 
-function fireAnnouncement(key) {
-  if (!gameInstance || !gameInstance.processEvent) return;
-  let result;
-  try {
-    result = gameInstance.processEvent({ type: 'announcementMade', data: { announcement: key } });
-  } catch (e) {
-    console.error('announcementMade error:', e);
-    return;
-  }
-  renderResults(result);
-  handleActions(result);
-}
+    // ── Load game ──
+    async function loadGame(gameId) {
+      currentGame = games.find(g => g.id === gameId);
+      if (!currentGame) return;
 
-function renderAnnouncementRow(triggerWords) {
-  const row = document.getElementById('announcementRow');
-  row.innerHTML = '';
-  for (const key of Object.keys(triggerWords)) {
-    const btn = document.createElement('button');
-    btn.className = 'live-btn';
-    btn.textContent = key;
-    btn.addEventListener('click', () => fireAnnouncement(key));
-    row.appendChild(btn);
-  }
-  if (SpeechRecognitionAPI) {
-    const micBtn = document.createElement('button');
-    micBtn.className = 'live-btn';
-    micBtn.id = 'micAnnouncementBtn';
-    micBtn.textContent = '🎤';
-    micBtn.addEventListener('click', () => toggleAnnouncementMic(triggerWords));
-    row.appendChild(micBtn);
-  }
-  row.style.display = '';
-}
+      const [ids, textsData, scorerCode, imgMapData, rawSizes] = await Promise.all([
+        fetch(`/api/games/${gameId}/card-ids`).then(r => r.json()),
+        fetch(`/api/games/${gameId}/file/texts.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+        fetch(`/api/games/${gameId}/file/scorer.js`).then(r => r.text()),
+        fetch(`/api/games/${gameId}/image-map`).then(r => r.json()).catch(() => ({})),
+        fetch(`/api/games/${gameId}/card-sizes`).then(r => r.json()).catch(() => null),
+      ]);
 
-function toggleAnnouncementMic(triggerWords) {
-  const btn = document.getElementById('micAnnouncementBtn');
-  if (announcementRecognizer) {
-    announcementRecognizer.stop();
-    announcementRecognizer = null;
-    if (btn) { btn.textContent = '🎤'; btn.classList.remove('listening'); }
-    return;
-  }
-  const recog = new SpeechRecognitionAPI();
-  recog.lang = 'de-DE';
-  recog.continuous = true;
-  recog.interimResults = false;
-  announcementRecognizer = recog;
-  if (btn) { btn.textContent = '⏹'; btn.classList.add('listening'); }
-  recog.onresult = (e) => {
-    const transcript = e.results[e.results.length - 1][0].transcript.toLowerCase().trim();
-    for (const [key, words] of Object.entries(triggerWords)) {
-      if (words.some(w => transcript.includes(w.toLowerCase()))) {
-        fireAnnouncement(key);
-        break;
+      cardIds = ids;
+      imageMap = imgMapData;
+      cardDisplaySizes = computeDisplaySizes(rawSizes);
+
+      // Inject texts for createTranslator
+      if (textsData) {
+        const lang = document.getElementById('langSelect').value;
+        const langTexts = textsData[lang] || textsData['de'] || {};
+        globalThis.__texts = flattenObj(langTexts);
+      } else {
+        globalThis.__texts = undefined;
       }
-    }
-  };
-  recog.onerror = () => {
-    announcementRecognizer = null;
-    if (btn) { btn.textContent = '🎤'; btn.classList.remove('listening'); }
-  };
-  recog.onend = () => {
-    // Restart if still active (browser stops after silence)
-    if (announcementRecognizer === recog && activeAnnouncementTriggers) {
-      try { recog.start(); } catch (_) {}
-    } else {
-      announcementRecognizer = null;
-      if (btn) { btn.textContent = '🎤'; btn.classList.remove('listening'); }
-    }
-  };
-  recog.start();
-}
 
-function stopAnnouncementRow() {
-  if (announcementRecognizer) {
-    announcementRecognizer.stop();
-    announcementRecognizer = null;
-  }
-  activeAnnouncementTriggers = null;
-  document.getElementById('announcementRow').style.display = 'none';
-}
+      // Load scorer via CommonJS shim
+      const mod = { exports: {} };
+      try {
+        const fn = new Function('module', 'exports', 'require', '__dirname', '__filename', scorerCode);
+        fn(mod, mod.exports, (p) => {
+          // esbuild bundles cards.json inline; texts.json require falls back to __texts
+          if (p === 'path') return { join: (...parts) => parts.join('/'), dirname: (p) => '/' };
+          return {};
+        }, '/', '/scorer.js');
+        scorer = mod.exports;
+      } catch (e) {
+        console.error('Failed to load scorer:', e);
+        scorer = null;
+      }
 
-function handleActions(result) {
-  if (!result.actions) return;
-  let moreBids = false;
-  for (const action of result.actions) {
-    if (action.type === 'listenForBid') {
-      bidPlayerIndex = action.playerIndex;
-      document.getElementById('bidRow').style.display = '';
-      document.getElementById('bidPlayerLabel').textContent = playerNames[bidPlayerIndex] || '';
-      document.getElementById('bidValue').value = '0';
-      document.getElementById('bidValue').focus();
-      moreBids = true;
-    }
-    if (action.type === 'startAnnouncementListening') {
-      activeAnnouncementTriggers = action.triggerWords || {};
-      renderAnnouncementRow(activeAnnouncementTriggers);
-    }
-    if (action.type === 'stopAnnouncementListening') {
+      // Init game instance for live tracking
+      if (scorer && scorer.Game) {
+        gameInstance = new scorer.Game(playerNames);
+      } else {
+        gameInstance = null;
+      }
+
+      document.getElementById('liveControls').style.display = currentGame.supportsLiveTracking ? '' : 'none';
+      document.getElementById('bidRow').style.display = 'none';
       stopAnnouncementRow();
-    }
-  }
-  if (!moreBids) document.getElementById('bidRow').style.display = 'none';
-}
 
-// ── Render results ──
-function renderResults(result) {
-  const container = document.getElementById('resultsContent');
-  if (!result || !result.players || result.players.length === 0) {
-    container.innerHTML = '<div class="placeholder">Place cards to see results</div>';
-    return;
-  }
-
-  let html = '';
-  for (const player of result.players) {
-    html += `<div class="player-score">`;
-    html += `<div class="player-score-header"><span>${esc(player.name)}</span><span class="total">${player.totalScore}</span></div>`;
-
-    if (player.cardDetails && player.cardDetails.length > 0) {
-      const groups = new Map();
-      for (const cd of player.cardDetails) {
-        const g = cd.group || '';
-        if (!groups.has(g)) groups.set(g, []);
-        groups.get(g).push(cd);
+      // Auto-start game for live tracking
+      if (gameInstance && gameInstance.processEvent) {
+        fireEvent('gameStarted');
       }
-      for (const [groupName, cards] of groups) {
-        if (groupName) html += `<div class="card-group-name">${esc(groupName)}</div>`;
-        for (const cd of cards) {
-          const pts = cd.points;
-          const cls = pts > 0 ? 'pos' : pts < 0 ? 'neg' : '';
-          html += `<div class="card-detail">`;
-          html += `<div><span class="title">${esc(cd.title || cd.cardId)}</span><span class="reason">${esc(cd.reason || '')}</span></div>`;
-          html += `<span class="points ${cls}">${pts > 0 ? '+' : ''}${pts}</span>`;
-          html += `</div>`;
+
+      // Adjust player count to fit new game's min/max
+      const min = getMinPlayers();
+      const max = getMaxPlayers();
+      while (playerNames.length < min) playerNames.push(`Player ${playerNames.length + 1}`);
+      while (playerNames.length > max) playerNames.pop();
+      renderPlayerList();
+
+      resetRoundCounts();
+      clearTable();
+      buildDrawer();
+      runScorer();
+    }
+
+    function flattenObj(obj, prefix, out) {
+      out = out || {};
+      for (const k of Object.keys(obj)) {
+        const key = prefix ? `${prefix}.${k}` : k;
+        if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+          flattenObj(obj[k], key, out);
+        } else {
+          out[key] = String(obj[k]);
         }
       }
+      return out;
     }
-    html += `</div>`;
-  }
 
-  if (result.display?.hud?.length > 0) {
-    html += `<div class="hud-section"><h3>HUD</h3>`;
-    for (const item of result.display.hud) {
-      html += `<div class="hud-item"><span class="label">${esc(item.label)}</span><span>${esc(item.value)}</span></div>`;
+    // ── Card sizing ──
+    const BASE_CARD_H = 120; // px — tallest card type will be this height
+
+    function computeDisplaySizes(rawSizes) {
+      if (!rawSizes || Object.keys(rawSizes).length === 0) return {};
+      const maxH = Math.max(...Object.values(rawSizes).map(([, h]) => h));
+      const scale = BASE_CARD_H / maxH;
+      const result = {};
+      for (const [kind, [w, h]] of Object.entries(rawSizes)) {
+        result[kind] = { w: Math.round(w * scale), h: Math.round(h * scale) };
+      }
+      return result;
     }
-    html += `</div>`;
-  }
 
-  if (result.actions?.length > 0) {
-    html += `<div class="actions-section"><h3>Actions</h3>`;
-    for (const action of result.actions) {
-      html += `<div class="action-item"><span class="atype">${esc(action.type)}</span>`;
-      if (action.text) html += ` ${esc(action.text)}`;
-      if (action.mode) html += ` \u2192 ${esc(action.mode)}`;
-      if (action.prompt) html += ` "${esc(action.prompt)}"`;
-      if (action.playerIndex !== undefined) html += ` [player ${action.playerIndex}]`;
-      html += `</div>`;
+    function getCardKind(cardId) {
+      const prefix = currentGame?.liveTracking?.gamePrefix;
+      let label = cardId;
+      if (prefix && cardId.startsWith(prefix + ':')) label = cardId.slice(prefix.length + 1);
+      const idx = label.indexOf(':');
+      return idx === -1 ? label : label.slice(0, idx);
     }
-    html += `</div>`;
-  }
 
-  container.innerHTML = html || '<div class="placeholder">No results</div>';
-}
+    function getDisplaySize(cardId) {
+      const kind = getCardKind(cardId);
+      return cardDisplaySizes[kind] || { w: 80, h: 112 };
+    }
 
-function esc(s) {
-  if (s == null) return '';
-  const d = document.createElement('div');
-  d.textContent = String(s);
-  return d.innerHTML;
-}
+    // ── Image helpers ──
+    function cardIdToImageFile(cardId) {
+      return imageMap[cardId] || null;
+    }
 
-// ── Start ──
-init();
-</script>
+    function imageUrl(fname) {
+      return `/api/games/${currentGame.id}/images/${encodeURIComponent(fname)}`;
+    }
+
+    // ── Card label ──
+    function resolveLabel(cardId) {
+      // Simple: show the cardId, stripping game prefix
+      const prefix = currentGame?.liveTracking?.gamePrefix;
+      let label = cardId;
+      if (prefix && cardId.startsWith(prefix + ':')) {
+        label = cardId.slice(prefix.length + 1);
+      }
+      // Capitalize and clean up
+      return label.split(':').map(p => {
+        const n = parseInt(p, 10);
+        if (!isNaN(n)) return String(n);
+        return p.charAt(0).toUpperCase() + p.slice(1);
+      }).join(' ');
+    }
+
+    // ── Drawer ──
+    function buildDrawer() {
+      const container = document.getElementById('drawerCards');
+      container.innerHTML = '';
+      for (const cardId of cardIds) {
+        const el = document.createElement('div');
+        el.className = 'drawer-card';
+        el.draggable = true;
+        el.dataset.cardId = cardId;
+        el.title = cardId;
+
+        const imgFile = cardIdToImageFile(cardId);
+        if (imgFile) {
+          const img = document.createElement('img');
+          img.className = 'drawer-card-thumb';
+          img.src = imageUrl(imgFile);
+          img.draggable = false;
+          const { w, h } = getDisplaySize(cardId);
+          const thumbH = 50;
+          img.style.width = Math.round(w / h * thumbH) + 'px';
+          img.style.height = thumbH + 'px';
+          el.appendChild(img);
+        }
+        const span = document.createElement('span');
+        span.className = 'drawer-card-label';
+        span.textContent = resolveLabel(cardId);
+        el.appendChild(span);
+
+        if (currentGame?.cardCopies > 1) {
+          const badge = document.createElement('span');
+          badge.className = 'drawer-card-badge';
+          badge.textContent = `0/${currentGame.cardCopies}`;
+          el.appendChild(badge);
+        }
+
+        el.addEventListener('dragstart', (e) => {
+          const max = currentGame?.cardCopies;
+          if (max && (roundUsedCounts[cardId] ?? 0) >= max) { e.preventDefault(); return; }
+          e.dataTransfer.setData('text/plain', cardId);
+          e.dataTransfer.setData('application/x-source', 'drawer');
+        });
+
+        container.appendChild(el);
+      }
+      document.getElementById('drawerFilter').value = '';
+    }
+
+    function filterDrawer() {
+      const q = document.getElementById('drawerFilter').value.toLowerCase();
+      for (const el of document.querySelectorAll('.drawer-card')) {
+        const show = !q || el.textContent.toLowerCase().includes(q) || el.dataset.cardId.toLowerCase().includes(q);
+        el.style.display = show ? '' : 'none';
+      }
+    }
+
+    function countOnTable(cardId) {
+      let n = 0;
+      for (const [, c] of tableCards) if (c.cardId === cardId) n++;
+      return n;
+    }
+
+    function updateDrawerDim() {
+      const max = currentGame?.cardCopies;
+      if (!max) {
+        document.querySelectorAll('.drawer-card.on-table').forEach(el => el.classList.remove('on-table'));
+        document.querySelectorAll('.drawer-card-badge').forEach(b => b.textContent = '');
+        return;
+      }
+      for (const el of document.querySelectorAll('.drawer-card')) {
+        const count = roundUsedCounts[el.dataset.cardId] ?? 0;
+        el.classList.toggle('on-table', count >= max);
+        const badge = el.querySelector('.drawer-card-badge');
+        if (badge) badge.textContent = `${count}/${max}`;
+      }
+    }
+
+    // ── Table: place / move / remove ──
+    const tableSurface = document.getElementById('tableSurface');
+
+    tableSurface.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+
+    tableSurface.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const cardId = e.dataTransfer.getData('text/plain');
+      if (!cardId) return;
+      const rect = tableSurface.getBoundingClientRect();
+      const { w: cw, h: ch } = getDisplaySize(cardId);
+      const x = e.clientX - rect.left - cw / 2;
+      const y = e.clientY - rect.top - ch / 2;
+      const clampedX = Math.max(0, Math.min(x, rect.width - cw));
+      const clampedY = Math.max(0, Math.min(y, rect.height - ch));
+
+      const source = e.dataTransfer.getData('application/x-source');
+      if (source === 'table') {
+        // Move existing — find by cardId (legacy, pointer-based drag is primary)
+        return;
+      }
+
+      const max = currentGame?.cardCopies;
+      if (max && (roundUsedCounts[cardId] ?? 0) >= max) return;
+      placeCard(cardId, clampedX, clampedY);
+      updateDrawerDim();
+      updateHint();
+      runScorer();
+    });
+
+    function placeCard(cardId, x, y) {
+      const id = cardId + '#' + (instanceCounter++);
+      const { w: cw, h: ch } = getDisplaySize(cardId);
+      const el = document.createElement('div');
+      el.className = 'table-card';
+      el.dataset.instanceId = id;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.width = cw + 'px';
+      el.style.height = ch + 'px';
+
+      const imgFile = cardIdToImageFile(cardId);
+      if (imgFile) {
+        const img = document.createElement('img');
+        img.src = imageUrl(imgFile);
+        img.draggable = false;
+        el.appendChild(img);
+        el.classList.add('has-image');
+      } else {
+        const lbl = document.createElement('div');
+        lbl.className = 'card-text-label';
+        lbl.style.height = ch + 'px';
+        lbl.textContent = resolveLabel(cardId);
+        el.appendChild(lbl);
+      }
+
+      // Rotation badge
+      const badge = document.createElement('div');
+      badge.className = 'rotation-badge';
+      el.appendChild(badge);
+
+      // Pointer-based drag (more reliable than HTML drag for repositioning)
+      el.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        const rect2 = el.getBoundingClientRect();
+        dragState = { instanceId: id, offsetX: e.clientX - rect2.left, offsetY: e.clientY - rect2.top };
+        el.classList.add('dragging');
+        el.setPointerCapture(e.pointerId);
+      });
+      el.addEventListener('pointermove', (e) => {
+        if (!dragState || dragState.instanceId !== id) return;
+        const rect = tableSurface.getBoundingClientRect();
+        const entry = tableCards.get(id);
+        if (!entry) return;
+        entry.x = Math.max(0, Math.min(e.clientX - rect.left - dragState.offsetX, rect.width - entry.w));
+        entry.y = Math.max(0, Math.min(e.clientY - rect.top - dragState.offsetY, rect.height - entry.h));
+        el.style.left = entry.x + 'px';
+        el.style.top = entry.y + 'px';
+      });
+      el.addEventListener('pointerup', (e) => {
+        if (!dragState || dragState.instanceId !== id) return;
+        el.classList.remove('dragging');
+        dragState = null;
+        runScorer();
+      });
+
+      // Scroll wheel to rotate
+      el.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const entry = tableCards.get(id);
+        if (!entry) return;
+        entry.angle += e.deltaY > 0 ? 15 : -15;
+        entry.angle = ((entry.angle % 360) + 360) % 360;
+        el.style.transform = `rotate(${entry.angle}deg)`;
+        el.dataset.rotated = entry.angle !== 0 ? 'true' : 'false';
+        badge.textContent = entry.angle + '\u00b0';
+        runScorer();
+      });
+
+      // Double-click to remove
+      el.addEventListener('dblclick', () => removeCard(id));
+
+      tableSurface.appendChild(el);
+      tableCards.set(id, { cardId, el, x, y, w: cw, h: ch, angle: 0 });
+      roundUsedCounts[cardId] = (roundUsedCounts[cardId] ?? 0) + 1;
+    }
+
+    function removeCard(instanceId) {
+      const entry = tableCards.get(instanceId);
+      if (!entry) return;
+      entry.el.remove();
+      tableCards.delete(instanceId);
+      const c = roundUsedCounts[entry.cardId];
+      if (c > 0) roundUsedCounts[entry.cardId] = c - 1;
+      updateDrawerDim();
+      updateHint();
+      runScorer();
+    }
+
+    function clearTable() {
+      for (const [, c] of tableCards) c.el.remove();
+      tableCards.clear();
+      instanceCounter = 0;
+      scorerPaused = false;
+      updateDrawerDim();
+      updateHint();
+    }
+
+    function resetRoundCounts() {
+      roundUsedCounts = {};
+      updateDrawerDim();
+    }
+
+    function updateHint() {
+      document.getElementById('tableHint').style.display = tableCards.size === 0 ? '' : 'none';
+    }
+
+    // Drop on drawer to remove
+    const drawerCards = document.getElementById('drawerCards');
+    drawerCards.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+
+    // ── Scorer ──
+    function runScorer() {
+      if (!scorer) return;
+      if (scorerPaused) return;
+      const rect = tableSurface.getBoundingClientRect();
+      const boxes = [];
+
+      for (const [, card] of tableCards) {
+        const cw = card.w, ch = card.h;
+        const x1 = card.x / rect.width;
+        const y1 = card.y / rect.height;
+        const w = cw / rect.width;
+        const h = ch / rect.height;
+        boxes.push({
+          cardId: card.cardId,
+          similarity: 1,
+          confidence: 1,
+          x1, y1,
+          x2: x1 + w,
+          y2: y1 + h,
+          cx: x1 + w / 2,
+          cy: y1 + h / 2,
+          w, h,
+          angle: card.angle * Math.PI / 180,
+          keypoints: null,
+        });
+      }
+
+      let result;
+      try {
+        if (gameInstance) {
+          result = gameInstance.processCards(boxes);
+        } else if (scorer.processCards) {
+          const players = scorer.processCards(boxes, {
+            players: playerNames,
+            similarityThreshold: 0.5,
+          });
+          result = { players };
+        } else {
+          return;
+        }
+      } catch (e) {
+        console.error('Scorer error:', e);
+        document.getElementById('resultsContent').innerHTML = `<div class="error-box">${esc(e.message)}\n${esc(e.stack || '')}</div>`;
+        return;
+      }
+
+      renderResults(result);
+      if (gameInstance) handleActions(result);
+    }
+
+    // ── Live tracking ──
+    function fireEvent(type) {
+      if (!gameInstance || !gameInstance.processEvent) return;
+      let data = {};
+      if (type === 'gameStarted') {
+        gameInstance = new scorer.Game(playerNames);
+        data = { players: playerNames };
+        bidPlayerIndex = 0;
+        stopAnnouncementRow();
+        resetRoundCounts();
+      }
+      if (type === 'roundEnded') {
+        resetRoundCounts();
+      }
+      let result;
+      try {
+        result = gameInstance.processEvent({ type, data });
+      } catch (e) {
+        console.error('processEvent error:', e);
+        return;
+      }
+      renderResults(result);
+      handleActions(result);
+    }
+
+    function placeBid() {
+      if (!gameInstance || !gameInstance.processEvent) return;
+      const bid = parseInt(document.getElementById('bidValue').value) || 0;
+      let result;
+      try {
+        result = gameInstance.processEvent({ type: 'bidPlaced', data: { playerIndex: bidPlayerIndex, bid } });
+      } catch (e) {
+        console.error('placeBid error:', e);
+        return;
+      }
+      renderResults(result);
+      handleActions(result);
+    }
+
+    function fireAnnouncement(key) {
+      if (!gameInstance || !gameInstance.processEvent) return;
+      let result;
+      try {
+        result = gameInstance.processEvent({ type: 'announcementMade', data: { announcement: key } });
+      } catch (e) {
+        console.error('announcementMade error:', e);
+        return;
+      }
+      renderResults(result);
+      handleActions(result);
+    }
+
+    function renderAnnouncementRow(triggerWords) {
+      const row = document.getElementById('announcementRow');
+      row.innerHTML = '';
+      for (const key of Object.keys(triggerWords)) {
+        const btn = document.createElement('button');
+        btn.className = 'live-btn';
+        btn.textContent = key;
+        btn.addEventListener('click', () => fireAnnouncement(key));
+        row.appendChild(btn);
+      }
+      row.style.display = '';
+    }
+
+    function stopAnnouncementRow() {
+      activeAnnouncementTriggers = null;
+      document.getElementById('announcementRow').style.display = 'none';
+    }
+
+    function handleActions(result) {
+      if (!result.actions) return;
+      let moreBids = false;
+      for (const action of result.actions) {
+        if (action.type === 'listenForBid') {
+          bidPlayerIndex = action.playerIndex;
+          document.getElementById('bidRow').style.display = '';
+          document.getElementById('bidPlayerLabel').textContent = playerNames[bidPlayerIndex] || '';
+          document.getElementById('bidValue').value = '0';
+          document.getElementById('bidValue').focus();
+          moreBids = true;
+        }
+        if (action.type === 'startAnnouncementListening') {
+          activeAnnouncementTriggers = action.triggerWords || {};
+          renderAnnouncementRow(activeAnnouncementTriggers);
+        }
+        if (action.type === 'stopAnnouncementListening') {
+          stopAnnouncementRow();
+        }
+        if (action.type === 'awaitTableClear') {
+          scorerPaused = true;
+        }
+      }
+      if (!moreBids) document.getElementById('bidRow').style.display = 'none';
+    }
+
+    // ── Render results ──
+    function renderResults(result) {
+      const container = document.getElementById('resultsContent');
+      if (!result || !result.players || result.players.length === 0) {
+        container.innerHTML = '<div class="placeholder">Place cards to see results</div>';
+        return;
+      }
+
+      let html = '';
+      for (const player of result.players) {
+        html += `<div class="player-score">`;
+        html += `<div class="player-score-header"><span>${esc(player.name)}</span><span class="total">${player.totalScore}</span></div>`;
+
+        if (player.cardDetails && player.cardDetails.length > 0) {
+          const groups = new Map();
+          for (const cd of player.cardDetails) {
+            const g = cd.group || '';
+            if (!groups.has(g)) groups.set(g, []);
+            groups.get(g).push(cd);
+          }
+          for (const [groupName, cards] of groups) {
+            if (groupName) html += `<div class="card-group-name">${esc(groupName)}</div>`;
+            for (const cd of cards) {
+              const pts = cd.points;
+              const cls = pts > 0 ? 'pos' : pts < 0 ? 'neg' : '';
+              html += `<div class="card-detail">`;
+              html += `<div><span class="title">${esc(cd.title || cd.cardId)}</span><span class="reason">${esc(cd.reason || '')}</span></div>`;
+              html += `<span class="points ${cls}">${pts > 0 ? '+' : ''}${pts}</span>`;
+              html += `</div>`;
+            }
+          }
+        }
+        html += `</div>`;
+      }
+
+      if (result.display?.hud?.length > 0) {
+        html += `<div class="hud-section"><h3>HUD</h3>`;
+        for (const item of result.display.hud) {
+          html += `<div class="hud-item"><span class="label">${esc(item.label)}</span><span>${esc(item.value)}</span></div>`;
+        }
+        html += `</div>`;
+      }
+
+      if (result.display?.summary?.length > 0) {
+        html += `<div class="hud-section"><h3>Summary</h3>`;
+        for (const item of result.display.summary) {
+          if (item.label === '---') {
+            html += `<hr style="border-color:#3a3a5a;margin:6px 0">`;
+          } else {
+            html += `<div class="hud-item"><span class="label">${esc(item.label)}</span><span>${esc(item.value)}</span></div>`;
+          }
+        }
+        html += `</div>`;
+      }
+
+      if (result.actions?.length > 0) {
+        html += `<div class="actions-section"><h3>Actions</h3>`;
+        for (const action of result.actions) {
+          html += `<div class="action-item"><span class="atype">${esc(action.type)}</span>`;
+          if (action.text) html += ` ${esc(action.text)}`;
+          if (action.mode) html += ` \u2192 ${esc(action.mode)}`;
+          if (action.prompt) html += ` "${esc(action.prompt)}"`;
+          if (action.playerIndex !== undefined) html += ` [player ${action.playerIndex}]`;
+          html += `</div>`;
+        }
+        html += `</div>`;
+      }
+
+      container.innerHTML = html || '<div class="placeholder">No results</div>';
+    }
+
+    function esc(s) {
+      if (s == null) return '';
+      const d = document.createElement('div');
+      d.textContent = String(s);
+      return d.innerHTML;
+    }
+
+    // ── Start ──
+    init();
+  </script>
 </body>
+
 </html>
