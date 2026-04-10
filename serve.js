@@ -13,9 +13,19 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { execSync } = require('child_process');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const dir = process.cwd();
+
+const scorerTs = path.join(dir, 'scorer.ts');
+if (fs.existsSync(scorerTs)) {
+  console.log('Compiling scorer.ts...');
+  execSync(
+    `npx esbuild scorer.ts --bundle --platform=node --target=es2017 --format=cjs --outfile=scorer.js`,
+    { cwd: dir, stdio: 'inherit' }
+  );
+}
 
 const MIME = {
   '.json': 'application/json',
