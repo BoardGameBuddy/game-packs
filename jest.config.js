@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('jest').Config} */
 module.exports = {
   testMatch: [
@@ -10,7 +12,7 @@ module.exports = {
   },
   transform: {
     '^.+\\.ts$': ['ts-jest', {
-      tsconfig: './tsconfig.test.json',
+      tsconfig: path.join(__dirname, 'tsconfig.test.json'),
     }],
   },
 };

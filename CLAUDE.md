@@ -27,7 +27,7 @@ cd games/wizard && npm run serve
 # Or with the bgb CLI (from game-pack-cli repo): bgb serve games/wizard
 ```
 
-**Important**: Jest only runs compiled `.js` files. After modifying `scorer.ts` or `__tests__/scorer.test.js`, compile before testing. The `npm test` command does NOT auto-compile.
+**Important**: Test files are TypeScript (`.test.ts`) and run directly via ts-jest — no pre-compilation needed. However, `require('../scorer')` in tests resolves `scorer.ts` first (ts-jest handles it), so scorer compilation is not required either.
 
 ## Architecture
 

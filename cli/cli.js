@@ -25,6 +25,26 @@ const TEMPLATE_REF = 'main';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
+/**
+ * Walk up from cwd to find the nearest directory containing a `games/` folder.
+ * Returns the absolute path to that `games/` folder.
+ */
+function findGamesDir() {
+  let dir = process.cwd();
+  while (true) {
+    const candidate = path.join(dir, 'games');
+    if (fs.existsSync(candidate) && fs.statSync(candidate).isDirectory()) {
+      return candidate;
+    }
+    const parent = path.dirname(dir);
+    if (parent === dir) {
+      console.error('Error: could not find a games/ directory in any parent of the current working directory.');
+      process.exit(1);
+    }
+    dir = parent;
+  }
+}
+
 function getLocalIp() {
   for (const ifaces of Object.values(os.networkInterfaces())) {
     for (const iface of ifaces) {
@@ -93,7 +113,8 @@ program
     }
 
     const displayName = opts.name || toTitleCase(gameId);
-    const targetDir = path.join(process.cwd(), gameId);
+    const gamesDir = findGamesDir();
+    const targetDir = path.join(gamesDir, gameId);
 
     if (fs.existsSync(targetDir)) {
       console.error(`Error: directory already exists: ${targetDir}`);
@@ -143,7 +164,7 @@ program
     });
 
     console.log(`\nNext steps:`);
-    console.log(`  cd ${gameId}`);
+    console.log(`  cd ${path.relative(process.cwd(), targetDir)}`);
     console.log(`  # Edit scorer.ts to implement your scoring logic`);
     console.log(`  bgb serve .    # Start dev server with live reload`);
     console.log('');
