@@ -1,0 +1,115 @@
+Introduction
+Doppelkopf is extremely popular in Germany, mainly in the North. It developed from a version of Schafkopf using a double pack of cards. Doppelkopf is a four player game with variable partnerships; the objective is to capture valuable cards in tricks. It can be played with five people, with dealer sitting out.
+
+Although the Deustcher Doppelkopf-Verband has developed standard rules for tournaments, in informal games there are many variants and each group of players has their own house rules. Before playing with a new group of players, it is therefore advisable to agree a set of rules. Several variants are listed at the end of this description.
+
+This page is mostly based on a contribution from Noel Leaver.
+
+Pack
+The pack is a double pack shortened by removing cards below 9, each suit containing two each of A K Q J 10 9. Doppelkopf packs are readily available in Germany and normally have standard suits and cards with indices A K D (Dame) B (Bube) 10 9.
+
+In most contracts, the cards rank, from high to low:
+
+Trumps: heart10, clubQ, spadeQ, heartQ, diamondQ, clubJ, spadeJ, heartJ, diamondJ, diamondA, diamond10, diamondK, diamond9 (26 cards)
+Clubs: clubA, club10, clubK, club9
+Spades: spadeA, spade10, spadeK, spade9
+Hearts: heartA, heartK, heart9
+The cards have the same values as in Skat:
+
+A = 11    10 = 10    K = 4    Q = 3     J = 2
+
+making a total of 240 card points. The basic object of the game is to take more than half of these card points in tricks. The card points are used only to determine which team has won the hand - they are not the same as game points written on the score-sheet as a result of winning or losing.
+
+Deal
+Dealer shuffles and the cards are cut; then all the cards are dealt out, three at a time starting on dealer's left and continuing clockwise. The deal for the next hand passes to dealer's left. It is usual to play a number of complete rounds of deals in a session, so it is not important who deals first.
+
+Bidding
+The bidding consists of a single round starting with the player to dealer's left. Each player says either "Gesund" (healthy), meaning that they are content to play a normal game, or "Vorbehalt" (reservation) meaning that they want to play some other type of game. If one or more players have said "Vorbehalt", they each in turn say what type of game they wish to play. The possibilities, from lowest to highest, are:
+
+Hochzeit (marriage)
+Armut (poverty)
+Solo (various types)
+Whoever has the highest ranking Vorbehalt plays their game. If more than one player has the same Vorbehalt - for example more than one wanting to play a Solo, then the first of these players in the bidding order plays their game.
+
+Normal Game
+In the normal game, when everyone says "Gesund", the cards rank as above and the two players who hold the queens of clubs (known as the old women) are partners against the other two. The players with the queens of clubs do not say who they are (except sometimes by means of specific announcements during the play, which are explained later), so during the play you sometimes do not know who your partner is.
+
+If a player has both of the queens of clubs but says "Gesund", along with everyone else, that player plays alone against the other three players in partnership, though the other players will not realise initially that they are all together. This is called a silent solo.
+
+Hochzeit (marriage)
+Usually a player who has both queens of clubs will not be strong enough to play a silent solo, and will want a partner. This is achieved by saying "Vorbehalt" during the bidding, and announcing a Hochzeit (marriage). If no one has a better Vorbehalt, a normal game is played except that the first player other than the holder of the marriage who wins a trick becomes the marriage holder's partner. However, this must happen within the first three tricks - if you announce a marriage and then win the first three tricks you play on your own against the other three players.
+
+Armut (poverty)
+A person with three or fewer trumps can say "Vorbehalt" (reservation) and then announce Armut (poverty). If no one has a better Vorbehalt, the person announcing Armut places three cards face down on the table. These three cards must contain all the Armut player's trumps. A player who wishes to become the Armut player's partner has the right to take these three cards (without seeing them first) and then discard any three cards, which are returned to the Armut player. The returned cards may contain trumps and may include cards originally passed. The player to the left of the player who says Armut has the first chance to become the partner; if this player does not wish to, the opportunity passes around the table to the left - each player may pass or accept, and the first player to accept takes the three cards and becomes the partner. If nobody wants to partner the player with Armut, all the cards are thrown in and shuffled and the hand is redealt by the same dealer.
+
+Solo
+A solo is a game played alone, against the other three playing as a team. There are several types:
+
+Trump Solo:
+Declarer names a trump suit. If it is diamonds, the cards rank as normal. If the trump suit is not diamonds, the A 10 K 9 of diamonds become a side suit, and the cards of the suit named as trumps become part of the trump suit in their place. If hearts are trumps the heart10s still rank as the highest trumps, and there are only 24 trumps.
+Queen (Damen) Solo:
+Only the 8 Queens are trumps, ranking clubQ spadeQ heartQ diamondQ as usual. All four suits rank A 10 K J 9.
+Jack (Buben) Solo:
+Only the 8 Jacks are trumps, ranking clubJ spadeJ heartJ diamondJ as usual. The suits rank A 10 K Q 9.
+Ace Solo:
+There are no trumps, all suits rank A 10 K Q J 9. This contract is also called Fleischloser (meat free or vegetarian solo).
+Play
+The play is in tricks of four cards, with the winner of each trick leading to the next. The player to the left of the dealer leads to the first trick. You must follow suit if you can; if you cannot follow suit, any card may be played. If there is a trump on the trick, the highest one wins, otherwise the highest card in the suit led wins. If there are two identical highest cards played, the first one played wins.
+
+The trumps are a suit of their own for suit following purposes - for example, in a normal game, the queen of spades is a trump, not a spade. You cannot play the queen of spades when spades are led (unless you are out of genuine spades, in which case you can play anything). Similarly, if the queen of spades is led, everyone must if possible play trumps (not spades).
+
+Announcements during the play
+In a normal game, the team with the queens of clubs are called the Re team. In case of a Vorbehalt, the Re team is the team of the player who specifies the game (the marriage holder, the team who exchange cards in Armut, or the lone player in a solo). The basic aim of the Re team is to take at least 121 card points in the cards they win in their tricks. The opposing team is called the Kontra team; their basic aim is to take cards worth at least 120 points.
+
+A member of the Re team may at any time while they have 11 or more cards in their hand announce "Re", which increases the score for the game. Similarly, a member of the Kontra team may while they have 11 or more cards in their hand announce "Kontra". If Re or Kontra has been announced by the appropriate team, a member of the other side can announce Kontra or Re while they have 10 or more cards in their hand. If Kontra is announced but not Re, then the Re team only need 120 points to win, rather than 121.
+
+Note that announcements can be made at any time during the play, provided that you have at least the requisite number of cards, not just when it is your turn to play.
+
+If one side fails to make 90 points the other side wins an extra bonus for "no 90", similarly there are bonuses for "no 60", "no 30" and Schwarz (all the tricks). Each of these bonuses can be increased in value by announcing it in advance. To make an announcement, the player must have at least the number of cards shown below:
+
+"No 90" - 10 cards or more
+"No 60" - 9 cards or more
+"No 30" - 8 cards or more
+"Schwarz" - 7 cards or more
+An announcement can only be made if the team has already made all the previous announcements (including Re or Kontra), so for example "no 90" can only be announced by a team that has said "Re" or "Kontra", and the declarer's side cannot announce "no 60" unless they have already announced "Re" and "no 90".
+
+When an announcement has been made, the other side can announce "Re" or "Kontra" as appropriate (if they have not already done so), so long as they still have a number of cards in their hand which is 1 fewer than the number of cards required to make the announcement. For example if the Re team announce "Re", "no 90" and "no 60", a player of the Kontra team can announce "Kontra" as long as they still hold at least 8 cards.
+
+If a player has announced a marriage, no announcements can be made until after the end of the trick on which the partnership is determined, and the number of cards required to make a bid is reduced by the number of tricks taken to determine the partnership. For example, if person with the club queens wins the first trick but not the second, then the partnerships are determined at trick 2, so Re or Kontra can be declared from the end of trick 2, for as long as you have at least 9 (11 - 2) cards in hand.
+
+A player announcing "no 90", "no 60", etc. must state whether he or she belongs to the Re-team or the Kontra-team if it is not already established. This may be necessary, for example, if both "Re" and "Kontra" have already been announced, and a third player wishes to announce "no 90". It is possible, though unusual, for both teams to announce "no 90" on the same deal.
+
+Scoring
+The score is kept on a piece of paper, with a column for each player, containing their cumulative total of points. The scores always add up to zero, and can be thought of as the amount of money won or lost by each player. When two play against two, each player pays to or receives from one opponent; when one plays alone against three, the lone player pays to or receives from all three opponents. Thus if the players are A, B, C and D, and the team consisting of B and C wins 3 points, then B and C each score plus 3 and A and D each score minus 3. In a solo, if (say) D is the lone player and wins 4, then D actually scores plus 12, and A, B and C score minus 4 each.
+
+The basic score for the game is one point; this is what the Re team win if they take at least 121 card points and nothing else happens. If the Kontra team; take at least 120 points, they win two points, one for the game and one for being gegen die Alten (against the old women).
+
+An announcement of "Re" or "Kontra" adds 2 further points to the score for the side that wins the game. If both are announced, that makes 4 extra points in total. For example, if "Re" and "Kontra" are announced and the Kontra team win, they score 6 points altogether (game 1, against the old women 1, Re 2, Kontra 2).
+
+"No 90", "no 60", "no 30" and Schwarz are worth an extra point each, and all the applicable items apply, so for example if the Re team announce "Re" and the Kontra team take only 24 card points, the Re team will score 6 points (1 for game, 2 for Re, 1 for no 90, 1 for no 60, 1 for no 30).
+
+Announcements of "No 90", "no 60", "no 30" and Schwarz increase the score by an extra point each. However, if the team fails to fulfil the announcement, they lose the whole game, and the scores for all the points they would have won. For example, if a side announces "Re", "no 90" and "no 60" they need at least 181 card points to win. If they take only 172 card points (i.e. the opponents take 68, which is more than 60) then the announcing side loses:
+
+ 	1	for game
+ 	1	for against the old women
+ 	2	for Re
+ 	1	for no 90
+ 	1	for no 90 announced
+ 	1	for no 60
+ 	1	for no 60 announced
+Total:	8	game points (-8 to each of the Re side, +8 to each of the Kontra side)
+If the "no 60" had not been announced the Re side would instead have won 5 game points (Game, Re 2, no 90, no 90 announced). If they had only announced Re they would have won 4 (Game, Re 2, no 90).
+
+Another example: One side announces "Re" and "no 90", the other "Kontra". The Re team take 88 card points (no 90). They lose 9 (no 90 made by the Kontra side, game, women, Re 2, Kontra 2, no 90, no 90 announced).
+
+In addition to the points described above, there are a number of game points that can be scored during play, which are independent of the game and other points, and can be scored by either team whether or not the game succeeds. These are:
+
+Catching a Fox
+A team which captures a "Fox" (Ace of Diamonds) from the opponents - i.e. wins a trick which contains an opponent's ace of diamonds - scores one game point. The Ace is left face up in the pile of tricks to indicate the point. It may not be clear when the trick is won whether the Ace came from the winner's partner or opponent, in which case it is left face up and turned over if necessary when the partnership becomes clear.
+Charlie Miller (Karlchen Müller)
+Winning the last trick with Jack of Clubs scores one game point. Playing it to the last trick loses a point if the trick is won by the opponents, there is no score either way if the trick is won by the partner.
+Doppelkopf.
+Winning a trick where all four cards are 10s and Aces scores one game point. When this happens, one of the cards is placed face up in the pile of tricks won to indicate the point.
+All these points apply to the whole team - for example if you win the last trick with a Charlie, your partner benefits as well. It is possible for two or three points to be scored on one trick, e.g. if an opponent's fox is beaten by the Charlie on the last trick.
+
+Fox and Charlie cannot be scored in a solo.

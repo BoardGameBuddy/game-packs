@@ -5,9 +5,9 @@
  *
  * Card IDs follow the pattern `<suit>:<value>` where:
  *   suit  = clubs | spades | heart | diamond
- *   value = 9 | 10 | jack | queen | king | ace
+ *   value = 10 | jack | queen | king | ace
  *
- * Each card is present twice in the deck (48 cards total).
+ * Each card is present twice in the deck (40 cards total — played without 9s).
  *
  * Trump order (highest → lowest, normal game):
  *   1.  heart:10      (Dullen)
@@ -22,9 +22,8 @@
  *   10. diamond:ace   (Fuchs)
  *   11. diamond:10
  *   12. diamond:king
- *   13. diamond:9
  *
- * Fehlfarben (clubs, spades, heart) order: ace > 10 > king > 9
+ * Fehlfarben (clubs, spades, heart) order: ace > 10 > king
  * Note: Queens and Jacks are always trump regardless of suit; Heart 10 is trump.
  */
 
@@ -35,7 +34,7 @@ import { createTranslator } from '@boardgamebuddy/game-pack-api';
 // Localisation
 // ---------------------------------------------------------------------------
 
-const t = createTranslator('./texts.json');
+const t = createTranslator(require('path').join(__dirname, 'texts.json'));
 
 // ---------------------------------------------------------------------------
 // Card point values (Augen)
@@ -47,7 +46,6 @@ const AUGEN: Record<string, number> = {
   king: 4,
   queen: 3,
   jack: 2,
-  '9': 0,
 };
 
 // ---------------------------------------------------------------------------
@@ -67,15 +65,13 @@ const TRUMP_RANK: Record<string, number> = {
   'diamond:ace': 4,
   'diamond:10': 3,
   'diamond:king': 2,
-  'diamond:9': 1,
 };
 
-// Fehlfarbe rank for ace, 10, king, 9 (queen/jack are trump, not Fehlfarbe)
+// Fehlfarbe rank for ace, 10, king (queen/jack are trump, not Fehlfarbe)
 const FEHLFARBE_RANK: Record<string, number> = {
-  ace: 4,
-  '10': 3,
-  king: 2,
-  '9': 1,
+  ace: 3,
+  '10': 2,
+  king: 1,
 };
 
 // ---------------------------------------------------------------------------
@@ -184,7 +180,7 @@ export function cardDisplayName(cardId: string): string {
  * Rules:
  * - All Damen, Buben, Karo cards, and Herz 10 are trump.
  * - Trump beats Fehlfarbe; higher trump rank wins.
- * - Among Fehlfarbe, only cards of the led suit can win; As > 10 > König > 9.
+ * - Among Fehlfarbe, only cards of the led suit can win; As > 10 > König.
  * - Equal cards: the first one played wins ("liegt oben").
  */
 export function determineTrickWinner(
@@ -599,7 +595,7 @@ function buildHudDk(s: DoppelkopfInternal): LiveHudItem[] {
   const hud: LiveHudItem[] = [];
   hud.push({
     label: t('ui.trick_count', 'Stiche'),
-    value: `${s.completedTricks}/12`,
+    value: `${s.completedTricks}/10`,
   });
 
   // Augen per player (from trickHistory)
@@ -735,7 +731,7 @@ export class DoppelkopfGame implements GamePack {
         : t('voice.trick_won', '%s gewinnt Stich %d.')
             .replace('%s', winnerName).replace('%d', String(trickNum));
 
-      if (s.completedTricks >= 12) {
+      if (s.completedTricks >= 10) {
         // Last trick — calculate round scores
         const roundResult = calculateAllRoundScores({
           playerNames: s.players,
