@@ -24,11 +24,6 @@ function card(cardId) {
 
 function ev(type, data) { return { type, data }; }
 
-/** Sends N empty processCards frames to trigger table clear. */
-function clearTable(game, n = 6) {
-  for (let i = 0; i < n; i++) game.processCards([]);
-}
-
 // ---------------------------------------------------------------------------
 describe('processEvent – gameStarted', () => {
   it('returns cameraMode:detecting and speak action', () => {
@@ -108,22 +103,6 @@ describe('processEvent – bidPlaced', () => {
 });
 
 // ---------------------------------------------------------------------------
-describe('table clear via processCards', () => {
-  it('empty frames transition from waitingForClear to trickTracking', () => {
-    const game = new WizardGame(['Alice', 'Bob']);
-    game.processEvent(ev('gameStarted', { players: ['Alice', 'Bob'] }));
-    game.processCards([card('wizard:red:05')]);
-    game.processEvent(ev('bidPlaced', { playerIndex: 0, bid: 0 }));
-    game.processEvent(ev('bidPlaced', { playerIndex: 1, bid: 1 }));
-    // Send enough empty frames to clear table
-    clearTable(game);
-    // Now cards should be tracked in trickTracking phase
-    const result = game.processCards([card('wizard:blue:10')]);
-    expect(result.display.hud.length).toBeGreaterThan(0);
-  });
-});
-
-// ---------------------------------------------------------------------------
 describe('trick completion via processCards', () => {
   function setupTrickPhase(players, bids) {
     const game = new WizardGame(players);
@@ -132,7 +111,6 @@ describe('trick completion via processCards', () => {
     players.forEach((_, i) => {
       game.processEvent(ev('bidPlaced', { playerIndex: i, bid: bids[i] }));
     });
-    clearTable(game);
     return game;
   }
 
@@ -141,6 +119,7 @@ describe('trick completion via processCards', () => {
     // Both cards appear — trick complete
     const result = game.processCards([card('wizard:red:10'), card('wizard:blue:03')]);
     expect(result.actions.some(a => a.type === 'speak')).toBe(true);
+    expect(result.actions.some(a => a.type === 'awaitTableClear')).toBe(true);
   });
 
   it('last trick shows summary and updates cumulative scores', () => {
@@ -162,7 +141,6 @@ describe('processEvent – roundEnded', () => {
     players.forEach((_, i) => {
       game.processEvent(ev('bidPlaced', { playerIndex: i, bid: bids[i] }));
     });
-    clearTable(game);
     // Play one trick (round 1 = 1 card each)
     game.processCards([card('wizard:wizard:01'), card('wizard:blue:03')]);
     return game;
@@ -185,13 +163,9 @@ describe('processEvent – roundEnded', () => {
       // Bids
       game.processEvent(ev('bidPlaced', { playerIndex: 0, bid: 0 }));
       game.processEvent(ev('bidPlaced', { playerIndex: 1, bid: 0 }));
-      // Clear table
-      clearTable(game);
       // Play tricks (round number = tricks per round)
       for (let trick = 0; trick < round; trick++) {
         game.processCards([card(`wizard:blue:${String(trick + 1).padStart(2, '0')}`), card(`wizard:red:${String(trick + 1).padStart(2, '0')}`)]);
-        // Clear table between tricks (except after last trick of last round)
-        if (trick < round - 1) clearTable(game);
       }
       // End round (unless last)
       if (round < maxRounds) {

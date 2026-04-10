@@ -145,8 +145,6 @@ describe('processCards – stateful (via WizardGame class)', () => {
     for (let i = 0; i < players.length; i++) {
       game.processEvent({ type: 'bidPlaced', data: { playerIndex: i, bid: 1 } });
     }
-    // Clear table (5+ empty frames)
-    for (let i = 0; i < 6; i++) game.processCards([]);
     return game;
   }
 
@@ -157,7 +155,8 @@ describe('processCards – stateful (via WizardGame class)', () => {
   });
 
   it('diffs cards between calls — only new cards are tracked', () => {
-    const game = makeGame(['Alice', 'Bob']);
+    // Use 3 players so 2 cards don't trigger trick completion
+    const game = makeGame(['Alice', 'Bob', 'Charlie']);
     game.processCards([card('wizard:blue:05')]);
     const result = game.processCards([card('wizard:blue:05'), card('wizard:red:03')]);
     const allDetails = result.players.flatMap(p => p.cardDetails);

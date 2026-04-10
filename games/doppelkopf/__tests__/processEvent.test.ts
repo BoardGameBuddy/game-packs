@@ -1,9 +1,10 @@
 /**
  * Doppelkopf processEvent tests.
  *
- * Trick completion and table clearing are handled by processCards().
- * These tests focus on the remaining events: gameStarted, announcementMade,
- * roundEnded.
+ * Trick completion is handled by processCards().
+ * Table clearing is handled by the caller (app/playground) via the awaitTableClear action.
+ * These tests focus on events: gameStarted, announcementMade, roundEnded,
+ * and trick completion via processCards.
  */
 
 const { DoppelkopfGame } = require('../scorer');
@@ -24,11 +25,6 @@ function card(cardId) {
 }
 
 const PLAYERS = ['Alice', 'Bob', 'Charlie', 'Dave'];
-
-/** Sends N empty processCards frames to trigger table clear. */
-function clearTable(game, n = 6) {
-  for (let i = 0; i < n; i++) game.processCards([]);
-}
 
 // ---------------------------------------------------------------------------
 describe('processEvent – gameStarted', () => {
@@ -80,7 +76,6 @@ describe('trick completion via processCards', () => {
   it('detects trick completion when all 4 players have played', () => {
     const game = new DoppelkopfGame(PLAYERS);
     game.processEvent(ev('gameStarted', { players: PLAYERS }));
-    clearTable(game);
     // All 4 cards appear
     const result = game.processCards([
       card('clubs:queen'),
@@ -89,12 +84,12 @@ describe('trick completion via processCards', () => {
       card('spades:9'),
     ]);
     expect(result.actions.some(a => a.type === 'speak')).toBe(true);
+    expect(result.actions.some(a => a.type === 'awaitTableClear')).toBe(true);
   });
 
   it('12th trick shows summary', () => {
     const game = new DoppelkopfGame(PLAYERS);
     game.processEvent(ev('gameStarted', { players: PLAYERS }));
-    clearTable(game);
 
     // Play 12 tricks via processCards
     const reTrickCards = [
@@ -117,17 +112,15 @@ describe('trick completion via processCards', () => {
     ];
 
     game.processCards(reTrickCards);
-    clearTable(game);
     game.processCards(reTrick2Cards);
-    clearTable(game);
     for (let i = 0; i < 9; i++) {
       game.processCards(zeroCards);
-      clearTable(game);
     }
     // 12th trick
     const result = game.processCards(zeroCards);
     expect(result.actions.some(a => a.type === 'showSummary')).toBe(true);
     expect(result.actions.some(a => a.type === 'stopAnnouncementListening')).toBe(true);
+    expect(result.actions.some(a => a.type === 'awaitTableClear')).toBe(true);
     expect(result.display.summary).toBeDefined();
   });
 });
@@ -137,7 +130,6 @@ describe('processEvent – roundEnded', () => {
   it('resets round state and returns restart actions', () => {
     const game = new DoppelkopfGame(PLAYERS);
     game.processEvent(ev('gameStarted', { players: PLAYERS }));
-    clearTable(game);
 
     // Play 12 tricks
     const cards = [
@@ -153,9 +145,7 @@ describe('processEvent – roundEnded', () => {
       card('spades:9'),
     ];
     game.processCards(cards);
-    clearTable(game);
     game.processCards(cards2);
-    clearTable(game);
     const zeroCards = [
       card('diamond:9'),
       card('diamond:9'),
@@ -164,7 +154,6 @@ describe('processEvent – roundEnded', () => {
     ];
     for (let i = 0; i < 10; i++) {
       game.processCards(zeroCards);
-      clearTable(game);
     }
 
     const result = game.processEvent(ev('roundEnded', {}));

@@ -137,7 +137,7 @@ interface WizardInternal {
   players: string[];
   round: number;       // current round, 1-based
   maxRounds: number;   // total rounds = 60 / players.length
-  phase: 'trumpDetection' | 'bidCollection' | 'waitingForClear' | 'trickTracking';
+  phase: 'trumpDetection' | 'bidCollection' | 'trickTracking';
   trumpSuit: string | null;
   bids: Record<string, number>;
   bidIndex: number;    // index of next player to bid
@@ -148,18 +148,9 @@ interface WizardInternal {
   previousCardIds: string[];
   /** Cards detected in the current trick: [playerIndex, cardId] pairs. */
   currentTrickCards: [number, string][];
-  /** Guards against firing trick completion actions more than once. */
-  trickCompletionFired: boolean;
-  /** Counts consecutive processCards calls with no visible cards (for table-clear detection). */
-  emptyCallCount: number;
-  /** True after a trick completes, waiting for cards to be removed. */
-  waitingForTableClear: boolean;
   /** Index of the player who leads the current trick (round-robin assignment). */
   trickLeader: number;
 }
-
-/** Number of consecutive processCards calls with empty boxes required to confirm table clear. */
-const EMPTY_CALLS_THRESHOLD = 5;
 
 /** Formats a number with explicit sign (+/-). */
 function fmtSigned(n: number): string {
@@ -268,9 +259,6 @@ export class WizardGame implements GamePack {
       cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
       previousCardIds: [],
       currentTrickCards: [],
-      trickCompletionFired: false,
-      emptyCallCount: 0,
-      waitingForTableClear: false,
       trickLeader: 0,
     };
   }
@@ -318,36 +306,9 @@ export class WizardGame implements GamePack {
       };
     }
 
-    // --- waitingForClear: count empty frames, transition to trickTracking ---
-    if (s.phase === 'waitingForClear' || s.waitingForTableClear) {
-      if (boxes.length === 0) {
-        s.emptyCallCount++;
-        if (s.emptyCallCount >= EMPTY_CALLS_THRESHOLD) {
-          s.emptyCallCount = 0;
-          s.waitingForTableClear = false;
-          s.trickCompletionFired = false;
-          s.currentTrickCards = [];
-          s.previousCardIds = [];
-          if (s.phase === 'waitingForClear') {
-            s.phase = 'trickTracking';
-          }
-          return {
-            players: buildScores(s),
-            display: { hud: buildHud(s) },
-          };
-        }
-      } else {
-        s.emptyCallCount = 0;
-      }
-      return {
-        players: buildScores(s),
-        display: { hud: buildHud(s) },
-      };
-    }
-
     // --- trickTracking: track newly appeared cards sequentially from trick leader ---
     if (s.phase === 'trickTracking') {
-      if (newCards.length > 0 && !s.trickCompletionFired) {
+      if (newCards.length > 0) {
         for (const card of newCards) {
           if (!s.currentTrickCards.some(([, id]) => id === card.cardId)) {
             const playerIdx = (s.trickLeader + s.currentTrickCards.length) % s.players.length;
@@ -357,10 +318,7 @@ export class WizardGame implements GamePack {
       }
 
       // Check for trick completion
-      if (s.currentTrickCards.length >= s.players.length && !s.trickCompletionFired) {
-        s.trickCompletionFired = true;
-        s.waitingForTableClear = true;
-
+      if (s.currentTrickCards.length >= s.players.length) {
         const cards = s.currentTrickCards;
         const winnerIndex = determineTrickWinner(cards, s.trumpSuit);
         const winnerName = s.players[winnerIndex];
@@ -368,6 +326,10 @@ export class WizardGame implements GamePack {
         s.tricksWon[winnerName] = (s.tricksWon[winnerName] ?? 0) + 1;
         s.completedTricks++;
         s.trickLeader = winnerIndex;
+
+        // Reset trick state immediately — caller handles table clear
+        s.currentTrickCards = [];
+        s.previousCardIds = [];
 
         const trickNum = s.completedTricks;
         const trickWonText = t('voice.trick_won', '%s gewinnt Stich %d.')
@@ -391,6 +353,7 @@ export class WizardGame implements GamePack {
             actions: [
               { type: 'speak', text: `${trickWonText} ${summaryText}` },
               { type: 'showSummary' },
+              { type: 'awaitTableClear' },
             ],
           };
         }
@@ -401,6 +364,7 @@ export class WizardGame implements GamePack {
           display: { hud: buildHud(s) },
           actions: [
             { type: 'speak', text: trickWonText },
+            { type: 'awaitTableClear' },
           ],
         };
       }
@@ -441,9 +405,6 @@ export class WizardGame implements GamePack {
         cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
         previousCardIds: [],
         currentTrickCards: [],
-        trickCompletionFired: false,
-        emptyCallCount: 0,
-        waitingForTableClear: false,
         trickLeader: 0,
       };
       const roundText = t('voice.round_start', 'Runde %d von %d.')
@@ -475,7 +436,8 @@ export class WizardGame implements GamePack {
 
       const allBidsIn = s.bidIndex >= s.players.length;
       if (allBidsIn) {
-        s.phase = 'waitingForClear';
+        s.phase = 'trickTracking';
+        s.previousCardIds = [];
         const bidsDoneText = t('voice.bids_done', 'Danke. Los gehts.');
         actions.push(
           { type: 'speak', text: bidsDoneText },
@@ -506,9 +468,6 @@ export class WizardGame implements GamePack {
       s.completedTricks = 0;
       s.currentTrickCards = [];
       s.previousCardIds = [];
-      s.trickCompletionFired = false;
-      s.emptyCallCount = 0;
-      s.waitingForTableClear = false;
 
       if (justFinishedRound >= s.maxRounds) {
         // Game over

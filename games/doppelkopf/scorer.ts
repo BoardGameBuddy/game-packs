@@ -545,18 +545,9 @@ interface DoppelkopfInternal {
   previousCardIds: string[];
   /** Cards detected in the current trick: [playerIndex, cardId] pairs. */
   currentTrickCards: [number, string][];
-  /** Guards against firing trick completion actions more than once. */
-  trickCompletionFired: boolean;
-  /** Counts consecutive processCards calls with no visible cards (for table-clear detection). */
-  emptyCallCount: number;
-  /** True after a trick completes, waiting for cards to be removed. */
-  waitingForTableClear: boolean;
   /** Index of the player who leads the current trick (round-robin assignment). */
   trickLeader: number;
 }
-
-/** Number of consecutive processCards calls with empty boxes required to confirm table clear. */
-const EMPTY_CALLS_THRESHOLD = 5;
 
 /** Announcement trigger words keyed by id, as defined in game.json. */
 const ANNOUNCEMENT_TRIGGERS: Record<string, string[]> = {
@@ -640,9 +631,6 @@ export class DoppelkopfGame implements GamePack {
       cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
       previousCardIds: [],
       currentTrickCards: [],
-      trickCompletionFired: false,
-      emptyCallCount: 0,
-      waitingForTableClear: false,
       trickLeader: 0,
     };
   }
@@ -680,28 +668,8 @@ export class DoppelkopfGame implements GamePack {
     const s = this.state;
     const newCards = this.diffNewCards(boxes);
 
-    // --- waitingForTableClear: count empty frames ---
-    if (s.waitingForTableClear) {
-      if (boxes.length === 0) {
-        s.emptyCallCount++;
-        if (s.emptyCallCount >= EMPTY_CALLS_THRESHOLD) {
-          s.emptyCallCount = 0;
-          s.waitingForTableClear = false;
-          s.trickCompletionFired = false;
-          s.currentTrickCards = [];
-          s.previousCardIds = [];
-        }
-      } else {
-        s.emptyCallCount = 0;
-      }
-      return {
-        players: buildScoresDk(s),
-        display: { hud: buildHudDk(s) },
-      };
-    }
-
     // Track newly appeared cards — assign sequentially starting from trick leader
-    if (newCards.length > 0 && !s.trickCompletionFired) {
+    if (newCards.length > 0) {
       for (const card of newCards) {
         const playerIdx = (s.trickLeader + s.currentTrickCards.length) % s.players.length;
         s.currentTrickCards.push([playerIdx, card.cardId]);
@@ -709,10 +677,7 @@ export class DoppelkopfGame implements GamePack {
     }
 
     // Check for trick completion
-    if (s.currentTrickCards.length >= s.players.length && !s.trickCompletionFired) {
-      s.trickCompletionFired = true;
-      s.waitingForTableClear = true;
-
+    if (s.currentTrickCards.length >= s.players.length) {
       const cards = s.currentTrickCards;
       const winnerIndex = determineTrickWinner(cards, null);
       const winnerName = s.players[winnerIndex] ?? '?';
@@ -723,6 +688,10 @@ export class DoppelkopfGame implements GamePack {
       s.trickHistory.push({ cards, winnerIndex });
       s.completedTricks++;
       s.trickLeader = winnerIndex;
+
+      // Reset trick state immediately — caller handles table clear
+      s.currentTrickCards = [];
+      s.previousCardIds = [];
 
       const trickNum = s.completedTricks;
       const trickWonText = trickAugen > 0
@@ -759,6 +728,7 @@ export class DoppelkopfGame implements GamePack {
             { type: 'speak', text: `${trickWonText} ${summaryText}` },
             { type: 'stopAnnouncementListening' },
             { type: 'showSummary' },
+            { type: 'awaitTableClear' },
           ],
         };
       }
@@ -766,6 +736,7 @@ export class DoppelkopfGame implements GamePack {
       // Not last trick
       const actions: FlutterAction[] = [
         { type: 'speak', text: trickWonText },
+        { type: 'awaitTableClear' },
       ];
 
       if (s.completedTricks >= ANNOUNCEMENT_UNTIL) {
@@ -802,9 +773,6 @@ export class DoppelkopfGame implements GamePack {
         cumulativeScores: Object.fromEntries(players.map(p => [p, 0])),
         previousCardIds: [],
         currentTrickCards: [],
-        trickCompletionFired: false,
-        emptyCallCount: 0,
-        waitingForTableClear: false,
         trickLeader: 0,
       };
       const gameStartText = t('voice.game_start', 'Spiel beginnt. Tisch bitte leeren.');
@@ -846,9 +814,6 @@ export class DoppelkopfGame implements GamePack {
       s.announcements = [];
       s.currentTrickCards = [];
       s.previousCardIds = [];
-      s.trickCompletionFired = false;
-      s.emptyCallCount = 0;
-      s.waitingForTableClear = false;
       s.trickLeader = 0;
 
       const nextRoundText = t('voice.next_round', 'Naechste Runde. Tisch bitte leeren.');
