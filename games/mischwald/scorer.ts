@@ -15,7 +15,7 @@
 import type { AdditionalInput, GamePack, GameState, DetectedBox, ScorerContext, PlayerScoreResult, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
 import { overlapHorizontal, overlapVertical, sortVisuallyByBox, rectifyBoxes, parseCardId, groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
 
-const t = createTranslator('./texts.json');
+const t = createTranslator(require('path').join(__dirname, 'texts.json'));
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of mischwald_cards.json)

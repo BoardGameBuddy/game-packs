@@ -18,7 +18,7 @@
 import type { GamePack, GameState, DetectedBox, CardScoreDetail } from '@boardgamebuddy/game-pack-api';
 import { sortVisuallyByBox, rectifyBoxes, parseCardId, groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
 
-const t = createTranslator('./texts.json');
+const t = createTranslator(require('path').join(__dirname, 'texts.json'));
 
 // ---------------------------------------------------------------------------
 // JSON types (shape of faraway_cards.json)
