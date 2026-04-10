@@ -19,10 +19,10 @@ A game pack is a self-contained directory that adds support for a new board game
 ## Quick start
 
 1. Fork this repository and clone your fork.
-2. Scaffold a new pack: `npx bgb new mygame`.
+2. Scaffold a new pack: `npm run new mygame`.
 3. Fill in `game.json` with your game's metadata.
 4. Implement the `processCards` method in `scorer.ts`.
-5. Compile: `cd games/mygame && npm run build`
+5. Compile: `npm run build mygame`
 6. Serve and open the Playground to test interactively (see [Playground](#playground)).
 7. Write tests in `__tests__/scorer.test.js` and verify: `npm test`.
 
@@ -83,11 +83,10 @@ npm test -- --testPathPattern=games/mygame
 
 The Playground is a browser-based UI for testing and debugging scorer logic interactively without the app.  It lets you arrange cards on a virtual table, call the scorer, and inspect the score breakdown in real time.
 
-Start the dev server from a pack directory:
+Start the dev server for a pack:
 
 ```bash
-cd games/mygame
-node ../../serve.js
+npm run serve mygame
 # playground at http://localhost:3000/playground/
 ```
 

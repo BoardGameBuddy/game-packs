@@ -10,7 +10,6 @@
 'use strict';
 
 const { program } = require('commander');
-const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -18,10 +17,6 @@ const os = require('os');
 const { spawn } = require('child_process');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
-
-const TEMPLATE_REPO = 'BoardGameBuddy/game-packs';
-const TEMPLATE_PATH = 'games/_template';
-const TEMPLATE_REF = 'main';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -61,41 +56,15 @@ function toTitleCase(str) {
     .join(' ');
 }
 
-function get(url) {
-  return new Promise((resolve, reject) => {
-    const lib = url.startsWith('https') ? https : http;
-    lib.get(url, { headers: { 'User-Agent': 'bgb-cli' } }, (res) => {
-      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-        resolve(get(res.headers.location));
-        return;
-      }
-      const chunks = [];
-      res.on('data', chunk => chunks.push(chunk));
-      res.on('end', () => resolve({ status: res.statusCode, body: Buffer.concat(chunks) }));
-    }).on('error', reject);
-  });
-}
-
-async function githubContents(repoPath) {
-  const url = `https://api.github.com/repos/${TEMPLATE_REPO}/contents/${repoPath}?ref=${TEMPLATE_REF}`;
-  const { status, body } = await get(url);
-  if (status !== 200) {
-    throw new Error(`GitHub API returned ${status} for ${repoPath}:\n${body.toString()}`);
-  }
-  return JSON.parse(body.toString());
-}
-
-async function downloadTemplate(repoPath, localDir) {
-  const entries = await githubContents(repoPath);
-  fs.mkdirSync(localDir, { recursive: true });
-  for (const entry of entries) {
-    const dest = path.join(localDir, entry.name);
-    if (entry.type === 'dir') {
-      await downloadTemplate(entry.path, dest);
-    } else if (entry.type === 'file') {
-      const { status, body } = await get(entry.download_url);
-      if (status !== 200) throw new Error(`Failed to download ${entry.path}: HTTP ${status}`);
-      fs.writeFileSync(dest, body);
+function copyDirSync(src, dest) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
     }
   }
 }
@@ -121,13 +90,14 @@ program
       process.exit(1);
     }
 
-    console.log(`Fetching template from ${TEMPLATE_REPO}...`);
-    try {
-      await downloadTemplate(TEMPLATE_PATH, targetDir);
-    } catch (err) {
-      console.error(`Error: failed to fetch template — ${err.message}`);
+    const templateDir = path.join(gamesDir, '_template');
+    if (!fs.existsSync(templateDir)) {
+      console.error(`Error: template directory not found: ${templateDir}`);
       process.exit(1);
     }
+
+    console.log(`Copying template from ${path.relative(process.cwd(), templateDir)}...`);
+    copyDirSync(templateDir, targetDir);
 
     // Patch game.json
     const gameJsonPath = path.join(targetDir, 'game.json');
@@ -144,44 +114,36 @@ program
       fs.writeFileSync(labelsPath, labels);
     }
 
-    // Patch package.json name
-    const packJsonPath = path.join(targetDir, 'package.json');
-    if (fs.existsSync(packJsonPath)) {
-      let packJson = fs.readFileSync(packJsonPath, 'utf8');
-      packJson = packJson.replace(/"mygame"/, `"${gameId}"`);
-      fs.writeFileSync(packJsonPath, packJson);
-    }
-
     console.log(`\nCreated game pack: ${gameId}/`);
     console.log(`  Display name: ${displayName}`);
-    console.log(`\nInstalling dependencies...`);
-
-    await new Promise((resolve, reject) => {
-      const proc = spawn('npm', ['install'], { cwd: targetDir, shell: true, stdio: 'inherit' });
-      proc.on('close', (code) => code === 0 ? resolve() : reject(new Error(`npm install failed with code ${code}`)));
-    }).catch((err) => {
-      console.error(`Warning: ${err.message}`);
-    });
 
     console.log(`\nNext steps:`);
-    console.log(`  cd ${path.relative(process.cwd(), targetDir)}`);
-    console.log(`  # Edit scorer.ts to implement your scoring logic`);
-    console.log(`  bgb serve .    # Start dev server with live reload`);
+    console.log(`  # Edit games/${gameId}/scorer.ts to implement your scoring logic`);
+    console.log(`  npm run build ${gameId}   # Compile scorer`);
+    console.log(`  npm run serve ${gameId}   # Start dev server with live reload`);
+    console.log(`  npm test -- --testPathPattern=${gameId}   # Run tests`);
     console.log('');
   });
 
 // ─── bgb serve ──────────────────────────────────────────────────────────────
 
 program
-  .command('serve [pack-dir]')
+  .command('serve [pack]')
   .description('Serve a game pack with live reload on scorer.ts changes')
-  .action((packDirArg) => {
-    const packDir = packDirArg ? path.resolve(packDirArg) : process.cwd();
+  .action((packArg) => {
+    let packDir;
+    if (packArg) {
+      // Accept a pack name (e.g. "wizard") or a path (e.g. "games/wizard")
+      const asGamesSubdir = path.resolve('games', packArg);
+      packDir = fs.existsSync(path.join(asGamesSubdir, 'game.json')) ? asGamesSubdir : path.resolve(packArg);
+    } else {
+      packDir = process.cwd();
+    }
     const gameJsonPath = path.join(packDir, 'game.json');
 
     if (!fs.existsSync(gameJsonPath)) {
       console.error(`Error: no game.json found in ${packDir}`);
-      console.error('Run this command from a pack directory or pass the pack path as argument.');
+      console.error('Pass a pack name (e.g. npm run serve wizard) or run from a pack directory.');
       process.exit(1);
     }
 
@@ -196,11 +158,7 @@ program
     }
     const gameId = gameJson.id;
 
-    const playgroundHtmlPath = (() => {
-      const bundled = path.join(__dirname, 'playground', 'index.html');
-      if (fs.existsSync(bundled)) return bundled;
-      return path.join(__dirname, '..', 'playground', 'index.html');
-    })();
+    const playgroundHtmlPath = path.join(__dirname, 'playground', 'index.html');
     const hasPlayground = fs.existsSync(playgroundHtmlPath);
 
     // ── Playground helpers (scoped to the current pack) ──────────────────────
@@ -431,7 +389,7 @@ program
       const proc = spawn(
         'npx',
         ['esbuild', 'scorer.ts', '--bundle', '--platform=node', '--target=es2017', '--outfile=scorer.js'],
-        { cwd: packDir, shell: true }
+        { cwd: packDir }
       );
 
       let stderr = '';

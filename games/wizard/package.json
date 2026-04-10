@@ -1,7 +1,0 @@
-{
-  "scripts": {
-    "build": "esbuild scorer.ts --bundle --platform=node --target=es2017 --outfile=scorer.js",
-    "test": "npx jest --config ../../jest.config.js --testPathPattern=wizard",
-    "serve": "node ../serve.js"
-  }
-}

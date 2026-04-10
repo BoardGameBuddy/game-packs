@@ -4,13 +4,13 @@
   "private": true,
   "description": "Community game packs for BoardGameBuddy",
   "workspaces": [
-    "api",
-    "cli"
+    "api"
   ],
   "scripts": {
+    "new": "node bgb.js new",
     "test": "jest",
-    "serve": "node ./serve.js",
-    "build": "node -e \"const fs=require('fs'),{execSync}=require('child_process');fs.readdirSync('games').forEach(g=>{const t='games/'+g+'/scorer.ts';if(fs.existsSync(t))execSync('npx esbuild '+t+' --bundle --platform=node --target=es2017 --format=cjs --outfile=games/'+g+'/scorer.js',{stdio:'inherit'})})\"",
+    "serve": "node bgb.js serve",
+    "build": "node -e \"const fs=require('fs'),p=require('path'),{execSync}=require('child_process'),id=process.argv[1],packs=id?[id]:fs.readdirSync('games').filter(g=>fs.existsSync(p.join('games',g,'scorer.ts')));packs.forEach(g=>{const t=p.join('games',g,'scorer.ts');console.log('Building '+g+'...');execSync('npx esbuild '+t+' --bundle --platform=node --target=es2017 --format=cjs --outfile='+p.join('games',g,'scorer.js'),{stdio:'inherit'})})\" --",
     "typecheck": "tsc --project tsconfig.json",
     "watch": "tsc --watch --project tsconfig.json"
   },
@@ -25,6 +25,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "commander": "^12.0.0",
     "playwright": "^1.59.1"
   }
 }

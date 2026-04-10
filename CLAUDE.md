@@ -11,20 +11,14 @@ Community game pack repository for **BoardGameBuddy**, an app for on-device boar
 ```bash
 npm test                    # Run all Jest tests (from root)
 npm run build               # Compile all TypeScript scorers to JS
+npm run build wizard        # Compile a single scorer
 npm run typecheck           # Type-check all scorers (no output)
-npm run serve               # Start local dev server (run from a pack directory)
+npm run serve wizard        # Start local dev server for a pack
 npm run watch               # Watch and recompile TypeScript on change
+npm run new mygame          # Scaffold a new pack from the template
 
 # Run tests for a single pack
 npm test -- --testPathPattern=games/wizard
-npm test -- --testPathPattern=games/faraway
-
-# Compile a single scorer manually (from the pack directory)
-npm run build
-
-# Test with app: serve a pack and scan QR code
-cd games/wizard && npm run serve
-# Or with the bgb CLI (from game-pack-cli repo): bgb serve games/wizard
 ```
 
 **Important**: Test files are TypeScript (`.test.ts`) and run directly via ts-jest — no pre-compilation needed. However, `require('../scorer')` in tests resolves `scorer.ts` first (ts-jest handles it), so scorer compilation is not required either.
@@ -57,7 +51,7 @@ Each pack directory contains:
 - `texts.json` (optional) — localization strings (nested JSON, flattened to `"section.key"` at runtime)
 - `__tests__/scorer.test.js` — compiled Jest tests
 
-Use `games/_template/` as the starting point for new packs. The `bgb new` CLI (from the `game-pack-cli` repo) scaffolds new packs by fetching this template from GitHub.
+Use `games/_template/` as the starting point for new packs. `npm run new <game-id>` scaffolds a new pack by copying the template into `games/`.
 
 ### Localization Pattern
 
