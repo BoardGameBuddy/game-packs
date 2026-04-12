@@ -32,10 +32,10 @@
       "id": "doppelkopf",
       "displayName": "Doppelkopf",
       "description": "Klassisches deutsches Kartenspiel",
-      "version": 40,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v40/doppelkopf.zip",
-      "sizeBytes": 23705,
-      "checksum": "sha256:f086dbaede5dbc58ce3e40b18c832a4f6a9a6d6b7c2677fae73b50a9c674dcce"
+      "version": 45,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v45/doppelkopf.zip",
+      "sizeBytes": 30314,
+      "checksum": "sha256:ad94634a4ba5388ee1fd01ce90d36b6c0d2b61dbe0165c76105f19c8cf94aa6a"
     }
   ]
 }
