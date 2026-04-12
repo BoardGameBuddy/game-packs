@@ -332,6 +332,31 @@ program
         return;
       }
 
+      // ── Save recording ──────────────────────────────────────────────────
+
+      if (req.method === 'POST' && (m = urlPath.match(/^\/api\/games\/([^/]+)\/recordings$/))) {
+        if (m[1] !== gameId) { res.writeHead(404); res.end('Not found'); return; }
+        let body = '';
+        req.on('data', chunk => { body += chunk; });
+        req.on('end', () => {
+          try {
+            const recordingsDir = path.join(packDir, '__tests__', 'recordings');
+            fs.mkdirSync(recordingsDir, { recursive: true });
+            const ts = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `recorded-${gameId}-${ts}.json`;
+            const filePath = path.join(recordingsDir, filename);
+            fs.writeFileSync(filePath, body, 'utf8');
+            console.log(`Saved recording: ${filename}`);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ filename }));
+          } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: e.message }));
+          }
+        });
+        return;
+      }
+
       // ── Pack file serving ─────────────────────────────────────────────────
 
       const filePath = path.join(packDir, urlPath === '/' ? '' : urlPath);
@@ -384,12 +409,15 @@ program
 
     let debounceTimer = null;
 
+    // Initial compile to ensure scorer.js is up-to-date on startup.
+    recompile();
+
     function recompile() {
       console.log('scorer.ts changed — recompiling...');
       const proc = spawn(
         'npx',
         ['esbuild', 'scorer.ts', '--bundle', '--platform=node', '--target=es2017', '--outfile=scorer.js'],
-        { cwd: packDir }
+        { cwd: packDir, shell: true }
       );
 
       let stderr = '';

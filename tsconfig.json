@@ -5,8 +5,15 @@
     "strict": true,
     "noEmit": true,
     "paths": {
-      "@boardgamebuddy/game-pack-api": ["./api/index.ts"]
+      "@boardgamebuddy/game-pack-api": [
+        "./api/index.ts"
+      ],
+      "@boardgamebuddy/game-pack-api/*": [
+        "./api/*"
+      ]
     }
   },
-  "include": ["games/*/scorer.ts"]
+  "include": [
+    "games/*/scorer.ts"
+  ]
 }

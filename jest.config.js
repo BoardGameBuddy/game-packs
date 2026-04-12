@@ -9,6 +9,7 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   moduleNameMapper: {
     '^@boardgamebuddy/game-pack-api$': '<rootDir>/api/index.ts',
+    '^@boardgamebuddy/game-pack-api/(.+)$': '<rootDir>/api/$1.ts',
   },
   transform: {
     '^.+\\.ts$': ['ts-jest', {

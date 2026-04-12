@@ -27,7 +27,7 @@ function listGames() {
     if (dir.startsWith('_') || dir === 'img') continue;
     const p = path.join(GAMES_DIR, dir, 'game.json');
     if (fs.existsSync(p)) {
-      try { games.push(JSON.parse(fs.readFileSync(p, 'utf8'))); } catch {}
+      try { games.push(JSON.parse(fs.readFileSync(p, 'utf8'))); } catch { }
     }
   }
   return games;
@@ -152,7 +152,8 @@ function serveFile(filePath, res) {
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
   const url = req.url.split('?')[0];
@@ -206,7 +207,34 @@ const server = http.createServer((req, res) => {
     }
     return serveFile(filePath, res);
   }
-
+  // Save recording
+  if (req.method === 'POST' && (m = url.match(/^\/api\/games\/([^/]+)\/recordings$/))) {
+    const gameId = m[1];
+    const gameDir = path.join(GAMES_DIR, gameId);
+    if (!fs.existsSync(gameDir)) {
+      res.writeHead(404); return res.end('Game not found');
+    }
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        JSON.parse(body); // validate JSON
+      } catch {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Invalid JSON' }));
+      }
+      const recordingsDir = path.join(gameDir, '__tests__', 'recordings');
+      fs.mkdirSync(recordingsDir, { recursive: true });
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const filename = `recorded-${gameId}-${ts}.json`;
+      const filePath = path.join(recordingsDir, filename);
+      fs.writeFileSync(filePath, body, 'utf8');
+      console.log(`Saved recording: ${path.relative(GAMES_DIR, filePath)}`);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ filename }));
+    });
+    return;
+  }
   res.writeHead(404);
   res.end('Not found');
 });

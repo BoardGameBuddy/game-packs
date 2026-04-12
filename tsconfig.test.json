@@ -5,6 +5,7 @@
     "strict": false
   },
   "include": [
+    "api/replay-runner.ts",
     "games/*/scorer.ts",
     "games/*/__tests__/*.test.ts"
   ]

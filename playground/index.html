@@ -114,6 +114,32 @@
       color: #e94560;
     }
 
+    .record-btn {
+      background: #1a1a2e;
+      border: 1px solid #0f3460;
+      border-radius: 4px;
+      color: #a0a0c0;
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 8px;
+      line-height: 1;
+    }
+
+    .record-btn:hover {
+      border-color: #e94560;
+      color: #e94560;
+    }
+
+    .record-btn.active {
+      border-color: #e94560;
+      color: #e94560;
+    }
+
+    .record-btn.active::before {
+      content: '\25CF ';
+      color: #e94560;
+    }
+
     /* ── Main layout ── */
     .main {
       display: flex;
@@ -270,6 +296,25 @@
     .table-card.dragging {
       opacity: .5;
       z-index: 100;
+    }
+
+    .table-card.selected {
+      box-shadow: 0 0 0 2px #4ecdc4;
+      z-index: 2;
+    }
+
+    .table-card.selected.dragging {
+      opacity: .5;
+      z-index: 100;
+    }
+
+    .selection-rect {
+      position: absolute;
+      border: 1px dashed #4ecdc4;
+      background: rgba(78, 205, 196, 0.1);
+      pointer-events: none;
+      z-index: 200;
+      display: none;
     }
 
     .table-card img {
@@ -510,6 +555,9 @@
     <button class="add-player-btn" id="addPlayerBtn" title="Add player">+</button>
     <span id="playerRangeHint" style="font-size:11px;color:#a0a0c0;"></span>
     <button class="add-player-btn" id="clearTableBtn" title="Clear table" onclick="clearTable()">Clear table</button>
+    <button class="record-btn" id="recordBtn" title="Toggle recording" onclick="toggleRecording()">Record</button>
+    <button class="record-btn" id="saveRecordingBtn" title="Save recording" onclick="saveRecording()"
+      style="display:none">Save</button>
     <label>Lang:</label>
     <select id="langSelect">
       <option value="de">DE</option>
@@ -527,6 +575,7 @@
     <div class="table-area" id="tableArea">
       <div class="table-surface" id="tableSurface">
         <div class="table-empty-hint" id="tableHint">Drag cards here</div>
+        <div class="selection-rect" id="selectionRect"></div>
       </div>
     </div>
 
@@ -565,6 +614,11 @@
     let dragState = null;         // { instanceId, offsetX, offsetY } during pointer drag
     let activeAnnouncementTriggers = null;
     let scorerPaused = false;     // true while awaiting table clear
+    let recording = [];           // recorded steps
+    let isRecording = false;
+    let previousRecordedCardIds = []; // cardIds from previous recorded step
+    let selectedCards = new Set();     // selected instance IDs for multi-select
+    let selectionState = null;         // { startX, startY } during rectangle drag
 
     // ── Init ──
     async function init() {
@@ -920,8 +974,9 @@
       el.addEventListener('pointerdown', (e) => {
         if (e.button !== 0) return;
         e.preventDefault();
+        if (!selectedCards.has(id)) clearSelection();
         const rect2 = el.getBoundingClientRect();
-        dragState = { instanceId: id, offsetX: e.clientX - rect2.left, offsetY: e.clientY - rect2.top };
+        dragState = { instanceId: id, offsetX: e.clientX - rect2.left, offsetY: e.clientY - rect2.top, isGroup: selectedCards.has(id) && selectedCards.size > 1 };
         el.classList.add('dragging');
         el.setPointerCapture(e.pointerId);
       });
@@ -930,10 +985,22 @@
         const rect = tableSurface.getBoundingClientRect();
         const entry = tableCards.get(id);
         if (!entry) return;
-        entry.x = Math.max(0, Math.min(e.clientX - rect.left - dragState.offsetX, rect.width - entry.w));
-        entry.y = Math.max(0, Math.min(e.clientY - rect.top - dragState.offsetY, rect.height - entry.h));
-        el.style.left = entry.x + 'px';
-        el.style.top = entry.y + 'px';
+        const newX = Math.max(0, Math.min(e.clientX - rect.left - dragState.offsetX, rect.width - entry.w));
+        const newY = Math.max(0, Math.min(e.clientY - rect.top - dragState.offsetY, rect.height - entry.h));
+        if (dragState.isGroup) {
+          const dx = newX - entry.x, dy = newY - entry.y;
+          for (const selId of selectedCards) {
+            const sc = tableCards.get(selId);
+            if (!sc) continue;
+            sc.x += dx; sc.y += dy;
+            sc.el.style.left = sc.x + 'px';
+            sc.el.style.top = sc.y + 'px';
+          }
+        } else {
+          entry.x = newX; entry.y = newY;
+          el.style.left = entry.x + 'px';
+          el.style.top = entry.y + 'px';
+        }
       });
       el.addEventListener('pointerup', (e) => {
         if (!dragState || dragState.instanceId !== id) return;
@@ -947,11 +1014,16 @@
         e.preventDefault();
         const entry = tableCards.get(id);
         if (!entry) return;
-        entry.angle += e.deltaY > 0 ? 15 : -15;
-        entry.angle = ((entry.angle % 360) + 360) % 360;
-        el.style.transform = `rotate(${entry.angle}deg)`;
-        el.dataset.rotated = entry.angle !== 0 ? 'true' : 'false';
-        badge.textContent = entry.angle + '\u00b0';
+        const delta = e.deltaY > 0 ? 15 : -15;
+        if (selectedCards.has(id) && selectedCards.size > 1) {
+          rotateSelection(delta);
+        } else {
+          entry.angle += delta;
+          entry.angle = ((entry.angle % 360) + 360) % 360;
+          el.style.transform = `rotate(${entry.angle}deg)`;
+          el.dataset.rotated = entry.angle !== 0 ? 'true' : 'false';
+          badge.textContent = entry.angle + '\u00b0';
+        }
         runScorer();
       });
 
@@ -968,6 +1040,7 @@
       if (!entry) return;
       entry.el.remove();
       tableCards.delete(instanceId);
+      selectedCards.delete(instanceId);
       const c = roundUsedCounts[entry.cardId];
       if (c > 0) roundUsedCounts[entry.cardId] = c - 1;
       updateDrawerDim();
@@ -978,10 +1051,12 @@
     function clearTable() {
       for (const [, c] of tableCards) c.el.remove();
       tableCards.clear();
+      selectedCards.clear();
       instanceCounter = 0;
       scorerPaused = false;
       updateDrawerDim();
       updateHint();
+      runScorer();
     }
 
     function resetRoundCounts() {
@@ -992,6 +1067,113 @@
     function updateHint() {
       document.getElementById('tableHint').style.display = tableCards.size === 0 ? '' : 'none';
     }
+
+    // ── Multi-select ──
+    const selectionRectEl = document.getElementById('selectionRect');
+
+    tableSurface.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      if (e.target !== tableSurface && e.target.id !== 'tableHint' && e.target.id !== 'selectionRect') return;
+      const rect = tableSurface.getBoundingClientRect();
+      selectionState = { startX: e.clientX - rect.left, startY: e.clientY - rect.top };
+      selectionRectEl.style.left = selectionState.startX + 'px';
+      selectionRectEl.style.top = selectionState.startY + 'px';
+      selectionRectEl.style.width = '0';
+      selectionRectEl.style.height = '0';
+      selectionRectEl.style.display = 'block';
+      tableSurface.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+
+    tableSurface.addEventListener('pointermove', (e) => {
+      if (!selectionState) return;
+      const rect = tableSurface.getBoundingClientRect();
+      const curX = e.clientX - rect.left;
+      const curY = e.clientY - rect.top;
+      selectionRectEl.style.left = Math.min(selectionState.startX, curX) + 'px';
+      selectionRectEl.style.top = Math.min(selectionState.startY, curY) + 'px';
+      selectionRectEl.style.width = Math.abs(curX - selectionState.startX) + 'px';
+      selectionRectEl.style.height = Math.abs(curY - selectionState.startY) + 'px';
+    });
+
+    tableSurface.addEventListener('pointerup', (e) => {
+      if (!selectionState) return;
+      selectionRectEl.style.display = 'none';
+      const rect = tableSurface.getBoundingClientRect();
+      const curX = e.clientX - rect.left;
+      const curY = e.clientY - rect.top;
+      const selX1 = Math.min(selectionState.startX, curX);
+      const selY1 = Math.min(selectionState.startY, curY);
+      const selX2 = Math.max(selectionState.startX, curX);
+      const selY2 = Math.max(selectionState.startY, curY);
+      selectionState = null;
+      if (selX2 - selX1 < 5 && selY2 - selY1 < 5) { clearSelection(); return; }
+      selectedCards.clear();
+      for (const [id, card] of tableCards) {
+        if (card.x < selX2 && card.x + card.w > selX1 && card.y < selY2 && card.y + card.h > selY1) {
+          selectedCards.add(id);
+        }
+      }
+      updateSelectionVisuals();
+    });
+
+    function clearSelection() {
+      selectedCards.clear();
+      updateSelectionVisuals();
+    }
+
+    function updateSelectionVisuals() {
+      for (const [id, card] of tableCards) {
+        card.el.classList.toggle('selected', selectedCards.has(id));
+      }
+    }
+
+    function getSelectionCenter() {
+      let sumCx = 0, sumCy = 0, count = 0;
+      for (const id of selectedCards) {
+        const card = tableCards.get(id);
+        if (!card) continue;
+        sumCx += card.x + card.w / 2;
+        sumCy += card.y + card.h / 2;
+        count++;
+      }
+      return count > 0 ? { x: sumCx / count, y: sumCy / count } : null;
+    }
+
+    function rotateSelection(deltaDeg) {
+      const center = getSelectionCenter();
+      if (!center) return;
+      const rad = deltaDeg * Math.PI / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      for (const selId of selectedCards) {
+        const card = tableCards.get(selId);
+        if (!card) continue;
+        const cx = card.x + card.w / 2;
+        const cy = card.y + card.h / 2;
+        const dx = cx - center.x;
+        const dy = cy - center.y;
+        card.x = center.x + (dx * cos - dy * sin) - card.w / 2;
+        card.y = center.y + (dx * sin + dy * cos) - card.h / 2;
+        card.el.style.left = card.x + 'px';
+        card.el.style.top = card.y + 'px';
+        card.angle += deltaDeg;
+        card.angle = ((card.angle % 360) + 360) % 360;
+        card.el.style.transform = `rotate(${card.angle}deg)`;
+        card.el.dataset.rotated = card.angle !== 0 ? 'true' : 'false';
+        const b = card.el.querySelector('.rotation-badge');
+        if (b) b.textContent = card.angle + '\u00b0';
+      }
+    }
+
+    // Wheel on table surface to rotate selection even when cursor is between cards
+    tableSurface.addEventListener('wheel', (e) => {
+      if (selectedCards.size < 2) return;
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? 15 : -15;
+      rotateSelection(delta);
+      runScorer();
+    });
 
     // Drop on drawer to remove
     const drawerCards = document.getElementById('drawerCards');
@@ -1010,6 +1192,19 @@
         const y1 = card.y / rect.height;
         const w = cw / rect.width;
         const h = ch / rect.height;
+        const cx = x1 + w / 2;
+        const cy = y1 + h / 2;
+        const angleRad = card.angle * Math.PI / 180;
+        const cosA = Math.cos(angleRad);
+        const sinA = Math.sin(angleRad);
+        const hw = w / 2, hh = h / 2;
+        // Rotated card corners (TL, TR, BR, BL) for rectifyBoxes
+        const keypoints = [
+          cx - hw * cosA + hh * sinA, cy - hw * sinA - hh * cosA,
+          cx + hw * cosA + hh * sinA, cy + hw * sinA - hh * cosA,
+          cx + hw * cosA - hh * sinA, cy + hw * sinA + hh * cosA,
+          cx - hw * cosA - hh * sinA, cy - hw * sinA + hh * cosA,
+        ];
         boxes.push({
           cardId: card.cardId,
           similarity: 1,
@@ -1017,11 +1212,10 @@
           x1, y1,
           x2: x1 + w,
           y2: y1 + h,
-          cx: x1 + w / 2,
-          cy: y1 + h / 2,
+          cx, cy,
           w, h,
-          angle: card.angle * Math.PI / 180,
-          keypoints: null,
+          angle: angleRad,
+          keypoints,
         });
       }
 
@@ -1044,8 +1238,106 @@
         return;
       }
 
+      if (isRecording && result) {
+        const expect = buildExpect(result);
+        const currentCardIds = boxes.map(b => b.cardId);
+        const stripped = b => ({ cardId: b.cardId });
+
+        // Check if all previous cards are still present (cards only added)
+        const allPreviousPresent = previousRecordedCardIds.length > 0 &&
+          previousRecordedCardIds.every((id, i) => currentCardIds[i] === id);
+
+        if (allPreviousPresent && previousRecordedCardIds.length < currentCardIds.length) {
+          // Delta: only the newly added boxes
+          const newBoxes = boxes.slice(previousRecordedCardIds.length).map(stripped);
+          recording.push({ type: 'processCards', addedBoxes: newBoxes, expect });
+        } else {
+          // Full snapshot (trick start or table reset)
+          recording.push({ type: 'processCards', boxes: boxes.map(stripped), expect });
+        }
+        previousRecordedCardIds = currentCardIds;
+        updateSaveBtn();
+      }
+
       renderResults(result);
       if (gameInstance) handleActions(result);
+    }
+
+    // ── Recording ──
+    function buildExpect(result) {
+      const ex = {};
+      if (result.players) {
+        ex.playerScores = result.players.map(p => p.totalScore ?? 0);
+      }
+      if (result.actions && result.actions.length > 0) {
+        ex.actions = result.actions.map(a => a.type);
+      }
+      if (result.display && result.display.summary) {
+        ex.hasSummary = true;
+      }
+      if (result.display && result.display.hud) {
+        ex.hud = result.display.hud;
+      }
+      return ex;
+    }
+
+    function recordEvent(eventObj, result) {
+      if (!isRecording) return;
+      const expect = buildExpect(result);
+      recording.push({ type: 'processEvent', event: JSON.parse(JSON.stringify(eventObj)), expect });
+      updateSaveBtn();
+    }
+
+    function toggleRecording() {
+      isRecording = !isRecording;
+      const btn = document.getElementById('recordBtn');
+      btn.classList.toggle('active', isRecording);
+      btn.textContent = isRecording ? 'Recording' : 'Record';
+      if (isRecording) {
+        recording = [];
+        previousRecordedCardIds = [];
+        // If a live game is already running, inject the gameStarted event
+        // so the replay runner uses the live path.
+        if (gameInstance) {
+          const startEvent = { type: 'gameStarted', data: { players: playerNames } };
+          const startResult = gameInstance.processCards([]);
+          recording.push({ type: 'processEvent', event: startEvent, expect: buildExpect(startResult) });
+        }
+        updateSaveBtn();
+      }
+    }
+
+    function updateSaveBtn() {
+      document.getElementById('saveRecordingBtn').style.display = recording.length > 0 ? '' : 'none';
+    }
+
+    function saveRecording() {
+      if (recording.length === 0) return;
+      const gameId = currentGame?.id || 'unknown';
+      const data = {
+        gameId,
+        players: [...playerNames],
+        timestamp: new Date().toISOString(),
+        steps: recording,
+      };
+      const btn = document.getElementById('saveRecordingBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      fetch(`/api/games/${encodeURIComponent(gameId)}/recordings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data, null, 2),
+      })
+        .then(r => r.json())
+        .then(res => {
+          btn.textContent = `Saved ${res.filename}`;
+          setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 3000);
+        })
+        .catch(err => {
+          console.error('Save recording failed:', err);
+          btn.textContent = 'Save failed';
+          setTimeout(() => { btn.textContent = 'Save'; btn.disabled = false; }, 3000);
+        });
     }
 
     // ── Live tracking ──
@@ -1058,6 +1350,7 @@
         bidPlayerIndex = 0;
         stopAnnouncementRow();
         resetRoundCounts();
+        if (isRecording) { recording = []; previousRecordedCardIds = []; }
       }
       if (type === 'roundEnded') {
         resetRoundCounts();
@@ -1069,6 +1362,7 @@
         console.error('processEvent error:', e);
         return;
       }
+      recordEvent({ type, data }, result);
       renderResults(result);
       handleActions(result);
     }
@@ -1083,6 +1377,7 @@
         console.error('placeBid error:', e);
         return;
       }
+      recordEvent({ type: 'bidPlaced', data: { playerIndex: bidPlayerIndex, bid } }, result);
       renderResults(result);
       handleActions(result);
     }
@@ -1096,6 +1391,7 @@
         console.error('announcementMade error:', e);
         return;
       }
+      recordEvent({ type: 'announcementMade', data: { announcement: key } }, result);
       renderResults(result);
       handleActions(result);
     }
