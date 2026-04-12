@@ -159,7 +159,7 @@ describe('cardDisplayName', () => {
 // ---------------------------------------------------------------------------
 describe('determineTrickWinner', () => {
   it('trump beats Fehlfarbe', () => {
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'clubs:ace'],    // Fehlfarbe Kreuz As
       [1, 'diamond:king'],   // trump (lowest)
     ];
@@ -167,7 +167,7 @@ describe('determineTrickWinner', () => {
   });
 
   it('highest trump wins', () => {
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'diamond:ace'],     // trump rank 4
       [1, 'clubs:queen'],  // trump rank 12
       [2, 'diamond:jack'],   // trump rank 5
@@ -176,7 +176,7 @@ describe('determineTrickWinner', () => {
   });
 
   it('Dullen (Herz 10) is highest trump', () => {
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'clubs:queen'],  // rank 12
       [1, 'heart:10'],     // rank 13 (highest)
       [2, 'spades:queen'],    // rank 11
@@ -185,7 +185,7 @@ describe('determineTrickWinner', () => {
   });
 
   it('equal trump: first played wins (liegt oben)', () => {
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'clubs:queen'],
       [1, 'clubs:queen'],  // second copy, same rank
     ];
@@ -193,7 +193,7 @@ describe('determineTrickWinner', () => {
   });
 
   it('highest Fehlfarbe of led suit wins when no trump played', () => {
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'clubs:10'],    // Fehlfarbe Kreuz 10 (rank 3 within suit)
       [1, 'clubs:ace'],    // Fehlfarbe Kreuz Ass (rank 4, wins)
       [2, 'spades:ace'],      // different suit, doesn't win
@@ -202,7 +202,7 @@ describe('determineTrickWinner', () => {
   });
 
   it('off-suit Fehlfarbe cannot win', () => {
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'clubs:king'],   // led Kreuz König
       [1, 'spades:ace'],   // Pik Ass (different suit, cannot win)
       [2, 'heart:ace'],    // Herz Ass (different suit, cannot win)
@@ -211,7 +211,7 @@ describe('determineTrickWinner', () => {
   });
 
   it('equal Fehlfarbe: first played wins', () => {
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'clubs:ace'],
       [1, 'clubs:ace'],    // second copy
     ];
@@ -219,7 +219,7 @@ describe('determineTrickWinner', () => {
   });
 
   it('Bube (trump) beats high Fehlfarbe', () => {
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'clubs:ace'],    // Fehlfarbe
       [1, 'spades:jack'],    // trump (rank 7)
     ];
@@ -227,7 +227,7 @@ describe('determineTrickWinner', () => {
   });
 
   it('Kreuz Bube (Karlchen) is the highest Bube', () => {
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'diamond:jack'],   // rank 5
       [1, 'heart:jack'],   // rank 6
       [2, 'spades:jack'],    // rank 7
@@ -238,7 +238,7 @@ describe('determineTrickWinner', () => {
 
   it('ignores trumpSuit parameter (trumps are fixed)', () => {
     // Even if "herz" is passed as trumpSuit, the standard trump rules apply
-    const cards = [
+    const cards: [number, string][] = [
       [0, 'clubs:ace'],    // Fehlfarbe Kreuz As
       [1, 'diamond:king'],   // karo is always trump
     ];
