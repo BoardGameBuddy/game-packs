@@ -17,9 +17,7 @@ import type {
   PlayerScoreResult,
   CardScoreDetail,
 } from '@boardgamebuddy/game-pack-api';
-import { groupByPlayer, createTranslator } from '@boardgamebuddy/game-pack-api';
-
-const t = createTranslator(require('path').join(__dirname, 'texts.json'));
+import { groupByPlayer } from '@boardgamebuddy/game-pack-api';
 
 /**
  * Optional: load card definitions from cards.json to drive scoring rules.
