@@ -2,5 +2,6 @@
   "id": "mygame",
   "displayName": "My Game",
   "minPlayers": 2,
-  "maxPlayers": 4
+  "maxPlayers": 4,
+  "cardCopies": 1
 }

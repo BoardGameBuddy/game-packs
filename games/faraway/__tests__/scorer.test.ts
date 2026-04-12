@@ -207,7 +207,7 @@ describe('processCards – multiple players', () => {
   it('scores each player independently', () => {
     // Alice → player 0 band [0, 0.5), Bob → player 1 band [0.5, 1.0)
     const aliceCard = card('region:03', 0.1, 0.25);
-    const bobCard   = card('region:09', 0.1, 0.75);
+    const bobCard = card('region:09', 0.1, 0.75);
     const results = processCards([aliceCard, bobCard], ctx(['Alice', 'Bob']));
     expect(results[0]).toMatchObject({ name: 'Alice', totalScore: 4 });
     expect(results[1]).toMatchObject({ name: 'Bob', totalScore: 5 });
