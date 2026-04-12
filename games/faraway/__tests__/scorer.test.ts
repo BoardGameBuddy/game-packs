@@ -12,7 +12,7 @@
  *   sanctuary:01 – no landscape, perYellowOrBlue ×1
  */
 
-const { processCards } = require('../scorer');
+import { processCards } from '../scorer';
 
 /** Helper: create a minimal DetectedCard positioned at the given column (x1). */
 function card(cardId, x1 = 0.1, cy = 0.25) {

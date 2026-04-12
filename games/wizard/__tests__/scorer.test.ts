@@ -1,8 +1,7 @@
 /**
  * Wizard scorer tests.
  */
-
-const {
+import {
   processCards,
   parseCardDisplay,
   calculateRoundScore,
@@ -10,7 +9,8 @@ const {
   extractValue,
   determineTrickWinner,
   processEvent,
-} = require('../scorer');
+  WizardGame,
+} from '../scorer';
 
 // Helper: minimal DetectedCard
 function card(cardId) {
@@ -83,27 +83,27 @@ describe('calculateRoundScore', () => {
 // ---------------------------------------------------------------------------
 describe('determineTrickWinner', () => {
   it('wizard always wins, first wizard if multiple', () => {
-    const cards = [[0, 'wizard:blue:13'], [1, 'wizard:wizard:01'], [2, 'wizard:wizard:02']];
+    const cards: [number, string][] = [[0, 'wizard:blue:13'], [1, 'wizard:wizard:01'], [2, 'wizard:wizard:02']];
     expect(determineTrickWinner(cards, null)).toBe(1);
   });
 
   it('highest trump wins when no wizard', () => {
-    const cards = [[0, 'wizard:blue:03'], [1, 'wizard:red:07'], [2, 'wizard:red:05']];
+    const cards: [number, string][] = [[0, 'wizard:blue:03'], [1, 'wizard:red:07'], [2, 'wizard:red:05']];
     expect(determineTrickWinner(cards, 'red')).toBe(1);
   });
 
   it('highest led-suit card wins when no trump played', () => {
-    const cards = [[0, 'wizard:blue:10'], [1, 'wizard:blue:08'], [2, 'wizard:green:13']];
+    const cards: [number, string][] = [[0, 'wizard:blue:10'], [1, 'wizard:blue:08'], [2, 'wizard:green:13']];
     expect(determineTrickWinner(cards, 'red')).toBe(0); // no red played; led=blue, 10>8
   });
 
   it('all jesters → first player wins', () => {
-    const cards = [[0, 'wizard:jester:01'], [1, 'wizard:jester:02']];
+    const cards: [number, string][] = [[0, 'wizard:jester:01'], [1, 'wizard:jester:02']];
     expect(determineTrickWinner(cards, null)).toBe(0);
   });
 
   it('jester does not win over colour card', () => {
-    const cards = [[0, 'wizard:jester:01'], [1, 'wizard:blue:02']];
+    const cards: [number, string][] = [[0, 'wizard:jester:01'], [1, 'wizard:blue:02']];
     expect(determineTrickWinner(cards, null)).toBe(1);
   });
 });
@@ -132,8 +132,6 @@ describe('processCards – legacy wrapper (always trumpDetection phase)', () => 
 });
 
 // ---------------------------------------------------------------------------
-const { WizardGame } = require('../scorer');
-
 describe('processCards – stateful (via WizardGame class)', () => {
   /** Advances game to trickTracking phase via processCards-based trump detection. */
   function makeGame(players) {

@@ -2,7 +2,7 @@
  * Doppelkopf scorer tests.
  */
 
-const {
+import {
   processCards,
   parseCard,
   trumpRank,
@@ -14,7 +14,8 @@ const {
   determineTrickWinner,
   calculateRoundScore,
   calculateAllRoundScores,
-} = require('../scorer');
+  DoppelkopfGame,
+} from '../scorer';
 
 // Helper: minimal DetectedCard
 function card(cardId) {
@@ -278,8 +279,6 @@ describe('processCards – legacy wrapper', () => {
 });
 
 // ---------------------------------------------------------------------------
-const { DoppelkopfGame } = require('../scorer');
-
 describe('processCards – stateful (via DoppelkopfGame class)', () => {
   const PLAYERS = ['Alice', 'Bob', 'Charlie', 'Dave'];
 

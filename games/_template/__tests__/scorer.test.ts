@@ -5,7 +5,7 @@
  */
 
 // When using the compiled JS in tests:
-const { processCards } = require('../scorer');
+import { processCards } from '../scorer';
 
 describe('processCards', () => {
   it('returns one result per player', () => {

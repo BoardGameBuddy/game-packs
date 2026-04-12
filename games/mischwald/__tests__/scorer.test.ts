@@ -12,9 +12,9 @@
  * }
  */
 
-const path = require('path');
-const fs   = require('fs');
-const { processCards } = require('../scorer');
+import * as path from 'path';
+import * as fs from 'fs';
+import { processCards } from '../scorer';
 
 // ---------------------------------------------------------------------------
 // Fixture loading

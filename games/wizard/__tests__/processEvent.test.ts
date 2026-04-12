@@ -7,7 +7,7 @@
  * no longer tested here.
  */
 
-const { WizardGame } = require('../scorer');
+import { WizardGame } from '../scorer';
 
 function card(cardId) {
   return {

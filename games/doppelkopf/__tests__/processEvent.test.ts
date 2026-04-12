@@ -7,7 +7,7 @@
  * and trick completion via processCards.
  */
 
-const { DoppelkopfGame } = require('../scorer');
+import { DoppelkopfGame } from '../scorer';
 
 function ev(type, data) { return { type, data }; }
 
