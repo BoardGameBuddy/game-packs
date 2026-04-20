@@ -55,6 +55,8 @@ export interface PlayerScoreResult {
   name: string;
   totalScore: number;
   cardDetails: CardScoreDetail[];
+  /** Indices into the original input boxes array assigned to this player. */
+  boxIndices?: number[];
 }
 
 // ---------------------------------------------------------------------------

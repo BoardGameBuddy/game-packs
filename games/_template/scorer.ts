@@ -38,7 +38,7 @@ export class MyGame implements GamePack {
   }
 
   processCards(boxes: DetectedBox[]): GameState {
-    const groups = groupByPlayer(boxes, this.players.length);
+    const { groups, indices } = groupByPlayer(boxes, this.players.length);
     return {
       players: this.players.map((name, i) => {
         const playerBoxes = groups[i] ?? [];
@@ -55,7 +55,7 @@ export class MyGame implements GamePack {
 
         const totalScore = cardDetails.reduce((sum, d) => sum + d.points, 0);
 
-        return { name, totalScore, cardDetails };
+        return { name, totalScore, cardDetails, boxIndices: indices[i] };
       }),
     };
   }

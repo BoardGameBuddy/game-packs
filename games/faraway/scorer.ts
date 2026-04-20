@@ -328,15 +328,15 @@ export class FarawayGame implements GamePack {
   }
 
   processCards(boxes: DetectedBox[]): GameState {
-    const groups = groupByPlayer(boxes, this.players.length);
+    const { groups, indices } = groupByPlayer(boxes, this.players.length);
     return {
       players: this.players.map((playerName, i) => {
         const playerBoxes = groups[i] ?? [];
         if (playerBoxes.length === 0) {
-          return { name: playerName, totalScore: 0, cardDetails: [] };
+          return { name: playerName, totalScore: 0, cardDetails: [], boxIndices: indices[i] };
         }
         const { total, cardDetails } = this.scorePlayer(playerBoxes);
-        return { name: playerName, totalScore: total, cardDetails };
+        return { name: playerName, totalScore: total, cardDetails, boxIndices: indices[i] };
       }),
     };
   }

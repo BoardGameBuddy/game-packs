@@ -741,7 +741,7 @@ export class MischwaldGame implements GamePack {
     const cards = CARDS_JSON;
     // Group on original coordinates (matching the Dart-side clustering),
     // then rectify per-player group for accurate forest building.
-    const playerGroups = groupByPlayer(boxes, this.players.length);
+    const { groups: playerGroups, indices: playerIndices } = groupByPlayer(boxes, this.players.length);
 
     // Phase 1: build forests
     const prepared: PreparedPlayer[] = playerGroups.map((playerBoxes) => {
@@ -782,7 +782,7 @@ export class MischwaldGame implements GamePack {
         const forest = p.forest;
 
         if (!forest || p.all.length === 0) {
-          return { name: playerName, totalScore: 0, cardDetails: [] };
+          return { name: playerName, totalScore: 0, cardDetails: [], boxIndices: playerIndices[playerIndex] };
         }
 
         const mostResolver: MostResolver = (self, cond) => {
@@ -836,7 +836,7 @@ export class MischwaldGame implements GamePack {
         }
 
         const totalScore = cardDetails.reduce((s, d) => s + d.points, 0);
-        return { name: playerName, totalScore, cardDetails };
+        return { name: playerName, totalScore, cardDetails, boxIndices: playerIndices[playerIndex] };
       }),
     };
   }

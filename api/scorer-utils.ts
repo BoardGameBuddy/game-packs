@@ -12,9 +12,21 @@ import type { DetectedBox } from './types';
  *
  * With a single player all boxes go to player 0.
  */
-export function groupByPlayer(boxes: DetectedBox[], playerCount: number): DetectedBox[][] {
-  if (playerCount <= 1) return [boxes];
-  if (boxes.length === 0) return Array.from({ length: playerCount }, () => []);
+export function groupByPlayer(
+  boxes: DetectedBox[], playerCount: number,
+): { groups: DetectedBox[][]; indices: number[][] } {
+  if (playerCount <= 1) {
+    return {
+      groups: [boxes],
+      indices: [boxes.map((_, i) => i)],
+    };
+  }
+  if (boxes.length === 0) {
+    return {
+      groups: Array.from({ length: playerCount }, () => []),
+      indices: Array.from({ length: playerCount }, () => []),
+    };
+  }
 
   // Compute angle from image center for each box.
   const angles: number[] = boxes.map(box => {
@@ -30,8 +42,12 @@ export function groupByPlayer(boxes: DetectedBox[], playerCount: number): Detect
 
   if (sorted.length <= playerCount) {
     const groups: DetectedBox[][] = Array.from({ length: playerCount }, () => []);
-    for (let p = 0; p < sorted.length; p++) groups[p].push(boxes[sorted[p]]);
-    return groups;
+    const indices: number[][] = Array.from({ length: playerCount }, () => []);
+    for (let p = 0; p < sorted.length; p++) {
+      groups[p].push(boxes[sorted[p]]);
+      indices[p].push(sorted[p]);
+    }
+    return { groups, indices };
   }
 
   // Compute circular gaps between consecutive sorted boxes.
@@ -103,17 +119,23 @@ export function groupByPlayer(boxes: DetectedBox[], playerCount: number): Detect
     }
   }
 
-  const result: DetectedBox[][] = [];
+  const groups: DetectedBox[][] = [];
+  const indices: number[][] = [];
   for (let i = 0; i < indexGroups.length; i++) {
     const g = indexGroups[(bottomIdx + i) % indexGroups.length];
-    result.push(g.map(idx => boxes[idx]));
+    groups.push(g.map(idx => boxes[idx]));
+    indices.push(g);
   }
 
   // Pad with empty arrays if fewer groups than players.
-  while (result.length < playerCount) result.push([]);
+  while (groups.length < playerCount) {
+    groups.push([]);
+    indices.push([]);
+  }
 
-  return result;
+  return { groups, indices };
 }
+
 
 /**
  * Creates a translator function `t(key, fallback)` that resolves dot-separated
