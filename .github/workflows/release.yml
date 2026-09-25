@@ -3,6 +3,12 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      packs:
+        description: 'Space-separated pack ids to release (empty = all packs)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -15,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -29,11 +35,20 @@ jobs:
 
       - name: Detect changed packs
         id: detect-changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          REQUESTED_PACKS: ${{ github.event.inputs.packs }}
         run: |
-          # If only one commit exists (initial push), treat all packs as changed
-          if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            changed_files=$(git diff --name-only HEAD~1 HEAD)
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "Manual release requested for: ${REQUESTED_PACKS:-all packs}"
+            changed_files=""
+          elif [ -n "$BEFORE_SHA" ] && git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            # Compare against the state before the push so multi-commit pushes
+            # pick up every changed pack, not just the last commit's.
+            changed_files=$(git diff --name-only "$BEFORE_SHA" HEAD)
           else
+            # New branch or unknown base: treat all packs as changed
             changed_files=$(git ls-files games/)
           fi
 
@@ -45,10 +60,13 @@ jobs:
             id=$(basename "${dir%/}")
             if [ "$id" = "_template" ]; then continue; fi
             if [ ! -f "games/$id/game.json" ]; then continue; fi
-            if echo "$changed_files" | grep -q "^games/$id/"; then
-              changed_packs="$changed_packs $id"
-              echo "Pack changed: $id"
+            if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+              if [ -n "$REQUESTED_PACKS" ] && ! echo " $REQUESTED_PACKS " | grep -q " $id "; then continue; fi
+            elif ! echo "$changed_files" | grep -q "^games/$id/"; then
+              continue
             fi
+            changed_packs="$changed_packs $id"
+            echo "Pack changed: $id"
           done
 
           changed_packs=$(echo "$changed_packs" | xargs)
