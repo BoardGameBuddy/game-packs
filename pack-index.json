@@ -2,15 +2,6 @@
   "version": 1,
   "packs": [
     {
-      "id": "wizard",
-      "displayName": "Wizard",
-      "description": "Stichspiel mit Zauberern und Narren",
-      "version": 47,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v47/wizard.zip",
-      "sizeBytes": 48558,
-      "checksum": "sha256:4f523bd092f7b45d217df67e58cca607d4b5b690a64c501ebfbcda1dd7cab9a5"
-    },
-    {
       "id": "faraway",
       "displayName": "Faraway",
       "description": "Regionen und Heiligtümer erkunden",
