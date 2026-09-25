@@ -65,6 +65,22 @@
       "tree_label": "Baum %d",
       "tree_label_with_name": "Baum %d: %s"
     },
+    "tags": {
+      "Pawed animal": "Pfotentier",
+      "Cloven-hoofed animal": "Huftier",
+      "Bat": "Fledermaus",
+      "Deer": "Hirsch",
+      "Insect": "Insekt",
+      "Bird": "Vogel",
+      "Butterfly": "Schmetterling",
+      "Plant": "Pflanze",
+      "Mushroom": "Pilz",
+      "Amphibian": "Amphibie",
+      "Tree": "Baum"
+    },
+    "position": {
+      "below": "darunter"
+    },
     "scoring": {
       "point_singular": "Punkt",
       "points_plural": "Punkte",
@@ -150,6 +166,22 @@
       "unknown_card": "Unknown",
       "tree_label": "Tree %d",
       "tree_label_with_name": "Tree %d: %s"
+    },
+    "tags": {
+      "Pawed animal": "Pawed animal",
+      "Cloven-hoofed animal": "Cloven-hoofed animal",
+      "Bat": "Bat",
+      "Deer": "Deer",
+      "Insect": "Insect",
+      "Bird": "Bird",
+      "Butterfly": "Butterfly",
+      "Plant": "Plant",
+      "Mushroom": "Mushroom",
+      "Amphibian": "Amphibian",
+      "Tree": "Tree"
+    },
+    "position": {
+      "below": "below"
     },
     "scoring": {
       "point_singular": "point",

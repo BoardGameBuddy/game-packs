@@ -599,8 +599,8 @@ function pointsWord(n: number): string { return n === 1 ? t('scoring.point_singu
 function describeTarget(cond: ConditionJson): string {
   const ids = (cond.name ?? []).filter(Boolean);
   const tags = (cond.tags ?? []).filter(Boolean);
-  if (ids.length > 0) return ids.join('/');
-  if (tags.length > 0) return tags.join(` ${t('scoring.or')} `);
+  if (ids.length > 0) return ids.map((id) => t('cards.' + id, id)).join('/');
+  if (tags.length > 0) return tags.map((tag) => t('tags.' + tag, tag)).join(` ${t('scoring.or')} `);
   return t('scoring.cards');
 }
 
@@ -615,7 +615,7 @@ function describeExtras(cond: ConditionJson): string {
   if (cond.fullTree === true) parts.push(t('scoring.full_tree'));
   if (cond.sameSpot === true) parts.push(t('scoring.same_spot'));
   if (cond.most === true) parts.push(t('scoring.most'));
-  if (cond.position?.length) parts.push(cond.position.join('/'));
+  if (cond.position?.length) parts.push(cond.position.map((p) => t('position.' + p, p)).join('/'));
   return parts.join(', ');
 }
 
@@ -819,7 +819,7 @@ export class MischwaldGame implements GamePack {
             cardId: inst.box.clsName,
             points,
             reason,
-            title: inst.id,
+            title: t('cards.' + inst.id, inst.id),
             group,
           });
         }
