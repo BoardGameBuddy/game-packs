@@ -14,10 +14,10 @@
       "id": "mischwald",
       "displayName": "Mischwald",
       "description": "Waldbewohner sammeln und kombinieren",
-      "version": 54,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v54/mischwald.zip",
-      "sizeBytes": 99179,
-      "checksum": "sha256:6d4a1b580d9ca7eabf3515e83694bea851c6113c52ea09e5db6a7b21e8947ef8"
+      "version": 56,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v56/mischwald.zip",
+      "sizeBytes": 99166,
+      "checksum": "sha256:baf333d2c54d1204ddb5f1a43d57e144da723af5734a7d66427fc8a026c68808"
     }
   ]
 }
