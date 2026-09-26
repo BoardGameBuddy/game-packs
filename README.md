@@ -51,7 +51,10 @@ Types are defined in the [`api/`](api/) package (`@boardgamebuddy/game-pack-api`
 {
   "id": "mygame",                          // unique, lowercase, no spaces
   "displayName": "My Game",                // shown in the game selection screen
-  "cardCopies": 2                          // how many copies of each card exist (omit = unlimited)
+  "cardCopies": 2,                         // how many copies of each card exist (omit = unlimited)
+  "expectedCards": [                       // optional: cards every player has at the end
+    { "prefix": "region", "count": 8, "name": "Regionskarten" }
+  ]                                        // prefix = card id segment; lets the app notice missed cards
 }
 ```
 

@@ -2,8 +2,7 @@
   "de": {
     "cards": {
       "region_prefix": "Region",
-      "sanctuary_prefix": "Heiligtum",
-      "sanctuary_title_prefix": "Karte"
+      "sanctuary_prefix": "Heiligtum"
     },
     "ui": {
       "landscape_city": "Stadt",
@@ -53,8 +52,7 @@
   "en": {
     "cards": {
       "region_prefix": "Region",
-      "sanctuary_prefix": "Sanctuary",
-      "sanctuary_title_prefix": "Card"
+      "sanctuary_prefix": "Sanctuary"
     },
     "ui": {
       "landscape_city": "City",

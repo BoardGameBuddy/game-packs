@@ -3,5 +3,8 @@
   "displayName": "Faraway",
   "minPlayers": 2,
   "maxPlayers": 6,
-  "cardCopies": 1
+  "cardCopies": 1,
+  "expectedCards": [
+    { "prefix": "region", "count": 8, "name": "Regionskarten" }
+  ]
 }

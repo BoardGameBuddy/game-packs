@@ -406,7 +406,7 @@ export class FarawayGame implements GamePack {
         cardId: `sanctuary:${sanctuary.id}`,
         points,
         reason,
-        title: `${t('cards.sanctuary_title_prefix')} ${displayId}`,
+        title: `${t('cards.sanctuary_prefix')} ${displayId}`,
         group: sanctuariesGroup,
       });
     }
