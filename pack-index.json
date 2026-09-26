@@ -5,10 +5,10 @@
       "id": "faraway",
       "displayName": "Faraway",
       "description": "Regionen und Heiligtümer erkunden",
-      "version": 49,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v49/faraway.zip",
-      "sizeBytes": 64660,
-      "checksum": "sha256:08c59e4534aeb3f28ceb2a78a1038e05aa2ccfa1c2624793f85fd2099c974e05"
+      "version": 53,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v53/faraway.zip",
+      "sizeBytes": 64702,
+      "checksum": "sha256:78a8cc0480b345ca8e390956421431991a69f87ee9c1e31bcd4f5bf1596b16db"
     },
     {
       "id": "mischwald",
