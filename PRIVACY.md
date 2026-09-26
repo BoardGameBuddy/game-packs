@@ -18,7 +18,7 @@ E-Mail: k.langenk@gmail.com
 
 Die App nutzt die Kamera, um Spielkarten zu erkennen und Punkte zu berechnen. Die Erkennung läuft vollständig auf deinem Gerät. Bilder werden dabei nicht an uns oder Dritte übertragen.
 
-Wenn du ein Spiel speicherst, legt die App das Foto und die Ausschnitte der erkannten Karten in ihrem privaten Speicher auf deinem Gerät ab, damit du das Ergebnis später in der Historie nachvollziehen kannst. Fotos, die du aus deiner Galerie auswählst, werden nur gelesen und für gespeicherte Spiele ebenfalls in den privaten App-Speicher kopiert.
+Wenn du ein Spiel speicherst, legt die App die Fotos (eines für alle oder eines pro Spieler) und die Ausschnitte der erkannten Karten in ihrem privaten Speicher auf deinem Gerät ab, damit du das Ergebnis später in der Historie nachvollziehen kannst. Fotos, die du aus deiner Galerie auswählst, werden nur gelesen und für gespeicherte Spiele ebenfalls in den privaten App-Speicher kopiert.
 
 ## Mikrofon und Spracheingabe
 
