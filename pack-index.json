@@ -5,19 +5,19 @@
       "id": "faraway",
       "displayName": "Faraway",
       "description": "Regionen und Heiligtümer erkunden",
-      "version": 53,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v53/faraway.zip",
-      "sizeBytes": 64702,
-      "checksum": "sha256:78a8cc0480b345ca8e390956421431991a69f87ee9c1e31bcd4f5bf1596b16db"
+      "version": 54,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v54/faraway.zip",
+      "sizeBytes": 64803,
+      "checksum": "sha256:b7b2ef9774789bd77a3c5756a680e1c0af752898b9f67ced26c801359601f0ed"
     },
     {
       "id": "mischwald",
       "displayName": "Mischwald",
       "description": "Waldbewohner sammeln und kombinieren",
-      "version": 52,
-      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v52/mischwald.zip",
-      "sizeBytes": 99064,
-      "checksum": "sha256:506dc0b4e5e6c3f1a0ec139ab8a671d5ef8ae76be36f7fac69fcb31de3c1f1bf"
+      "version": 54,
+      "downloadUrl": "https://github.com/BoardGameBuddy/game-packs/releases/download/v54/mischwald.zip",
+      "sizeBytes": 99179,
+      "checksum": "sha256:6d4a1b580d9ca7eabf3515e83694bea851c6113c52ea09e5db6a7b21e8947ef8"
     }
   ]
 }
