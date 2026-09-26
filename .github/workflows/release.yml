@@ -62,7 +62,8 @@ jobs:
             if [ ! -f "games/$id/game.json" ]; then continue; fi
             if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
               if [ -n "$REQUESTED_PACKS" ] && ! echo " $REQUESTED_PACKS " | grep -q " $id "; then continue; fi
-            elif ! echo "$changed_files" | grep -q "^games/$id/"; then
+            # Every scorer bundles api/, so an api/ change affects all packs.
+            elif ! echo "$changed_files" | grep -q -e "^games/$id/" -e "^api/"; then
               continue
             fi
             changed_packs="$changed_packs $id"

@@ -68,7 +68,7 @@ For games where card play order matters, use a row-based sort: group cards by Y 
 ## CI/CD
 
 - **PRs to main**: Type-check → compile scorers → validate `game.json` schemas → run Jest
-- **Merge to main**: Full CI + package each pack as `dist/{id}.zip` → compute checksums → update `pack-index.json` → create GitHub Release → commit index back to main
+- **Merge to main**: Full CI (a change under `api/` releases every pack, since scorers bundle it) + package each pack as `dist/{id}.zip` → compute checksums → update `pack-index.json` → create GitHub Release → commit index back to main
 - Release `version` = GitHub run number (auto-incrementing, never manually set)
 
 ## TypeScript Configuration

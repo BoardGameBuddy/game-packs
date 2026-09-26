@@ -10,11 +10,23 @@ import type { DetectedBox } from './types';
  * clockwise.  The returned groups are ordered starting from the bottom-most
  * cluster, proceeding clockwise.
  *
- * With a single player all boxes go to player 0.
+ * With a single player all boxes go to player 0. When every box carries a
+ * valid `playerIndex` (one photo per player), that assignment is used as is.
  */
 export function groupByPlayer(
   boxes: DetectedBox[], playerCount: number,
 ): { groups: DetectedBox[][]; indices: number[][] } {
+  const assigned = boxes.length > 0 && boxes.every(b =>
+    Number.isInteger(b.playerIndex) && b.playerIndex! >= 0 && b.playerIndex! < playerCount);
+  if (assigned && playerCount > 1) {
+    const groups: DetectedBox[][] = Array.from({ length: playerCount }, () => []);
+    const indices: number[][] = Array.from({ length: playerCount }, () => []);
+    boxes.forEach((box, i) => {
+      groups[box.playerIndex!].push(box);
+      indices[box.playerIndex!].push(i);
+    });
+    return { groups, indices };
+  }
   if (playerCount <= 1) {
     return {
       groups: [boxes],

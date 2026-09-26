@@ -12,6 +12,12 @@ export interface DetectedCard {
   h: number;
   angle: number;
   keypoints: number[] | null;
+  /**
+   * Index into `context.players` when the app already knows whose card this
+   * is, e.g. with one photo per player. Coordinates are then relative to
+   * that player's photo, so boxes of different players may overlap.
+   */
+  playerIndex?: number;
 }
 
 /** Preferred alias for DetectedCard in the flat-box scorer API. */
