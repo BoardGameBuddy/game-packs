@@ -446,7 +446,7 @@ program
 
 program
   .command('receive-embeddings [pack-dir]')
-  .description('Start a server to receive embeddings.bin + labels.txt from the app via QR code')
+  .description('Start a server to receive a card gallery (embeddings + labels) from the app via QR code')
   .action((packDirArg) => {
     const packDir = packDirArg ? path.resolve(packDirArg) : process.cwd();
     const gameJsonPath = path.join(packDir, 'game.json');
@@ -478,6 +478,12 @@ program
       if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
 
       const urlPath = req.url.split('?')[0];
+      // Galleries are tied to the app's embedder; newer apps send its id and
+      // the files are named after it (embeddings-<id>.bin, labels-<id>.txt).
+      const embedder = new URL(req.url, 'http://localhost').searchParams.get('embedder');
+      const safeId = embedder && /^[a-z0-9-]+$/.test(embedder) ? embedder : null;
+      const labelsName = safeId ? `labels-${safeId}.txt` : 'labels.txt';
+      const binName = safeId ? `embeddings-${safeId}.bin` : 'embeddings.bin';
 
       if (req.method === 'GET' && urlPath === '/') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -497,10 +503,10 @@ program
             res.end(JSON.stringify({ error: 'Empty labels' }));
             return;
           }
-          const outputPath = path.join(packDir, 'labels.txt');
+          const outputPath = path.join(packDir, labelsName);
           fs.writeFileSync(outputPath, body);
           receivedLabels = true;
-          console.log(`Received labels.txt: ${lines.length} labels`);
+          console.log(`Received ${labelsName}: ${lines.length} labels`);
           if (receivedLabels && receivedBin) console.log('\nAll embeddings files received. Ready to use.\n');
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, labels: lines.length }));
@@ -514,22 +520,25 @@ program
         req.on('data', chunk => chunks.push(chunk));
         req.on('end', () => {
           const body = Buffer.concat(chunks);
-          const outputPath = path.join(packDir, 'embeddings.bin');
+          const outputPath = path.join(packDir, binName);
           fs.writeFileSync(outputPath, body);
           receivedBin = true;
 
-          // Auto-generate labels.txt from embedding count.
-          // Format: N × 130 float32 values (little-endian), so N = byteLength / (130 * 4).
-          const EMBEDDING_DIM = 130;
+          // N x 128 float32 values (little-endian).
+          const EMBEDDING_DIM = 128;
           const count = Math.floor(body.length / (EMBEDDING_DIM * 4));
-          const labels = Array.from({ length: count }, (_, i) =>
-            `${packId}:${String(i + 1).padStart(3, '0')}`
-          ).join('\n') + '\n';
-          fs.writeFileSync(path.join(packDir, 'labels.txt'), labels);
+          console.log(`Received ${binName}: ${body.length} bytes (${count} embeddings)`);
 
-          console.log(`Received embeddings.bin: ${body.length} bytes (${count} embeddings)`);
-          console.log(`Generated labels.txt: ${count} labels (${packId}:001 … ${packId}:${String(count).padStart(3, '0')})`);
-          console.log(`\nEdit labels.txt to replace the auto-generated IDs with your real card IDs.\n`);
+          // Placeholder labels only when the app sent none (the app uploads
+          // the labels first; never overwrite them).
+          if (!receivedLabels) {
+            const labels = Array.from({ length: count }, (_, i) =>
+              `${packId}:${String(i + 1).padStart(3, '0')}`
+            ).join('\n') + '\n';
+            fs.writeFileSync(path.join(packDir, labelsName), labels);
+            console.log(`Generated ${labelsName}: ${count} placeholder labels`);
+            console.log(`\nEdit ${labelsName} to replace the auto-generated IDs with your real card IDs.\n`);
+          }
           if (receivedLabels && receivedBin) console.log('All embeddings files received. Ready to use.\n');
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ success: true, bytes: body.length, count }));

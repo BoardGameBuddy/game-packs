@@ -45,8 +45,8 @@ Types are defined in `api/types.ts`. Input provides detected card positions (bou
 Each pack directory contains:
 - `game.json` — metadata (`id`, `displayName`, optional feature flags)
 - `scorer.ts` + `scorer.js` — TypeScript source and compiled output
-- `embeddings.bin` — ML embeddings for card recognition: raw float32 LE values, N×D row-major (not manually edited)
-- `labels.txt` — one card label per line, parallel to `embeddings.bin` rows (not manually edited)
+- `embeddings-<embedder-id>.bin` + `labels-<embedder-id>.txt` — card gallery for one app embedder (currently `convnext-nano-1`): raw float32 LE values, N×D row-major, and one label per row. Built with `build_pack_gallery` in the vision repo, not edited by hand
+- `embeddings.bin` + `labels.txt` — legacy ResNet18 gallery, still read by app versions before the embedder switch; keep until those are gone
 - `cards.json` (optional) — card definitions loaded at runtime by the scorer
 - `texts.json` (optional) — localization strings (nested JSON, flattened to `"section.key"` at runtime)
 - `__tests__/scorer.test.js` — compiled Jest tests
