@@ -101,6 +101,24 @@ describe('tableau-wide rules and gold', () => {
 });
 
 // ---------------------------------------------------------------------------
+describe('rulebook scoring example', () => {
+  // Official per-card points printed next to each card: 92 in total.
+  // All purses are full: 4 + 9 + 5 + 3 + 8 = 29 gold.
+  const tableau = grid([
+    'village:miraculously_cured', 'castle:chancellor', 'village:doctor',
+    'village:beekeeper', 'village:farmhand', 'castle:steward',
+    'village:traveler', 'village:philosopher', 'castle:gravedigger',
+  ]);
+  const [r] = processCards(tableau, ctx(['Alice'], { Alice: 29 }));
+
+  it('matches the printed points for every card', () => {
+    expect(r.cardDetails.map((d) => d.points)).toEqual([8, 6, 12, 18, 10, 6, 6, 10, 16]);
+  });
+
+  it('matches the printed total', () => expect(r.totalScore).toBe(92));
+});
+
+// ---------------------------------------------------------------------------
 describe('rules checked against the printed cards', () => {
   // Row 0: Pilgrim (purple), Monk (purple yellow), Farmer (yellow yellow)
   // Row 1: Stable Boy (blue yellow), —, —
