@@ -1,0 +1,7 @@
+{
+  "id": "castle_combo",
+  "displayName": "Castle Combo",
+  "minPlayers": 2,
+  "maxPlayers": 5,
+  "cardCopies": 1
+}

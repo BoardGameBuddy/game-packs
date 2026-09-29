@@ -1,0 +1,1630 @@
+{
+  "source": "Listium card list by @Marc (community), matched to art by cost/shields/messenger/purse; all 78 rules checked against a photo of the printed cards. German names from the BGA German translation.",
+  "backs": {
+    "castle:back": "cards_000.png",
+    "village:back": "cards_040.png"
+  },
+  "cards": {
+    "castle:his_majesty": {
+      "image": "cards_001.png",
+      "deck": "castle",
+      "name_en": "His Majesty",
+      "name_de": "Seine Majestät der König",
+      "cost": 6,
+      "shields": [
+        "blue",
+        "purple"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "Opponents gain 1 gold",
+      "score_en": "4 points per blue shield in the same column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "blue",
+        "line": "column",
+        "points": 4
+      }
+    },
+    "castle:prince": {
+      "image": "cards_002.png",
+      "deck": "castle",
+      "name_en": "Prince",
+      "name_de": "Prinz",
+      "cost": 6,
+      "shields": [
+        "blue"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per blue shield",
+      "score_en": "4 points per blue shield in the same row",
+      "score": {
+        "type": "shield_in_line",
+        "color": "blue",
+        "line": "row",
+        "points": 4
+      }
+    },
+    "castle:princess": {
+      "image": "cards_003.png",
+      "deck": "castle",
+      "name_en": "Princess",
+      "name_de": "Prinzessin",
+      "cost": 3,
+      "shields": [
+        "blue"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on Castle cards",
+      "score_en": "3 points per blue shield in the same row",
+      "score": {
+        "type": "shield_in_line",
+        "color": "blue",
+        "line": "row",
+        "points": 3
+      }
+    },
+    "castle:chancellor": {
+      "image": "cards_004.png",
+      "deck": "castle",
+      "name_en": "Chancellor",
+      "name_de": "Kanzlerin",
+      "cost": 6,
+      "shields": [
+        "blue",
+        "green"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per green shield",
+      "score_en": "2 points per castle banner icon",
+      "score": {
+        "type": "per_card",
+        "filter": "castle",
+        "points": 2
+      }
+    },
+    "castle:jester": {
+      "image": "cards_005.png",
+      "deck": "castle",
+      "name_en": "Jester",
+      "name_de": "Hofnarr",
+      "cost": 3,
+      "shields": [
+        "blue"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "2 gold per blue shield",
+      "score_en": "2 points per blue shield in the same row or column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "blue",
+        "line": "row_col",
+        "points": 2
+      }
+    },
+    "castle:queen_mother": {
+      "image": "cards_006.png",
+      "deck": "castle",
+      "name_en": "Queen Mother",
+      "name_de": "Königinmutter",
+      "cost": 3,
+      "shields": [
+        "blue",
+        "blue"
+      ],
+      "messenger": false,
+      "purse": 5,
+      "discount": false,
+      "ability_en": "2 gold added to each purse",
+      "score_en": "2 points per gold up to a maximum of 5 gold",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 5
+      }
+    },
+    "castle:her_majesty_the_queen": {
+      "image": "cards_007.png",
+      "deck": "castle",
+      "name_en": "Her Majesty the Queen",
+      "name_de": "Ihre Majestät die Königin",
+      "cost": 7,
+      "shields": [
+        "blue"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per blue shield",
+      "score_en": "10 points per set of blue+green+orange shields",
+      "score": {
+        "type": "shield_set",
+        "colors": [
+          "blue",
+          "green",
+          "orange"
+        ],
+        "points": 10
+      }
+    },
+    "castle:baron": {
+      "image": "cards_008.png",
+      "deck": "castle",
+      "name_en": "Baron",
+      "name_de": "Baron",
+      "cost": 3,
+      "shields": [
+        "blue"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on all cards",
+      "score_en": "10 points if no yellow shields",
+      "score": {
+        "type": "if_missing",
+        "color": "yellow",
+        "points": 10
+      }
+    },
+    "castle:duchess": {
+      "image": "cards_009.png",
+      "deck": "castle",
+      "name_en": "Duchess",
+      "name_de": "Herzogin",
+      "cost": 5,
+      "shields": [
+        "blue",
+        "blue"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "Gain 2 keys",
+      "score_en": "8 points if located in the top row",
+      "score": {
+        "type": "position",
+        "where": "top_row",
+        "points": 8
+      }
+    },
+    "castle:steward": {
+      "image": "cards_010.png",
+      "deck": "castle",
+      "name_en": "Steward",
+      "name_de": "Statthalter",
+      "cost": 0,
+      "shields": [
+        "blue"
+      ],
+      "messenger": false,
+      "purse": 3,
+      "discount": false,
+      "ability_en": "Gain gold on two purses until they are full",
+      "score_en": "2 points per gold in the purse, up to a maximum of 3 gold",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 3
+      }
+    },
+    "castle:mother_superior": {
+      "image": "cards_011.png",
+      "deck": "castle",
+      "name_en": "Mother Superior",
+      "name_de": "Mutter Oberin",
+      "cost": 5,
+      "shields": [
+        "purple",
+        "purple"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "4 keys",
+      "score_en": "5 points if located in the top row",
+      "score": {
+        "type": "position",
+        "where": "top_row",
+        "points": 5
+      }
+    },
+    "castle:scribe": {
+      "image": "cards_012.png",
+      "deck": "castle",
+      "name_en": "Scribe",
+      "name_de": "Schreiber",
+      "cost": 4,
+      "shields": [
+        "purple"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per purple shield",
+      "score_en": "3 points per green shield in the same row or column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "green",
+        "line": "row_col",
+        "points": 3
+      }
+    },
+    "castle:gravedigger": {
+      "image": "cards_013.png",
+      "deck": "castle",
+      "name_en": "Gravedigger",
+      "name_de": "Totengräber",
+      "cost": 4,
+      "shields": [
+        "purple",
+        "green"
+      ],
+      "messenger": false,
+      "purse": 8,
+      "discount": false,
+      "ability_en": "Discard one Village card and receive its value in gold",
+      "score_en": "2 points per gold stored in this purse, up to a maximum of 8 gold",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 8
+      }
+    },
+    "castle:templar": {
+      "image": "cards_014.png",
+      "deck": "castle",
+      "name_en": "Templar",
+      "name_de": "Tempelritter",
+      "cost": 5,
+      "shields": [
+        "purple",
+        "red"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per purple shield of one neighbor OR 1 key per red shield",
+      "score_en": "1 point per key",
+      "score": {
+        "type": "per_key",
+        "points": 1
+      }
+    },
+    "castle:cardinal": {
+      "image": "cards_015.png",
+      "deck": "castle",
+      "name_en": "Cardinal",
+      "name_de": "Kardinälin",
+      "cost": 4,
+      "shields": [
+        "purple"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per Castle",
+      "score_en": "3 points per purple shield in the same row",
+      "score": {
+        "type": "shield_in_line",
+        "color": "purple",
+        "line": "row",
+        "points": 3
+      }
+    },
+    "castle:chaplain": {
+      "image": "cards_016.png",
+      "deck": "castle",
+      "name_en": "Chaplain",
+      "name_de": "Kaplan",
+      "cost": 5,
+      "shields": [
+        "purple"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per single-shield card",
+      "score_en": "2 points per Village card",
+      "score": {
+        "type": "per_card",
+        "filter": "village",
+        "points": 2
+      }
+    },
+    "castle:his_holiness": {
+      "image": "cards_017.png",
+      "deck": "castle",
+      "name_en": "His Holiness",
+      "name_de": "Seine Heiligkeit",
+      "cost": 7,
+      "shields": [
+        "purple"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "Gain 3 keys or opponents gain 1 key",
+      "score_en": "6 points per missing shield type",
+      "score": {
+        "type": "missing_types",
+        "points": 6
+      }
+    },
+    "castle:nun": {
+      "image": "cards_018.png",
+      "deck": "castle",
+      "name_en": "Nun",
+      "name_de": "Nonne",
+      "cost": 3,
+      "shields": [
+        "purple"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per Castle",
+      "score_en": "3 points per purple shield in the same column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "purple",
+        "line": "column",
+        "points": 3
+      }
+    },
+    "castle:devout": {
+      "image": "cards_019.png",
+      "deck": "castle",
+      "name_en": "Devout",
+      "name_de": "Frommer Gläubiger",
+      "cost": 4,
+      "shields": [
+        "purple"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per empty space",
+      "score_en": "10 points if orange shields are missing",
+      "score": {
+        "type": "if_missing",
+        "color": "orange",
+        "points": 10
+      }
+    },
+    "castle:pilgrim": {
+      "image": "cards_020.png",
+      "deck": "castle",
+      "name_en": "Pilgrim",
+      "name_de": "Pilger",
+      "cost": 6,
+      "shields": [
+        "purple"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on Village cards",
+      "score_en": "4 points per different shield type in the same row",
+      "score": {
+        "type": "diff_shield",
+        "line": "row",
+        "points": 4
+      }
+    },
+    "castle:astronomer": {
+      "image": "cards_021.png",
+      "deck": "castle",
+      "name_en": "Astronomer",
+      "name_de": "Astronom",
+      "cost": 5,
+      "shields": [
+        "green",
+        "green"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on Castle cards",
+      "score_en": "8 points if located in the left column",
+      "score": {
+        "type": "position",
+        "where": "left_col",
+        "points": 8
+      }
+    },
+    "castle:alchemist": {
+      "image": "cards_022.png",
+      "deck": "castle",
+      "name_en": "Alchemist",
+      "name_de": "Alchemistin",
+      "cost": 6,
+      "shields": [
+        "green"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on all cards",
+      "score_en": "4 points per discount (-1) card",
+      "score": {
+        "type": "per_card",
+        "filter": "discount",
+        "points": 4
+      }
+    },
+    "castle:professor": {
+      "image": "cards_023.png",
+      "deck": "castle",
+      "name_en": "Professor",
+      "name_de": "Professor",
+      "cost": 4,
+      "shields": [
+        "green"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per different shield",
+      "score_en": "3 points per green shield in the same row",
+      "score": {
+        "type": "shield_in_line",
+        "color": "green",
+        "line": "row",
+        "points": 3
+      }
+    },
+    "castle:apothecary": {
+      "image": "cards_024.png",
+      "deck": "castle",
+      "name_en": "Apothecary",
+      "name_de": "Apotheker",
+      "cost": 3,
+      "shields": [
+        "green"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on Castle cards",
+      "score_en": "3 points per green shield in the same column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "green",
+        "line": "column",
+        "points": 3
+      }
+    },
+    "castle:goldsmith": {
+      "image": "cards_025.png",
+      "deck": "castle",
+      "name_en": "Goldsmith",
+      "name_de": "Goldschmiedin",
+      "cost": 4,
+      "shields": [
+        "green",
+        "orange"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per two-shield card",
+      "score_en": "6 points if located in the left column",
+      "score": {
+        "type": "position",
+        "where": "left_col",
+        "points": 6
+      }
+    },
+    "castle:architect": {
+      "image": "cards_026.png",
+      "deck": "castle",
+      "name_en": "Architect",
+      "name_de": "Architektin",
+      "cost": 4,
+      "shields": [
+        "green"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on Village cards",
+      "score_en": "2 points per different shield type",
+      "score": {
+        "type": "diff_shield",
+        "line": "tableau",
+        "points": 2
+      }
+    },
+    "castle:patron": {
+      "image": "cards_027.png",
+      "deck": "castle",
+      "name_en": "Patron",
+      "name_de": "Patron",
+      "cost": 7,
+      "shields": [
+        "green"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "Opponents gain 2 gold",
+      "score_en": "5 points per purse with a cost of 5 or more",
+      "score": {
+        "type": "per_card",
+        "filter": "cost5plus",
+        "points": 5
+      }
+    },
+    "castle:judge": {
+      "image": "cards_028.png",
+      "deck": "castle",
+      "name_en": "Judge",
+      "name_de": "Richter",
+      "cost": 4,
+      "shields": [
+        "green"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "2 keys",
+      "score_en": "3 points per pair of Castle and Village cards",
+      "score": {
+        "type": "per_card",
+        "filter": "castle_village_pair",
+        "points": 3
+      }
+    },
+    "castle:captain": {
+      "image": "cards_029.png",
+      "deck": "castle",
+      "name_en": "Captain",
+      "name_de": "Hauptmann",
+      "cost": 5,
+      "shields": [
+        "red",
+        "red"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on Village cards",
+      "score_en": "8 points if located in the right column",
+      "score": {
+        "type": "position",
+        "where": "right_col",
+        "points": 8
+      }
+    },
+    "castle:officer": {
+      "image": "cards_030.png",
+      "deck": "castle",
+      "name_en": "Officer",
+      "name_de": "Offizier",
+      "cost": 5,
+      "shields": [
+        "red"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per blue and red shield",
+      "score_en": "4 points per blue+red shield pair",
+      "score": {
+        "type": "shield_set",
+        "colors": [
+          "blue",
+          "red"
+        ],
+        "points": 4
+      }
+    },
+    "castle:royal_guard": {
+      "image": "cards_031.png",
+      "deck": "castle",
+      "name_en": "Royal Guard",
+      "name_de": "Königswache",
+      "cost": 4,
+      "shields": [
+        "blue",
+        "red"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "All players gain 1 key",
+      "score_en": "3 points per blue shield in the same column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "blue",
+        "line": "column",
+        "points": 3
+      }
+    },
+    "castle:lookout": {
+      "image": "cards_032.png",
+      "deck": "castle",
+      "name_en": "Lookout",
+      "name_de": "Späher",
+      "cost": 6,
+      "shields": [
+        "red"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per red shield",
+      "score_en": "4 points per different shield type in the same column",
+      "score": {
+        "type": "diff_shield",
+        "line": "column",
+        "points": 4
+      }
+    },
+    "castle:knight": {
+      "image": "cards_033.png",
+      "deck": "castle",
+      "name_en": "Knight",
+      "name_de": "Ritter",
+      "cost": 5,
+      "shields": [
+        "red"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per Castle card",
+      "score_en": "3 points per blue shield in the same row or column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "blue",
+        "line": "row_col",
+        "points": 3
+      }
+    },
+    "castle:general": {
+      "image": "cards_034.png",
+      "deck": "castle",
+      "name_en": "General",
+      "name_de": "General",
+      "cost": 7,
+      "shields": [
+        "red"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per different shield",
+      "score_en": "6 points per set of 3 matching shields",
+      "score": {
+        "type": "identical_set",
+        "size": 3,
+        "points": 6
+      }
+    },
+    "castle:guildmaster": {
+      "image": "cards_035.png",
+      "deck": "castle",
+      "name_en": "Guildmaster",
+      "name_de": "Gildemeister",
+      "cost": 5,
+      "shields": [
+        "orange",
+        "orange"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "Discard one Village card and receive its cost in gold",
+      "score_en": "5 points if located in the bottom row",
+      "score": {
+        "type": "position",
+        "where": "bottom_row",
+        "points": 5
+      }
+    },
+    "castle:glassblower": {
+      "image": "cards_036.png",
+      "deck": "castle",
+      "name_en": "Glassblower",
+      "name_de": "Glasbläser",
+      "cost": 5,
+      "shields": [
+        "orange"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per purple and orange shield",
+      "score_en": "4 points per purple+orange shield pair",
+      "score": {
+        "type": "shield_set",
+        "colors": [
+          "purple",
+          "orange"
+        ],
+        "points": 4
+      }
+    },
+    "castle:chatelaine": {
+      "image": "cards_037.png",
+      "deck": "castle",
+      "name_en": "Chatelaine",
+      "name_de": "Schlossherrin",
+      "cost": 2,
+      "shields": [
+        "blue",
+        "orange"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on Castle cards",
+      "score_en": "2 points per different shield type in the same row",
+      "score": {
+        "type": "diff_shield",
+        "line": "row",
+        "points": 2
+      }
+    },
+    "castle:pawnbroker": {
+      "image": "cards_038.png",
+      "deck": "castle",
+      "name_en": "Pawnbroker",
+      "name_de": "Pfandleiher",
+      "cost": 4,
+      "shields": [
+        "orange"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per card with a cost of 4 gold",
+      "score_en": "3 points per card with a cost of 4 gold",
+      "score": {
+        "type": "per_card",
+        "filter": "cost4",
+        "points": 3
+      }
+    },
+    "castle:banker": {
+      "image": "cards_039.png",
+      "deck": "castle",
+      "name_en": "Banker",
+      "name_de": "Bänkerin",
+      "cost": 7,
+      "shields": [
+        "orange"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "2 gold on each purse OR gain 3 keys",
+      "score_en": "1 point per gold stored on purses",
+      "score": {
+        "type": "all_stored_gold",
+        "points": 1
+      }
+    },
+    "village:miraculously_cured": {
+      "image": "cards_041.png",
+      "deck": "village",
+      "name_en": "Miraculously cured!",
+      "name_de": "Wundersam Geheilter",
+      "cost": 2,
+      "shields": [
+        "purple",
+        "purple"
+      ],
+      "messenger": true,
+      "purse": 4,
+      "discount": false,
+      "ability_en": "1 key per purse",
+      "score_en": "2 points per gold in this purse to a maximum of 4 gold",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 4
+      }
+    },
+    "village:vicar": {
+      "image": "cards_042.png",
+      "deck": "village",
+      "name_en": "Vicar",
+      "name_de": "Vikar",
+      "cost": 0,
+      "shields": [
+        "purple"
+      ],
+      "messenger": true,
+      "purse": 5,
+      "discount": false,
+      "ability_en": "1 gold per Village card",
+      "score_en": "2 points per gold on this purse to a maximum of 5 gold",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 5
+      }
+    },
+    "village:spy": {
+      "image": "cards_043.png",
+      "deck": "village",
+      "name_en": "Spy",
+      "name_de": "Spion",
+      "cost": 4,
+      "shields": [
+        "green",
+        "red"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per green shield AND 1 key per red shield of one neighbor",
+      "score_en": "6 points if located in the middle column",
+      "score": {
+        "type": "position",
+        "where": "middle_col",
+        "points": 6
+      }
+    },
+    "village:inventor": {
+      "image": "cards_044.png",
+      "deck": "village",
+      "name_en": "Inventor",
+      "name_de": "Erfinder",
+      "cost": 2,
+      "shields": [
+        "green",
+        "green"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per green shield",
+      "score_en": "1 point per Village card",
+      "score": {
+        "type": "per_card",
+        "filter": "village",
+        "points": 1
+      }
+    },
+    "village:doctor": {
+      "image": "cards_045.png",
+      "deck": "village",
+      "name_en": "Doctor",
+      "name_de": "Doktor",
+      "cost": 5,
+      "shields": [
+        "green"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per green shield and 1 gold per yellow shield",
+      "score_en": "4 points per green+yellow shield pair",
+      "score": {
+        "type": "shield_set",
+        "colors": [
+          "green",
+          "yellow"
+        ],
+        "points": 4
+      }
+    },
+    "village:philosopher": {
+      "image": "cards_046.png",
+      "deck": "village",
+      "name_en": "Philosopher",
+      "name_de": "Philosoph",
+      "cost": 2,
+      "shields": [
+        "green"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on Castle cards",
+      "score_en": "10 points if red shields are missing",
+      "score": {
+        "type": "if_missing",
+        "color": "red",
+        "points": 10
+      }
+    },
+    "village:squire": {
+      "image": "cards_047.png",
+      "deck": "village",
+      "name_en": "Squire",
+      "name_de": "Knappe",
+      "cost": 0,
+      "shields": [
+        "red"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on all cards",
+      "score_en": "2 points per orange shield in the same row or column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "orange",
+        "line": "row_col",
+        "points": 2
+      }
+    },
+    "village:bombardier": {
+      "image": "cards_048.png",
+      "deck": "village",
+      "name_en": "Bombardier",
+      "name_de": "Bombardier",
+      "cost": 2,
+      "shields": [
+        "red"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per orange shield of one neighbor, OR gain 2 keys",
+      "score_en": "3 points per red shield in the same column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "red",
+        "line": "column",
+        "points": 3
+      }
+    },
+    "village:militiaman": {
+      "image": "cards_049.png",
+      "deck": "village",
+      "name_en": "Militiaman",
+      "name_de": "Milizionär",
+      "cost": 2,
+      "shields": [
+        "red"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per yellow shield of one neighbor OR gain 2 keys",
+      "score_en": "3 points per red shield in the same row",
+      "score": {
+        "type": "shield_in_line",
+        "color": "red",
+        "line": "row",
+        "points": 3
+      }
+    },
+    "village:barbarian": {
+      "image": "cards_050.png",
+      "deck": "village",
+      "name_en": "Barbarian",
+      "name_de": "Barbar",
+      "cost": 2,
+      "shields": [
+        "red"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per green shield of one neighbor OR gain 2 keys",
+      "score_en": "10 points if green shields are missing",
+      "score": {
+        "type": "if_missing",
+        "color": "green",
+        "points": 10
+      }
+    },
+    "village:executioner": {
+      "image": "cards_051.png",
+      "deck": "village",
+      "name_en": "Executioner",
+      "name_de": "Henker",
+      "cost": 0,
+      "shields": [
+        "red"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "Discard one Castle card from the board and gain the cost in gold",
+      "score_en": "1 point per Castle card",
+      "score": {
+        "type": "per_card",
+        "filter": "castle",
+        "points": 1
+      }
+    },
+    "village:mercenary": {
+      "image": "cards_052.png",
+      "deck": "village",
+      "name_en": "Mercenary",
+      "name_de": "Söldner",
+      "cost": 6,
+      "shields": [
+        "red",
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per different shield type",
+      "score_en": "7 points per set of purple+red+yellow shields",
+      "score": {
+        "type": "shield_set",
+        "colors": [
+          "purple",
+          "red",
+          "yellow"
+        ],
+        "points": 7
+      }
+    },
+    "village:master_at_arms": {
+      "image": "cards_053.png",
+      "deck": "village",
+      "name_en": "Master-at-arms",
+      "name_de": "Waffenmeister",
+      "cost": 2,
+      "shields": [
+        "red",
+        "red"
+      ],
+      "messenger": false,
+      "purse": 4,
+      "discount": false,
+      "ability_en": "1 gold per red shield",
+      "score_en": "2 points per gold up to a maximum of 4",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 4
+      }
+    },
+    "village:blacksmith": {
+      "image": "cards_054.png",
+      "deck": "village",
+      "name_en": "Blacksmith",
+      "name_de": "Schmiedin",
+      "cost": 5,
+      "shields": [
+        "red",
+        "orange"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per blue shield of one neighbor, or gain 2 keys",
+      "score_en": "2 points per double-shield card",
+      "score": {
+        "type": "per_card",
+        "filter": "double_shield",
+        "points": 2
+      }
+    },
+    "village:stonemason": {
+      "image": "cards_055.png",
+      "deck": "village",
+      "name_en": "Stonemason",
+      "name_de": "Steinmetzin",
+      "cost": 3,
+      "shields": [
+        "orange"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on village cards",
+      "score_en": "3 points per orange shield in the same column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "orange",
+        "line": "column",
+        "points": 3
+      }
+    },
+    "village:potter": {
+      "image": "cards_056.png",
+      "deck": "village",
+      "name_en": "Potter",
+      "name_de": "Töpfer",
+      "cost": 2,
+      "shields": [
+        "orange",
+        "orange"
+      ],
+      "messenger": true,
+      "purse": 4,
+      "discount": false,
+      "ability_en": "2 gold on each purse",
+      "score_en": "2 points per gold up to a maximum of 4 gold",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 4
+      }
+    },
+    "village:armorer": {
+      "image": "cards_057.png",
+      "deck": "village",
+      "name_en": "Armorer",
+      "name_de": "Waffenschmiedin",
+      "cost": 3,
+      "shields": [
+        "orange"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on all cards",
+      "score_en": "3 points per red shield in the same row or column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "red",
+        "line": "row_col",
+        "points": 3
+      }
+    },
+    "village:spice_merchant": {
+      "image": "cards_058.png",
+      "deck": "village",
+      "name_en": "Spice Merchant",
+      "name_de": "Gewürzhändlerin",
+      "cost": 0,
+      "shields": [
+        "orange"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "2 gold per orange shield",
+      "score_en": "5 points if located in the middle row",
+      "score": {
+        "type": "position",
+        "where": "middle_row",
+        "points": 5
+      }
+    },
+    "village:clockmaker": {
+      "image": "cards_059.png",
+      "deck": "village",
+      "name_en": "Clockmaker",
+      "name_de": "Uhrmacherin",
+      "cost": 3,
+      "shields": [
+        "orange"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per orange shield",
+      "score_en": "3 points per orange shield in the same row",
+      "score": {
+        "type": "shield_in_line",
+        "color": "orange",
+        "line": "row",
+        "points": 3
+      }
+    },
+    "village:sculptor": {
+      "image": "cards_060.png",
+      "deck": "village",
+      "name_en": "Sculptor",
+      "name_de": "Bildhauerin",
+      "cost": 3,
+      "shields": [
+        "purple",
+        "orange"
+      ],
+      "messenger": true,
+      "purse": 7,
+      "discount": false,
+      "ability_en": "1 key per purple shield",
+      "score_en": "2 points per gold in this purse up to a maximum of 7 gold",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 7
+      }
+    },
+    "village:innkeeper": {
+      "image": "cards_061.png",
+      "deck": "village",
+      "name_en": "Innkeeper",
+      "name_de": "Gastwirt",
+      "cost": 0,
+      "shields": [
+        "orange"
+      ],
+      "messenger": false,
+      "purse": 6,
+      "discount": false,
+      "ability_en": "Gain 2 gold on each purse AND opponents gain 2 gold",
+      "score_en": "2 points per gold on this purse to a maximum of 6 gold",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 6
+      }
+    },
+    "village:carpenter": {
+      "image": "cards_062.png",
+      "deck": "village",
+      "name_en": "Carpenter",
+      "name_de": "Schreiner",
+      "cost": 0,
+      "shields": [
+        "orange"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per missing shield type",
+      "score_en": "8 points if you have at least 1 face-down card",
+      "score": {
+        "type": "if_facedown",
+        "points": 8
+      }
+    },
+    "village:locksmith": {
+      "image": "cards_063.png",
+      "deck": "village",
+      "name_en": "Locksmith",
+      "name_de": "Schlosser",
+      "cost": 4,
+      "shields": [
+        "orange",
+        "yellow"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per orange shield",
+      "score_en": "1 point per key",
+      "score": {
+        "type": "per_key",
+        "points": 1
+      }
+    },
+    "village:farmer": {
+      "image": "cards_064.png",
+      "deck": "village",
+      "name_en": "Farmer",
+      "name_de": "Bauer",
+      "cost": 5,
+      "shields": [
+        "yellow",
+        "yellow"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per yellow shield",
+      "score_en": "7 points if located in the bottom row",
+      "score": {
+        "type": "position",
+        "where": "bottom_row",
+        "points": 7
+      }
+    },
+    "village:woodcutter": {
+      "image": "cards_065.png",
+      "deck": "village",
+      "name_en": "Woodcutter",
+      "name_de": "Holzfäller",
+      "cost": 0,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per full space",
+      "score_en": "5 points if located in the right column",
+      "score": {
+        "type": "position",
+        "where": "right_col",
+        "points": 5
+      }
+    },
+    "village:brigand": {
+      "image": "cards_066.png",
+      "deck": "village",
+      "name_en": "Brigand",
+      "name_de": "Räuber",
+      "cost": 7,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per Castle card of one neighbor",
+      "score_en": "7 points per set of 3 village banner icons",
+      "score": {
+        "type": "per_card",
+        "filter": "village",
+        "points": 7,
+        "per": 3
+      }
+    },
+    "village:witch": {
+      "image": "cards_067.png",
+      "deck": "village",
+      "name_en": "Witch",
+      "name_de": "Hexe",
+      "cost": 4,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per yellow shield OR 1 key per purple shield of one neighbor",
+      "score_en": "9 points if purple shields are missing",
+      "score": {
+        "type": "if_missing",
+        "color": "purple",
+        "points": 9
+      }
+    },
+    "village:beggar": {
+      "image": "cards_068.png",
+      "deck": "village",
+      "name_en": "Beggar",
+      "name_de": "Bettlerin",
+      "cost": 0,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per full space",
+      "score_en": "2 points per purple shield in the same row or column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "purple",
+        "line": "row_col",
+        "points": 2
+      }
+    },
+    "village:monk": {
+      "image": "cards_069.png",
+      "deck": "village",
+      "name_en": "Monk",
+      "name_de": "Mönch",
+      "cost": 4,
+      "shields": [
+        "purple",
+        "yellow"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per purple shield",
+      "score_en": "2 points per yellow shield in the same row or column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "yellow",
+        "line": "row_col",
+        "points": 2
+      }
+    },
+    "village:shepherd": {
+      "image": "cards_070.png",
+      "deck": "village",
+      "name_en": "Shepherd",
+      "name_de": "Schäferin",
+      "cost": 5,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per empty space",
+      "score_en": "3 points per yellow shield in the same row",
+      "score": {
+        "type": "shield_in_line",
+        "color": "yellow",
+        "line": "row",
+        "points": 3
+      }
+    },
+    "village:winemaker": {
+      "image": "cards_071.png",
+      "deck": "village",
+      "name_en": "Winemaker",
+      "name_de": "Winzer",
+      "cost": 2,
+      "shields": [
+        "green",
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per Village card",
+      "score_en": "2 points per different shield type in the same column",
+      "score": {
+        "type": "diff_shield",
+        "line": "column",
+        "points": 2
+      }
+    },
+    "village:stable_boy": {
+      "image": "cards_072.png",
+      "deck": "village",
+      "name_en": "Stable Boy",
+      "name_de": "Stallbursche",
+      "cost": 4,
+      "shields": [
+        "blue",
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per blue shield",
+      "score_en": "3 points per yellow shield in the same column",
+      "score": {
+        "type": "shield_in_line",
+        "color": "yellow",
+        "line": "column",
+        "points": 3
+      }
+    },
+    "village:farmhand": {
+      "image": "cards_073.png",
+      "deck": "village",
+      "name_en": "Farmhand",
+      "name_de": "Magd",
+      "cost": 0,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": true,
+      "purse": 5,
+      "discount": true,
+      "ability_en": "Discount of 1 on Village cards",
+      "score_en": "2 points per gold up to a maximum of 5 gold",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 5
+      }
+    },
+    "village:traveler": {
+      "image": "cards_074.png",
+      "deck": "village",
+      "name_en": "Traveler",
+      "name_de": "Reisende",
+      "cost": 0,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "3 gold per 0-cost card",
+      "score_en": "2 points per 0-cost card",
+      "score": {
+        "type": "per_card",
+        "filter": "cost0",
+        "points": 2
+      }
+    },
+    "village:usurper": {
+      "image": "cards_075.png",
+      "deck": "village",
+      "name_en": "Usurper",
+      "name_de": "Usurpator",
+      "cost": 5,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per single-shield card",
+      "score_en": "2 points per Castle card",
+      "score": {
+        "type": "per_card",
+        "filter": "castle",
+        "points": 2
+      }
+    },
+    "village:fisherman": {
+      "image": "cards_076.png",
+      "deck": "village",
+      "name_en": "Fisherman",
+      "name_de": "Fischer",
+      "cost": 2,
+      "shields": [
+        "yellow",
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": true,
+      "ability_en": "Discount of 1 on Castle cards",
+      "score_en": "4 points if located in a corner",
+      "score": {
+        "type": "position",
+        "where": "corner",
+        "points": 4
+      }
+    },
+    "village:revolutionary": {
+      "image": "cards_077.png",
+      "deck": "village",
+      "name_en": "Revolutionary",
+      "name_de": "Revolutionärin",
+      "cost": 4,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": true,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 key per Village card",
+      "score_en": "9 points if blue shields are missing",
+      "score": {
+        "type": "if_missing",
+        "color": "blue",
+        "points": 9
+      }
+    },
+    "village:baker": {
+      "image": "cards_078.png",
+      "deck": "village",
+      "name_en": "Baker",
+      "name_de": "Bäckerin",
+      "cost": 0,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": null,
+      "discount": false,
+      "ability_en": "1 gold per yellow shield and 1 key per village banner icon",
+      "score_en": "3 points if located in the middle space of any edge",
+      "score": {
+        "type": "position",
+        "where": "edge_middle",
+        "points": 3
+      }
+    },
+    "village:beekeeper": {
+      "image": "cards_079.png",
+      "deck": "village",
+      "name_en": "Beekeeper",
+      "name_de": "Imker",
+      "cost": 2,
+      "shields": [
+        "yellow"
+      ],
+      "messenger": false,
+      "purse": 9,
+      "discount": false,
+      "ability_en": "Gain 2 gold on each purse",
+      "score_en": "2 points per gold on this purse up to a maximum of 9",
+      "score": {
+        "type": "stored_gold",
+        "points": 2,
+        "max": 9
+      }
+    }
+  }
+}
